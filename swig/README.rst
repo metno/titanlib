@@ -1,11 +1,13 @@
-# Installation
+Installation
+------------
 
 ```
 make python
 make r
 ```
 
-# Use in python
+Use in python
+-------------
 
 ```
 python
@@ -14,7 +16,8 @@ import titanlib
 titanlib.calc_gamma(1, 2)
 ```
 
-# Use in R
+Use in R
+--------
 
 ```
 R
