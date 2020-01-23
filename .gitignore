@@ -2,3 +2,6 @@
 .*.swp
 *~
 *.o
+build
+*.pyc
+deps
