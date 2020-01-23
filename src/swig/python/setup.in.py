@@ -5,6 +5,9 @@ from setuptools import setup, find_packages
 import setuptools.command.install
 import shutil
 from distutils.sysconfig import get_python_lib
+from distutils.command.build import build as build_orig
+from distutils.core import Extension
+import itertools
 
 __version__ = '${PROJECT_VERSION}'
 
@@ -27,6 +30,22 @@ class CompiledLibInstall(setuptools.command.install.install):
         # Install files
         [shutil.copy(filename, install_dir) for filename in filenames]
         print("INSTALL DIR", install_dir)
+
+def partition(pred, iterable):
+    t1, t2 = itertools.tee(iterable)
+    return itertools.filterfalse(pred, t1), filter(pred, t2)
+
+
+class build(build_orig):
+
+    def finalize_options(self):
+        super().finalize_options()
+        condition = lambda el: el[0] == 'build_ext'
+        rest, sub_build_ext = partition(condition, self.sub_commands)
+        self.sub_commands[:] = list(sub_build_ext) + list(rest)
+
+
+
 
 
 """
@@ -117,9 +136,14 @@ setup(
     #package_data={
     #    'sample': ['package_data.dat'],
     #},
+    #ext_modules=[Extension('_titanlib', ['${titanlib_SOURCE_DIR}/titanlib.cpp',
+    #    '${titanlib_SOURCE_DIR}/titanlib_wrap_python.cpp'],
+    #    swig_opts=['-I./', '-c++'],
+    #    include_dirs=['./'])],
     py_modules=['titanlib'],
 
     cmdclass={'install': CompiledLibInstall},
+    # cmdclass={'build': build},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
