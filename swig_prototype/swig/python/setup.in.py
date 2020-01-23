@@ -2,51 +2,54 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-from distutils.core import Extension
-# To use a consistent encoding
-from codecs import open
-from os import path
-from distutils.command.build import build as build_orig
-import itertools
+import setuptools.command.install
+import shutil
+from distutils.sysconfig import get_python_lib
+
+__version__ = '${PROJECT_VERSION}'
+
+class CompiledLibInstall(setuptools.command.install.install):
+    """
+    Specialized install to install to python libs
+    """
+
+    def run(self):
+        """
+        Run method called by setup
+        :return:
+        """
+        # Get filenames from CMake variable
+        filenames = '${PYTHON_INSTALL_FILES}'.split(';')
+
+        # Directory to install to
+        install_dir = get_python_lib()
+
+        # Install files
+        [shutil.copy(filename, install_dir) for filename in filenames]
+        print("INSTALL DIR", install_dir)
 
 
-here = path.abspath(path.dirname(__file__))
-# flake gets complains about undefined __version__ below, so set it to None here and then
-# overwrite in next line
-#__version__ = None
-#exec(open('verif/version.py').read())
-
-
-def partition(pred, iterable):
-    t1, t2 = itertools.tee(iterable)
-    return itertools.filterfalse(pred, t1), filter(pred, t2)
-
-
-class build(build_orig):
-
-    def finalize_options(self):
-        super().finalize_options()
-        condition = lambda el: el[0] == 'build_ext'
-        rest, sub_build_ext = partition(condition, self.sub_commands)
-        self.sub_commands[:] = list(sub_build_ext) + list(rest)
-
-
-
-
-# Get the long description from the relevant file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
-
+"""
+if __name__ == '__main__':
+    setuptools.setup(
+        name='titanlib',
+        version='1.0.0-dev',
+        py_modules=['titanlib'],
+        license='Apache License 2.0',
+        author='Cristian Lussana',
+        author_email='cristianl@met.on',
+        cmdclass={'install': CompiledLibInstall}
+    )
+"""
 setup(
     name='titanlib',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    # version=__version__,
+    version=__version__,
 
     description='A quality control toolbox',
-    # long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/metno/titanlib',
@@ -64,7 +67,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
@@ -114,13 +117,9 @@ setup(
     #package_data={
     #    'sample': ['package_data.dat'],
     #},
-    #ext_modules=[Extension('titanlib', ['../titanlib.cpp', '../titanlib_wrap_python.cpp'])]
-    ext_modules=[Extension('_titanlib', ['titanlib.cpp', 'titanlib_wrap_python.cpp'],
-        swig_opts=['-I./', '-c++'],
-        include_dirs=['./'])],
     py_modules=['titanlib'],
 
-    cmdclass={'build': build},
+    cmdclass={'install': CompiledLibInstall},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
