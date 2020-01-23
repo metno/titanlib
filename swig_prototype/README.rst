@@ -1,14 +1,24 @@
 Installation
 ------------
 
+Install the library and packages using cmake. Create a build directory and perform the installation
+there:
+
 .. code-block:: bash
 
-  make python
-  make r
+  mkdir build
+  cd build
+  cmake ../
+  make
+
+  make install-python
 
 
 Use in python
 -------------
+
+The installation above should install the python package in a central place, which should
+automatically be accessible in python3:
 
 .. code-block:: python
 
