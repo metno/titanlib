@@ -16,6 +16,4 @@ deps
 .vscode
 *.so
 .Rhistory
-*.py
-*.R
 *wrap*
