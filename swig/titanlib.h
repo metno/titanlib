@@ -4,7 +4,12 @@
 #include <vector>
 typedef std::vector<float> vec;
 
+/** Testing comment
+ *
+ * @param shape test
+ */
 float calc_gamma(float shape, float scale);
+
 bool sct(const vec lats,
         const vec lons,
         const vec elevs,
