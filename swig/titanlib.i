@@ -11,5 +11,4 @@ namespace std {
 /*  Put header files here or function declarations like below */
 #include "titanlib.h"
 %}
-
 %include "titanlib.h"
