@@ -8,7 +8,7 @@ project(titanlib VERSION 0.1.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC")
 set(CMAKE_BUILD_TYPE Release)
 
-## Add libtitanlib
+# Add libtitanlib
 include_directories(./include)
 file(GLOB SOURCES "src/*.cpp")
 add_library(titanlib SHARED ${SOURCES})

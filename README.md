@@ -2,10 +2,18 @@
 
 Automatic quality control of in-situ observations with an emphasis on spatial controls.
 
-## Installation
+## Required dependencies
 
-Install the library and packages using cmake. Create a build directory and perform the installation
-there:
+You need to install swig:
+
+```
+sudo apt install swig
+```
+
+## Installation of library
+
+Install the library and packages using cmake. Create a build directory and perform the
+installation there:
 
 ```
 mkdir build
@@ -13,12 +21,14 @@ cd build
 cmake ../
 ```
 
-To install just the titan library, do this:
+To compile just the titan library, do this:
 ```
-sudo make install
+make titanlib
 ```
 
-This will install it in /usr/local/lib/libtitanlib.so
+This creates the file libtitanlib.so
+
+## Installation and use of python module
 
 To install the python module, you only need the following (i.e. you do not need to also
 install the titan library)
@@ -26,8 +36,6 @@ install the titan library)
 ```
 sudo make install-python
 ```
-
-## Use in python
 
 The installation above should install the python package in a central place, which should
 automatically be accessible in python3:
@@ -37,12 +45,22 @@ import titanlib
 titanlib.calc_gamma(1, 2)
 ```
 
-## Use in R
+## Installation and use of R module
+
+To build the R module, do this:
 
 ```
-dyn.load(paste("titanlib", .Platform$dynlib.ext, sep=""))
-source("titanlib.R")
+make build-r
+```
+
+Run the following code in R from the build directory:
+
+```
+dyn.load(paste("SWIG/R/rtitanlib", .Platform$dynlib.ext, sep=""))
+source("SWIG/R/titanlib.R")
 cacheMetaData(1)
 
 calc_gamma(1, 2)
 ```
+
+or if you want to run from any other directory, just put in the proper paths for rtitanlib and titanlib.R
