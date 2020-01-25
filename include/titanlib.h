@@ -13,6 +13,7 @@ float calc_gamma(float shape, float scale);
 bool sct(const vec lats,
         const vec lons,
         const vec elevs,
+        const vec values,
         int nmin,
         int nmax,
         int nminprof,
