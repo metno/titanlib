@@ -23,9 +23,9 @@ set(SETUP_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/setup.in.py)
 set(SETUP_PY_OUT ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 configure_file(${SETUP_PY_IN} ${SETUP_PY_OUT})
 
-set(INIT_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/version.in.py)
-set(INIT_PY_OUT ${CMAKE_CURRENT_BINARY_DIR}/titanlib/__init__.py)
-configure_file(${INIT_PY_IN} ${INIT_PY_OUT})
+#set(INIT_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/version.in.py)
+#set(INIT_PY_OUT ${CMAKE_CURRENT_BINARY_DIR}/titanlib/__init__.py)
+#configure_file(${INIT_PY_IN} ${INIT_PY_OUT})
 
 # Install target to call setup.py
 add_custom_target(install-python
