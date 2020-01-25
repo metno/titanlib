@@ -11,6 +11,7 @@ float calc_gamma(float shape, float scale) {
 bool sct(const vec lats,
         const vec lons,
         const vec elevs,
+        const vec values,
         int nmin,
         int nmax,
         int nminprof,
@@ -21,7 +22,11 @@ bool sct(const vec lats,
         const vec t2neg,
         const vec eps2,
         vec& flags) {
-
+    flags.resize(lats.size());
+    for(int i = 0; i < lats.size(); i++) {
+        flags[i] = values[i] > 0;
+    }
+    return true;
 }
 
 bool plausibility(const vec lats,

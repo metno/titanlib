@@ -9,14 +9,14 @@ include_directories(../../include)
 
 # Add swig module
 #set(CMAKE_SWIG_FLAGS -interface _pytitanlib)
-swig_add_library(pytitanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
-swig_link_libraries(pytitanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
+swig_add_library(titanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
+swig_link_libraries(titanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
 #set_property(TARGET _pytitanlib PROPERTY OUTPUT_NAME titanlib)
 
 # Files to install with Python
 set(PYTHON_INSTALL_FILES
         ${CMAKE_CURRENT_BINARY_DIR}/titanlib.py
-        ${CMAKE_CURRENT_BINARY_DIR}/_pytitanlib.so)
+        ${CMAKE_CURRENT_BINARY_DIR}/_titanlib.so)
 
 # Configure setup.py and copy to output directory
 set(SETUP_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/setup.in.py)
@@ -29,14 +29,14 @@ configure_file(${INIT_PY_IN} ${INIT_PY_OUT})
 
 # Install target to call setup.py
 add_custom_target(install-python
-        DEPENDS _pytitanlib
+        DEPENDS _titanlib
         COMMAND python3 ${SETUP_PY_OUT} install)
 
 add_custom_target(build-python
-        DEPENDS _pytitanlib
+        DEPENDS _titanlib
         COMMAND python3 ${SETUP_PY_OUT} build)
 
 add_custom_target(develop-python
-        DEPENDS _pytitanlib
+        DEPENDS _titanlib
         COMMAND python3 ${SETUP_PY_OUT} develop)
 

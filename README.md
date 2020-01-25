@@ -38,11 +38,21 @@ sudo make install-python
 ```
 
 The installation above should install the python package in a central place, which should
-automatically be accessible in python3:
+automatically be accessible in python3.
+
+If you instead just want to build the package, do this:
+
+```
+sudo make install-python
+```
+
+The package is then available in SWIG/python/titanlib.py. Here is an example of how to use the package:
 
 ```python
 import titanlib
 titanlib.calc_gamma(1, 2)
+status, flags = titanlib.sct([60,61],[10,11],[0,100],[-4,2],0,0,0,0,0,0,[2,2],[2,2],[2,2])
+print(flags)
 ```
 
 ## Installation and use of R module
@@ -56,11 +66,12 @@ make build-r
 Run the following code in R from the build directory:
 
 ```
-dyn.load(paste("SWIG/R/rtitanlib", .Platform$dynlib.ext, sep=""))
+dyn.load(paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep=""))
 source("SWIG/R/titanlib.R")
 cacheMetaData(1)
 
 calc_gamma(1, 2)
+sct(c(60,61), c(10,11), c(0,100), c(-4,2),0,0,0,0,0,0,c(2,2),c(2,2),c(2,2))
 ```
 
 or if you want to run from any other directory, just put in the proper paths for rtitanlib and titanlib.R
