@@ -18,9 +18,10 @@ To install just the titan library, do this:
 sudo make install
 ```
 
-This will install it in /usr/local/lib/static
+This will install it in /usr/local/lib/libtitanlib.so
 
-To install the python module, you only need the following (i.e. you do not need to also install the titan library)
+To install the python module, you only need the following (i.e. you do not need to also
+install the titan library)
 
 ```
 sudo make install-python

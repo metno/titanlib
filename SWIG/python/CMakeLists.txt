@@ -2,14 +2,13 @@
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
 
-
 set(CMAKE_SWIG_FLAGS "")
 set_source_files_properties(../${PROJECT_NAME}.i PROPERTIES CPLUSPLUS ON)
-include_directories(../..)
+#include_directories(../..)
 
 # Add swig module
-swig_add_library(titanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
-swig_link_libraries(titanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
+swig_add_library(pytitanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
+swig_link_libraries(pytitanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
 
 # Files to install with Python
 set(PYTHON_INSTALL_FILES
