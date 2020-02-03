@@ -30,7 +30,7 @@ This creates the file libtitanlib.so
 
 ## Installation and use of python module
 
-To install the python module, you only need the following (i.e. you do not need to also
+To **install** the python module, you only need the following (i.e. you do not need to also
 install the titan library)
 
 ```
@@ -40,10 +40,10 @@ sudo make install-python
 The installation above should install the python package in a central place, which should
 automatically be accessible in python3.
 
-If you instead just want to build the package, do this:
+If you instead just want to **build** the package, do this:
 
 ```
-sudo make install-python
+make build-python
 ```
 
 The package is then available in SWIG/python/titanlib.py. Here is an example of how to use the package:
