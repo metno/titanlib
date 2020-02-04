@@ -2,7 +2,8 @@
 #define TITANLIB_H
 #include <iostream>
 #include <vector>
-typedef std::vector<float> vec;
+typedef std::vector<float> fvec;
+typedef std::vector<int> ivec;
 
 /** Testing comment
  *
@@ -10,27 +11,27 @@ typedef std::vector<float> vec;
  */
 float calc_gamma(float shape, float scale);
 
-bool sct(const vec lats,
-        const vec lons,
-        const vec elevs,
-        const vec values,
+bool sct(const fvec lats,
+        const fvec lons,
+        const fvec elevs,
+        const fvec values,
         int nmin,
         int nmax,
         int nminprof,
         float dzmin,
         float dhmin,
         float dz,
-        const vec t2pos,
-        const vec t2neg,
-        const vec eps2,
-        vec& flags);
+        const fvec t2pos,
+        const fvec t2neg,
+        const fvec eps2,
+        ivec& flags);
 
-bool plausibility(const vec lats,
-        const vec lons,
-        const vec elevs,
-        int unixtime,
-        float min,
-        float max,
-        vec& flags);
+bool range_check(const fvec lats,
+        const fvec lons,
+        const fvec elevs,
+        const fvec values,
+        const fvec min,
+        const fvec max,
+        ivec& flags);
 
 #endif
