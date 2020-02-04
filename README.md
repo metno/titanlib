@@ -78,11 +78,9 @@ or if you want to run from any other directory, just put in the proper paths for
 
 ## Run the test suite
 
-Tests are written in src/tests. To run these, first install the python library, then run the following:
+Tests are written in src/tests. Use nosetests3 to run these. First install the python library (see above) and the nose package (pip3 install nose) then run the following:
 
 ```bash
-pip3 install nose
-
-cd src
+cd src/
 nosetests3
 ```
