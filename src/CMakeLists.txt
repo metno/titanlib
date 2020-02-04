@@ -2,7 +2,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-par
 
 ## Add libtitanlib
 include_directories(${PROJECT_SOURCE_DIR}/include)
-add_library(titanlib titanlib.cpp)
+add_library(titanlib ${SOURCES})
 
 # Set up public headers for liba
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "titanlib.h")
