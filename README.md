@@ -75,3 +75,14 @@ sct(c(60,61), c(10,11), c(0,100), c(-4,2),0,0,0,0,0,0,c(2,2),c(2,2),c(2,2))
 ```
 
 or if you want to run from any other directory, just put in the proper paths for rtitanlib and titanlib.R
+
+## Run the test suite
+
+Tests are written in src/tests. To run these, first install the python library, then run the following:
+
+```bash
+pip3 install nose
+
+cd src
+nosetests3
+```

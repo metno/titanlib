@@ -15,7 +15,7 @@ bool range_check(const fvec lats,
     // either min/max has length 1 or is the same length as the other vecs
     const int s = lats.size();
     if( lons.size() != s || elevs.size() != s || values.size() != s ) { return false; }
-    if( (min.size() != s && max.size() != s) || (min.size() != 1 && max.size() != 1) ) { return false; }
+    if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) { return false; }
 
     flags.resize(s, 0);
 
