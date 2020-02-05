@@ -84,3 +84,13 @@ Tests are written in src/tests. Use nosetests3 to run these. First install the p
 cd src/
 nosetests3
 ```
+
+## Build the documentation
+
+Inside the build directory, type
+
+```bash
+make doc_doxygen
+```
+
+The html documentation will appear in build/doxygen/html.
