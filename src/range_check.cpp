@@ -3,7 +3,7 @@
 #include <assert.h>
 
 
-bool range_check(const fvec lats,
+bool titanlib::range_check(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
