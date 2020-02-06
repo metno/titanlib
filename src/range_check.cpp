@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <iostream>
 
-double average_temp(float lat);
-double find_closest(float lat, float latitudes[], int len);
+double mean_temp(float lat);
+std::pair<int,int> find_between(float lat, float latitudes[], int len);
 
 
 bool titanlib::range_check(const fvec values,
@@ -38,7 +38,7 @@ bool titanlib::range_check(const fvec values,
 
 }
 
-bool range_check_climatology(const fvec lats,
+bool titanlib::range_check_climatology(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
@@ -65,16 +65,13 @@ bool range_check_climatology(const fvec lats,
             flags[i] = 1;
         }
     
-        // get best guess average temp
-        average_temp(lats[i]);
-
+        // get best guess mean temp
+        mean_temp(lats[i]);
     }
-
     return true;
-
 }
 
-double average_temp(float lat) {
+double mean_temp(float lat) {
 
     // do some math to check if the value makes sense based on the lat/long (and season?)
     //https://www.physics.byu.edu/faculty/christensen/physics%20137/Figures/Temperature/Effects%20of%20Latitude%20on%20Annual%20Temperature%20Range.htm
@@ -83,22 +80,47 @@ double average_temp(float lat) {
     double mean_temp[] = {-15,5,10,15,20,25,30,30,25,21,20,15,10,0,-25};
 
     // find what two points are closest?
-    find_closest(lat, latitudes, 15);
+    std::pair<int,int> p = find_between(lat, latitudes, 15);
 
-    return 1.0;
+    //std::cout << " pair: ";
+    //std::cout << latitudes[p.first];
+    //std::cout << " ";
+    //std::cout << latitudes[p.second];
+    //std::cout << "\n";
+
+    // calculate percentage between the 2 and get mean temp based on this
+    float diff = latitudes[p.first] - lat;
+    float space = latitudes[p.first] - latitudes[p.second];
+    float percent = diff/space;
+    std::cout << " lat: ";
+    std::cout << lat;
+    std::cout << " percent: ";
+    std::cout << percent;
+    std::cout << "\n";
+
+    float temp_diff = mean_temp[p.second] - mean_temp[p.first];
+    //std::cout << " diff: ";
+    //std::cout << temp_diff;
+    //std::cout << "\n";
+    float mt = mean_temp[p.first] + (temp_diff*percent);
+    std::cout << " mean temp: ";
+    std::cout << mt;
+    std::cout << "\n";
+
+    return mt;
 }
-double find_closest(float lat, float latitudes[], int len) {
-    
+std::pair<int,int> find_between(float lat, float latitudes[], int len) {
+
+    std::pair<float,float> p = std::make_pair(0,0);
+    assert(lat <= 90);
+    assert(lat >= -90);
+
     for(int i = 0; i < len; i++) {
         if(lat > latitudes[i]) {
-            // then that means we have gone past the closest one
-            float diff1 = abs(lat - latitudes[i]);
-            float diff2 = abs(lat - latitudes[i-1]);
-            std::cout << "diff1: ";
-            std::cout << diff1;
-            std::cout << "diff2: ";
-            std::cout << diff2;
+            // then that means we are between this and the previous
+            p = std::make_pair(i-1,i);
+            break;
         }
     }
-
+    return p;
 }
