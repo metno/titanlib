@@ -29,7 +29,13 @@ namespace titanlib {
             const fvec eps2,
             ivec& flags);
 
-    bool range_check(const fvec lats,
+
+    bool range_check(const fvec values,
+            const fvec min,
+            const fvec max,
+            ivec& flags);
+
+    bool range_check_climatology(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
