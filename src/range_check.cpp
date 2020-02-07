@@ -42,31 +42,33 @@ bool titanlib::range_check_climatology(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
-        const fvec min,
-        const fvec max,
+        const fvec plus,
+        const fvec minus,
         ivec& flags) {
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
     const int s = lats.size();
     if( lons.size() != s || elevs.size() != s || values.size() != s ) { return false; }
-    if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) { return false; }
+    if( (plus.size() != s && plus.size() != 1) || (minus.size() != s && minus.size() != 1) ) { return false; }
 
     flags.resize(s, 0);
 
     for(int i = 0; i < s; i++) {
         // leave the index to 0 if its the same max/min applied to everything
         // else same as loop
-        int min_i = (min.size() == s) ? i : 0;
-        int max_i = (max.size() == s) ? i : 0;
+        int plus_i = (plus.size() == s) ? i : 0;
+        int minus_i = (minus.size() == s) ? i : 0;
+
+        // get best guess mean temp
+        double t = mean_temp(lats[i]);
+        double mean_plus = t + plus[plus_i];
+        double mean_minus = t + minus[minus_i];  
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < min[min_i] || values[i] > max[max_i]) {
+        if(values[i] < mean_minus || values[i] > mean_plus) {
             flags[i] = 1;
         }
-    
-        // get best guess mean temp
-        mean_temp(lats[i]);
     }
     return true;
 }
@@ -75,6 +77,8 @@ double mean_temp(float lat) {
 
     // do some math to check if the value makes sense based on the lat/long (and season?)
     //https://www.physics.byu.edu/faculty/christensen/physics%20137/Figures/Temperature/Effects%20of%20Latitude%20on%20Annual%20Temperature%20Range.htm
+    float latitudes_var[] = {90,75,60,45,30,15,0,-15,-30,-45,-60,-75,90};
+    double seasonal_variation[] = {40,32,30,23,13,3,0,4,7,6,11,26,31};
     //http://www-das.uwyo.edu/~geerts/cwx/notes/chap16/geo_clim.html        
     float latitudes[] = {90,60,50,45,40,30,15,0,-15,-30,-35,-40,-45,-60,-90};
     double mean_temp[] = {-15,5,10,15,20,25,30,30,25,21,20,15,10,0,-25};
@@ -89,9 +93,9 @@ double mean_temp(float lat) {
     //std::cout << "\n";
 
     // calculate percentage between the 2 and get mean temp based on this
-    float diff = latitudes[p.first] - lat;
+    float lat_diff = latitudes[p.first] - lat;
     float space = latitudes[p.first] - latitudes[p.second];
-    float percent = diff/space;
+    float percent = lat_diff/space;
     std::cout << " lat: ";
     std::cout << lat;
     std::cout << " percent: ";
