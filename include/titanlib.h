@@ -39,6 +39,7 @@ namespace titanlib {
             const fvec lons,
             const fvec elevs,
             const fvec values,
+            int unixtime,
             const fvec plus,
             const fvec minus,
             ivec& flags);
