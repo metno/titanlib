@@ -7,7 +7,7 @@ Automatic quality control of in-situ observations with an emphasis on spatial co
 You need to install swig:
 
 ```
-sudo apt install swig
+sudo apt install swig doxygen R-base-core
 ```
 
 ## Installation of library
