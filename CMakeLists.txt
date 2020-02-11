@@ -4,11 +4,17 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0048 NEW)
 project(titanlib VERSION 0.1.0)
 
-# Add swig subdirectory
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -O3")
-set(CMAKE_BUILD_TYPE Release)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -g -pg")
-#set(CMAKE_CXX_FLAGS "-std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -g -pg")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC")
+if (CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -pg --coverage")
+elseif(CMAKE_BUILD_TYPE MATCHES "RELEASE")
+    # find_package(OpenMP REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 #set(CMAKE_BUILD_TYPE Debug)
 
@@ -28,6 +34,8 @@ install(TARGETS titanlib
       )
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# Add swig subdirectory
 add_subdirectory(SWIG)
 
 option(BUILD_DOC "Build documentation" ON)
