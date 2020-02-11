@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 typedef std::vector<float> fvec;
+typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
 
 /** Titanlib
@@ -29,7 +30,6 @@ namespace titanlib {
             const fvec eps2,
             ivec& flags);
 
-
     bool range_check(const fvec values,
             const fvec min,
             const fvec max,
@@ -43,6 +43,5 @@ namespace titanlib {
             const fvec plus,
             const fvec minus,
             ivec& flags);
-
 }
 #endif

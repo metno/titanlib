@@ -5,14 +5,21 @@ cmake_policy(SET CMP0048 NEW)
 project(titanlib VERSION 0.1.0)
 
 # Add swig subdirectory
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -O3")
 set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -g -pg")
+#set(CMAKE_CXX_FLAGS "-std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC -g -pg")
+
+#set(CMAKE_BUILD_TYPE Debug)
 
 # Add libtitanlib
 include_directories(./include)
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.c*")
 add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
+find_package(GSL REQUIRED)
+target_link_libraries(titanlib "${GSL_LIBRARIES}")
+target_include_directories(titanlib PUBLIC "${GSL_INCLUDE_DIRS}")
 install(TARGETS titanlib
       EXPORT CMakeSwigTargets
       PUBLIC_HEADER DESTINATION include
