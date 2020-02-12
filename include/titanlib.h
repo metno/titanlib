@@ -69,6 +69,8 @@ namespace titanlib {
             bool range_check(const fvec min, const fvec max, const ivec indices=ivec());
             bool range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices=ivec());
             bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, const ivec indices=ivec());
+            bool buddy_check(const ivec obs_to_check, const fvec distance_lim, const fvec priorities, const fvec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff);
+
             fvec lats;
             fvec lons;
             fvec elevs;
