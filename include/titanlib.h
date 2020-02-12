@@ -10,8 +10,6 @@ typedef std::vector<int> ivec;
 /** Titanlib
 */
 namespace titanlib {
-    float calc_gamma(float shape, float scale);
-
     /** Spatial Consistency Test
       * @param lats vector of latitudes
       * @param flags output vector of flags
