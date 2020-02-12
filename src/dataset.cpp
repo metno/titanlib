@@ -55,9 +55,9 @@ fvec titanlib::Dataset::subset(const fvec& array, const ivec& indices) {
     return new_array;
 }
 
-bool titanlib::Dataset::buddy_check(const ivec obs_to_check, const fvec distance_lim, const fvec priorities, const fvec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff) {
+bool titanlib::Dataset::buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check) {
     bool status;
-    status = titanlib::buddy_check(lats, lons, elevs, values, obs_to_check, distance_lim, priorities, buddies_min, thresholds, diff_elev_max, adjust_for_elev_diff, flags);
+    status = titanlib::buddy_check(lats, lons, elevs, values, distance_lim, priorities, buddies_min, thresholds, diff_elev_max, adjust_for_elev_diff, flags, obs_to_check);
     return status;
 }
 void titanlib::Dataset::unsubset(const ivec& array, ivec& orig_array, const ivec& indices) {
