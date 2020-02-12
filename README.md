@@ -7,7 +7,7 @@ Automatic quality control of in-situ observations with an emphasis on spatial co
 You need to install swig:
 
 ```
-sudo apt install swig
+sudo apt install swig doxygen R-base-core
 ```
 
 ## Installation of library
@@ -94,3 +94,11 @@ make doc_doxygen
 ```
 
 The html documentation will appear in build/doxygen/html.
+
+## Build a debug version of the library
+
+Just use the following options when running cmake:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=DEBUG
+```

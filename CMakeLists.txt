@@ -4,15 +4,28 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0048 NEW)
 project(titanlib VERSION 0.1.0)
 
-# Add swig subdirectory
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC")
-set(CMAKE_BUILD_TYPE Release)
+if (CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -pg --coverage")
+elseif(CMAKE_BUILD_TYPE MATCHES "RELEASE")
+    # find_package(OpenMP REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+#set(CMAKE_BUILD_TYPE Debug)
 
 # Add libtitanlib
 include_directories(./include)
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.c*")
 add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
+find_package(GSL REQUIRED)
+target_link_libraries(titanlib "${GSL_LIBRARIES}")
+target_include_directories(titanlib PUBLIC "${GSL_INCLUDE_DIRS}")
 install(TARGETS titanlib
       EXPORT CMakeSwigTargets
       PUBLIC_HEADER DESTINATION include
@@ -21,6 +34,8 @@ install(TARGETS titanlib
       )
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# Add swig subdirectory
 add_subdirectory(SWIG)
 
 option(BUILD_DOC "Build documentation" ON)

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 typedef std::vector<float> fvec;
+typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
 
 /** Titanlib
