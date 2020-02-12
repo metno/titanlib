@@ -2,6 +2,7 @@
 #define TITANLIB_H
 #include <iostream>
 #include <vector>
+#include <assert.h>
 typedef std::vector<float> fvec;
 typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
@@ -28,6 +29,7 @@ namespace titanlib {
             const fvec t2pos,
             const fvec t2neg,
             const fvec eps2,
+            fvec& sct,
             ivec& flags);
 
     bool range_check(const fvec values,

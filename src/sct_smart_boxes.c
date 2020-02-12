@@ -50,6 +50,7 @@ void sct_smart_boxes(int *n, double *x, double *y, double *z, double *t, int *nm
     double* local_eps2 = malloc(sizeof(double) * box_n);
     double* local_rep = malloc(sizeof(double) * box_n);
     double* local_sct = malloc(sizeof(double) * box_n);
+    // printf("box_n %i \n", box_n);
 
     // Extract values for the current box into contiguous arrays
     for(int r = 0; r < box_n; r++) {
@@ -58,7 +59,6 @@ void sct_smart_boxes(int *n, double *x, double *y, double *z, double *t, int *nm
        local_t2neg[r] = t2neg[box_i[r]];
        local_eps2[r] = eps2[box_i[r]];
        local_rep[r] = rep[box_i[r]];
-       local_sct[r] = sct[box_i[r]];
     }
     spatial_consistency_test(&box_list.boxes[i], nminprof, dzmin, dhmin, dz, local_t2pos, local_t2neg, local_eps2, local_flags, local_sct, local_rep);
 

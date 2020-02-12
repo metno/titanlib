@@ -20,6 +20,7 @@ bool titanlib::sct(const fvec lats,
         const fvec t2pos,
         const fvec t2neg,
         const fvec eps2,
+        fvec& sct,
         ivec& flags) {
 
     dvec dlats(lats.begin(), lats.end());
@@ -40,15 +41,17 @@ bool titanlib::sct(const fvec lats,
     // double dzmin = 100;
     // double dhmin = 10000;
     // double dz = 30;
-    dvec sct;
+    dvec dsct;
     dvec rep;
     ivec boxids;
     sct.resize(N, 0);
     rep.resize(N, 0);
     boxids.resize(N, 0);
     flags.resize(N, 0);
+    dsct.resize(N, 0);
 
-    sct_smart_boxes(&N, &dlons[0], &dlats[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &sct[0], &rep[0], &boxids[0]);
+    sct_smart_boxes(&N, &dlons[0], &dlats[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &rep[0], &boxids[0]);
+    sct = fvec(dsct.begin(), dsct.end());
 
     return true;
 }
