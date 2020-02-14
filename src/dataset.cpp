@@ -14,7 +14,7 @@ bool titanlib::Dataset::range_check(const fvec min, const fvec max, const ivec i
     bool status;
     if(indices.size() > 0) {
         ivec iflags;
-        status = titanlib::range_check(subset(values, indices), min, max, iflags);
+        status = titanlib::range_check(subset(values, indices), subset(min, indices), subset(max, indices), iflags);
         unsubset(iflags, flags, indices);
     }
     else {
@@ -27,7 +27,7 @@ bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec plus, c
     bool status;
     if(indices.size() > 0) {
         ivec iflags;
-        status = titanlib::range_check_climatology(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), unixtime, plus, minus, iflags);
+        status = titanlib::range_check_climatology(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), unixtime, subset(plus, indices), subset(minus, indices), iflags);
         unsubset(iflags, flags, indices);
     }
     else {
@@ -41,28 +41,23 @@ bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float
         ivec iflags;
         status = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), nmin, nmax, nminprof, dzmin, dhmin , dz, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), sct, iflags);
         unsubset(iflags, flags, indices);
+        // DO we have to deal with unsubsetting sct variable?
     }
     else {
         status = titanlib::sct(lats, lons, elevs, values, nmin, nmax, nminprof, dzmin, dhmin , dz, t2pos, t2neg, eps2, sct, flags);
     }
     return status;
 }
-fvec titanlib::Dataset::subset(const fvec& array, const ivec& indices) {
-    fvec new_array = fvec(indices.size());
-    for(int i = 0; i < indices.size(); i++) {
-        new_array[i] = array[indices[i]];
-    }
-    return new_array;
-}
 
-bool titanlib::Dataset::buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check) {
+bool titanlib::Dataset::buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check, const ivec indices) {
     bool status;
-    status = titanlib::buddy_check(lats, lons, elevs, values, distance_lim, priorities, buddies_min, thresholds, diff_elev_max, adjust_for_elev_diff, flags, obs_to_check);
-    return status;
-}
-void titanlib::Dataset::unsubset(const ivec& array, ivec& orig_array, const ivec& indices) {
-    assert(array.size() == indices.size());
-    for(int i = 0; i < indices.size(); i++) {
-        orig_array[indices[i]] = array[i];
+    if(indices.size() > 0) {
+        ivec iflags;
+        status = titanlib::buddy_check(lats, lons, elevs, values, subset(distance_lim, indices), subset(priorities, indices), subset(buddies_min, indices), subset(thresholds, indices), diff_elev_max, adjust_for_elev_diff, flags, obs_to_check);
+        unsubset(iflags, flags, indices);
     }
+    else {
+        status = titanlib::buddy_check(lats, lons, elevs, values, distance_lim, priorities, buddies_min, thresholds, diff_elev_max, adjust_for_elev_diff, flags, obs_to_check);
+    }
+    return status;
 }

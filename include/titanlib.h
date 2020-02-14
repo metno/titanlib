@@ -67,7 +67,7 @@ namespace titanlib {
             bool range_check(const fvec min, const fvec max, const ivec indices=ivec());
             bool range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices=ivec());
             bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, const ivec indices=ivec());
-            bool buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check);
+            bool buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check, const ivec indices=ivec());
 
             fvec lats;
             fvec lons;
@@ -75,8 +75,25 @@ namespace titanlib {
             fvec values;
             ivec flags;
         private:
-            fvec subset(const fvec& array, const ivec& indices);
-            void unsubset(const ivec& array, ivec& orig_array, const ivec& indices);
+            template <class T> T subset(const T& array, const ivec& indices) {
+                if(array.size() == 1) {
+                    T new_array = array;
+                    return new_array;
+                }
+                else {
+                    T new_array(indices.size());
+                    for(int i = 0; i < indices.size(); i++) {
+                        new_array[i] = array[indices[i]];
+                    }
+                    return new_array;
+                }
+            }
+            template <class T> void unsubset(const T& array, T& orig_array, const ivec& indices) {
+                assert(array.size() == indices.size());
+                for(int i = 0; i < indices.size(); i++) {
+                    orig_array[indices[i]] = array[i];
+                }
+            }
     };
 }
 #endif
