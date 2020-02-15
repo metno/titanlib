@@ -63,7 +63,8 @@ class BulkTest(unittest.TestCase):
             raise NotImplementedError
 
     def test_run_all(self):
-        filenames = glob.glob('src/tests/files/*.txt')
+        directory = '/'.join(__file__.split('/')[0:-1])
+        filenames = glob.glob('%s/files/*.txt' % directory)
         for filename in filenames:
             self.run_check(filename)
 

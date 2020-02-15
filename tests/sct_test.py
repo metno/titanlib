@@ -8,6 +8,9 @@ import numpy as np
 len3 = [1, 2, 3]
 len2 = [1, 2]
 len1 = [1]
+len100 = np.random.randn(100)
+z100 = np.zeros(100)
+o100 = np.ones(100)
 
 
 class SctTest(unittest.TestCase):
@@ -23,8 +26,13 @@ class SctTest(unittest.TestCase):
         eps2 = np.ones(N) * 0.5;
         status, sct, flags = titanlib.sct(lats, lons, elevs, values, 100, 1000, 100, 100, 10000,
                 100, t2pos, t2neg, eps2)
-        print(sct)
 
+    def test_nminprof(self):
+        nminprof = 20
+        status, sct, flags = titanlib.sct(len100, len100, len100, z100, 100, 1000,
+                nminprof, 100, 10000, 100, 2*o100, 2*o100, 0.5*o100)
+        print(status)
+        self.assertTrue(status)
 
 if __name__ == '__main__':
     unittest.main()
