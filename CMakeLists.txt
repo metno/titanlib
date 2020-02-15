@@ -24,8 +24,11 @@ file(GLOB SOURCES "src/*.c*")
 add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
 find_package(GSL REQUIRED)
+find_package(ALGLIB REQUIRED)
 target_link_libraries(titanlib "${GSL_LIBRARIES}")
+target_link_libraries(titanlib "${ALGLIB_LIB}")
 target_include_directories(titanlib PUBLIC "${GSL_INCLUDE_DIRS}")
+target_include_directories(titanlib PUBLIC "${ALGLIB_INCLUDE_DIRS}")
 install(TARGETS titanlib
       EXPORT CMakeSwigTargets
       PUBLIC_HEADER DESTINATION include

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <assert.h>
+#include <libalglib/interpolation.h>
 typedef std::vector<float> fvec;
 typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
@@ -57,6 +58,58 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
+    /** Isolation check. Checks that a station is not located alone by itself
+     *  @param lats vector of latitudes [deg]
+     *  @param lons vector of longitudes [deg]
+     *  @param nmin required number of observaions
+     *  @param radius search radius [m]
+     *  @param flags vector of return flags
+     * */
+    bool isolation_check(const fvec lats,
+            const fvec lons,
+            int nmin,
+            float radius,
+            ivec& flags);
+
+    /** Isolation check with elevation. Checks that a station is not located alone by itself
+     *  @param lats vector of latitudes [deg]
+     *  @param lons vector of longitudes [deg]
+     *  @param elevs vector of elevations [m]
+     *  @param nmin required number of observaions
+     *  @param radius search radius [m]
+     *  @param dz vertical search radius [m]
+     *  @param flags vector of return flags
+     * */
+    bool isolation_check(const fvec lats,
+            const fvec lons,
+            const fvec elevs,
+            int nmin,
+            float radius,
+            float dz,
+            ivec& flags);
+
+    namespace util {
+    /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
+     *  @param lats vector of latitudes [deg]
+     *  @param lons vector of longitudes [deg]
+     *  @param x_coords vector of x-coordinates [m]
+     *  @param y_coords vector of y-coordinates [m]
+     *  @param z_coords vector of z-coordinates [m]
+     * */
+    bool convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords);
+
+    /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
+     *  @param lat latitude [deg]
+     *  @param lon longitude [deg]
+     *  @param x_coord x-coordinate [m]
+     *  @param y_coord y-coordinate [m]
+     *  @param z_coord z-coordinate [m]
+     * */
+    bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
+    }
+
+    // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);
+
     // bool prioritize(const fvec values, const ivec priority, float distance, ivec& flags);
     class Dataset {
         public:
@@ -94,6 +147,15 @@ namespace titanlib {
                     orig_array[indices[i]] = array[i];
                 }
             }
+    };
+
+    class KDTree {
+        public:
+            KDTree(const fvec& lats, const fvec& lons);
+            ivec get_neighbours(float lat, float lon, float radius);
+            int get_num_neighbours(float lat, float lon, float radius);
+        private:
+            alglib::kdtree mTree;
     };
 }
 #endif
