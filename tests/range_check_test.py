@@ -13,19 +13,15 @@ ut = 1546300800
 class RangeCheckTest(unittest.TestCase):
     def test_valid_input(self):
         """Check that the test doesn't fail"""
-        self.assertTrue(titanlib.range_check_climatology(len1, len1, len1, len1, ut, len1, len1)[0])
-        self.assertTrue(titanlib.range_check_climatology(len3, len3, len3, len3, ut, len1, len1)[0])
-        self.assertTrue(titanlib.range_check_climatology(len3, len3, len3, len3, ut, len1, len3)[0])
-        self.assertTrue(titanlib.range_check_climatology(len3, len3, len3, len3, ut, len1, len1)[0])
+        self.assertTrue(titanlib.range_check(len1, len1, len1)[0])
+        self.assertTrue(titanlib.range_check(len3, len1, len1)[0])
+        self.assertTrue(titanlib.range_check(len3, len1, len3)[0])
+        self.assertTrue(titanlib.range_check(len3, len1, len1)[0])
 
     def test_invalid_input(self):
         """Check that the test fails"""
         # Min/max inconsistent with inputs
-        status, flags  = titanlib.range_check_climatology(len3, len3, len3, len3, ut, len2, len2)
-        self.assertFalse(status)
-
-        # Lat / lon inconsistent
-        status, flags  = titanlib.range_check_climatology(len3, len1, len3, len3, ut, len1, len1)
+        status, flags  = titanlib.range_check(len3, len2, len2)
         self.assertFalse(status)
 
     def test_simple(self):
