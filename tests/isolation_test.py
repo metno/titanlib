@@ -11,7 +11,29 @@ import util
 
 
 class IsolationTest(unittest.TestCase):
-    def test_1(self):
+    def test_no_elevation(self):
+        # These points are roughly 5 km apart, except for the last
+        lats = [60, 60, 60, 60, 60, 70]
+        lons = [10,10.1,10.2,10.3,10.4, 10]
+
+        radius = 15000
+
+        # All except the last one have at least 2 neighbours
+        status, flags = titanlib.isolation_check(lats, lons, 3, radius)
+        self.assertTrue(status)
+        self.assertListEqual(list(flags), [0, 0, 0, 0, 0, 1])
+
+        # Only the middle one has 5 neighbours
+        status, flags = titanlib.isolation_check(lats, lons, 5, radius)
+        self.assertTrue(status)
+        self.assertListEqual(list(flags), [1, 1, 0, 1, 1, 1])
+
+        # None have neighbours within 1 km
+        status, flags = titanlib.isolation_check(lats, lons, 2, 1000)
+        self.assertTrue(status)
+        self.assertListEqual(list(flags), [1, 1, 1, 1, 1, 1])
+
+    def test_summer_case(self):
         """Check that the test doesn't fail"""
         nmin = 5
         radius = 15000
