@@ -152,10 +152,39 @@ namespace titanlib {
     class KDTree {
         public:
             KDTree(const fvec& lats, const fvec& lons);
+
+            /** Find all points with a radius
+             *  @param lat Latitude of lookup-point
+             *  @param lon Longitude of lookup-point
+             *  @param radius Lookup radius [m]
+             * */
             ivec get_neighbours(float lat, float lon, float radius);
+
+            /** Find all points with a radius
+             *  @param lat Latitude of lookup-point
+             *  @param lon Longitude of lookup-point
+             *  @param radius Lookup radius [m]
+             *  @param distances Vector to store separation distances [m]
+             * */
+            ivec get_neighbours_with_distance(float lat, float lon, float radius, fvec& distances);
+
+            /** Find the number of points within a radius
+             *  @param lat Latitude of lookup-point
+             *  @param lon Longitude of lookup-point
+             *  @param radius Lookup radius [m]
+             * */
             int get_num_neighbours(float lat, float lon, float radius);
+
+            /** Find a set of nearest points
+             *  @param lat Latitude of lookup-point
+             *  @param lon Longitude of lookup-point
+             *  @param num Number of points to find
+             * */
+            ivec get_closest_neighbours(float lat, float lon, int num);
         private:
             alglib::kdtree mTree;
+            static alglib::real_1d_array ll2ar(float lat, float lon);
+
     };
 }
 #endif
