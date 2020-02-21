@@ -31,6 +31,12 @@ namespace titanlib {
             fvec& sct,
             ivec& flags);
 
+    /** Range check. Checks observation is within the ranges given
+     *  @param values vector of observations
+     *  @param min min allowed value
+     *  @param max max allowed value
+     *  @param flags vector of return flags
+     * */
     bool range_check(const fvec values,
             const fvec min,
             const fvec max,
@@ -45,12 +51,24 @@ namespace titanlib {
             const fvec minus,
             ivec& flags);
 
+    /** Buddy check. Compares a station to all its neighbours within a certain distance
+     *  @param lats vector of latitudes [deg]
+     *  @param lons vector of longitudes [deg]
+     *  @param elevs vector of elevations [m]
+     *  @param values vector of observation values
+     *  @param radius search radius [m]
+     *  @param buddies_min the minimum number of buddies a station can have
+     *  @param thresholds the threshold for flagging a station
+     *  @param diff_elev_max the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
+     *  @param adjust_for_elev_diff should adjust temperatures based on elevation difference?
+     *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
+     *  @param flags vector of return flags
+     * */
     bool buddy_check(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
-            const fvec distance_lim,
-            const ivec priorities,
+            const fvec radius,
             const ivec buddies_min,
             const fvec thresholds,
             float diff_elev_max,
@@ -58,10 +76,18 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
-    /** Isolation check. Checks that a station is not located alone by itself
+    bool first_guess_check(const fvec lats,
+            const fvec lons,
+            const fvec elevs,
+            const fvec values,
+            int unixtime,
+            const fvec obs_min,
+            const fvec obs_max);
+
+    /** Isolation check. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
      *  @param lons vector of longitudes [deg]
-     *  @param nmin required number of observaions
+     *  @param nmin required number of observations
      *  @param radius search radius [m]
      *  @param flags vector of return flags
      * */
@@ -71,11 +97,11 @@ namespace titanlib {
             float radius,
             ivec& flags);
 
-    /** Isolation check with elevation. Checks that a station is not located alone by itself
+    /** Isolation check with elevation. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
      *  @param lons vector of longitudes [deg]
      *  @param elevs vector of elevations [m]
-     *  @param nmin required number of observaions
+     *  @param nmin required number of observations
      *  @param radius search radius [m]
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
@@ -120,7 +146,7 @@ namespace titanlib {
             bool range_check(const fvec min, const fvec max, const ivec indices=ivec());
             bool range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices=ivec());
             bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, const ivec indices=ivec());
-            bool buddy_check(const fvec distance_lim, const ivec priorities, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check, const ivec indices=ivec());
+            bool buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, bool adjust_for_elev_diff, const ivec obs_to_check, const ivec indices=ivec());
 
             fvec lats;
             fvec lons;
