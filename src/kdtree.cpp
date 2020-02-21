@@ -88,6 +88,7 @@ alglib::real_1d_array titanlib::KDTree::ll2ar(float lat, float lon) {
 int titanlib::KDTree::get_nearest_neighbour(float lat, float lon) {
     alglib::real_1d_array b = titanlib::KDTree::ll2ar(lat, lon);
     int num_found = alglib::kdtreequeryknn(mTree, b, 1, false);
+    assert(num_found == 1);
 
     ivec ret;
     alglib::real_2d_array ans;

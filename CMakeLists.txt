@@ -5,7 +5,7 @@ cmake_policy(SET CMP0048 NEW)
 project(titanlib VERSION 0.1.0)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -fPIC")
 if (CMAKE_BUILD_TYPE MATCHES "DEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -pg --coverage")
 elseif(CMAKE_BUILD_TYPE MATCHES "RELEASE")

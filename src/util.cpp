@@ -38,12 +38,12 @@ void titanlib::util::convert_to_proj(const fvec& lats, const fvec& lons, std::st
     for(int i = 0; i < N; i++) {
         double lat0 = deg2rad(lats[i]);
         double lon0 = deg2rad(lons[i]);
-        int p = pj_transform(Plonglat, Pproj, 1, 1, &lon0, &lat0, NULL);
+        pj_transform(Plonglat, Pproj, 1, 1, &lon0, &lat0, NULL);
         x_coords[i] = lon0;
         y_coords[i] = lat0;
     }
     pj_free(Pproj);
-    pj_free(Plonglat); /*  may be omitted in the single threaded case */
+    pj_free(Plonglat);
 }
 float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lon2) {
     if(!(fabs(lat1) <= 90 && fabs(lat2) <= 90 && fabs(lon1) <= 360 && fabs(lon2) <= 360)) {
