@@ -18,6 +18,8 @@ endif()
 
 #set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Add libtitanlib
 include_directories(./include)
 file(GLOB SOURCES "src/*.c*")
@@ -25,18 +27,19 @@ add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
 find_package(GSL REQUIRED)
 find_package(ALGLIB REQUIRED)
+find_package(PROJ4 REQUIRED)
 target_link_libraries(titanlib "${GSL_LIBRARIES}")
 target_link_libraries(titanlib "${ALGLIB_LIB}")
+target_link_libraries(titanlib "${PROJ4_LIBRARY}")
 target_include_directories(titanlib PUBLIC "${GSL_INCLUDE_DIRS}")
 target_include_directories(titanlib PUBLIC "${ALGLIB_INCLUDE_DIRS}")
+target_include_directories(titanlib PUBLIC "${PROJ4_INCLUDE_DIR}")
 install(TARGETS titanlib
       EXPORT CMakeSwigTargets
       PUBLIC_HEADER DESTINATION include
       ARCHIVE DESTINATION lib
       LIBRARY DESTINATION lib
       )
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Add swig subdirectory
 add_subdirectory(SWIG)

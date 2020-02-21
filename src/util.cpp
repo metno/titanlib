@@ -1,6 +1,8 @@
 #include <cmath>
 #include "titanlib.h"
 #include <libalglib/interpolation.h>
+#include <proj_api.h>
+#include <math.h>
 
 bool titanlib::util::convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords) {
     int N = lats.size();
@@ -24,6 +26,27 @@ bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, f
     y_coord = std::cos(latr) * std::sin(lonr) * earth_radius;
     z_coord = std::sin(latr) * earth_radius;
     return true;
+}
+void titanlib::util::convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords) {
+    int N = lats.size();
+    x_coords.resize(N);
+    y_coords.resize(N);
+
+    projPJ Pproj = pj_init_plus(proj4.c_str());
+    projPJ Plonglat = pj_init_plus("+proj=longlat +ellps=clrk66");
+
+    for(int i = 0; i < N; i++) {
+        double lat0 = deg2rad(lats[i]);
+        double lon0 = deg2rad(lons[i]);
+        int p = pj_transform(Plonglat, Pproj, 1, 1, &lon0, &lat0, NULL);
+        x_coords[i] = lon0;
+        y_coords[i] = lat0;
+    }
+    pj_free(Pproj);
+    pj_free(Plonglat); /*  may be omitted in the single threaded case */
+}
+float titanlib::util::deg2rad(float deg) {
+   return (deg * M_PI / 180);
 }
 /*
 ivec titanlib::util::nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon) {

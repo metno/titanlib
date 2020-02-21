@@ -132,6 +132,9 @@ namespace titanlib {
      *  @param z_coord z-coordinate [m]
      * */
     bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
+
+    void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
+    float deg2rad(float deg);
     }
 
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);
