@@ -115,26 +115,27 @@ namespace titanlib {
             ivec& flags);
 
     namespace util {
-    /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
-     *  @param lats vector of latitudes [deg]
-     *  @param lons vector of longitudes [deg]
-     *  @param x_coords vector of x-coordinates [m]
-     *  @param y_coords vector of y-coordinates [m]
-     *  @param z_coords vector of z-coordinates [m]
-     * */
-    bool convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords);
+        /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
+         *  @param lats vector of latitudes [deg]
+         *  @param lons vector of longitudes [deg]
+         *  @param x_coords vector of x-coordinates [m]
+         *  @param y_coords vector of y-coordinates [m]
+         *  @param z_coords vector of z-coordinates [m]
+         * */
+        bool convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords);
 
-    /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
-     *  @param lat latitude [deg]
-     *  @param lon longitude [deg]
-     *  @param x_coord x-coordinate [m]
-     *  @param y_coord y-coordinate [m]
-     *  @param z_coord z-coordinate [m]
-     * */
-    bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
+        /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
+         *  @param lat latitude [deg]
+         *  @param lon longitude [deg]
+         *  @param x_coord x-coordinate [m]
+         *  @param y_coord y-coordinate [m]
+         *  @param z_coord z-coordinate [m]
+         * */
+        bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
-    void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
-    float deg2rad(float deg);
+        void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
+        float deg2rad(float deg);
+        float calc_distance(float lat1, float lon1, float lat2, float lon2);
     }
 
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);

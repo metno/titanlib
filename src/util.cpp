@@ -45,6 +45,26 @@ void titanlib::util::convert_to_proj(const fvec& lats, const fvec& lons, std::st
     pj_free(Pproj);
     pj_free(Plonglat); /*  may be omitted in the single threaded case */
 }
+float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lon2) {
+    if(!(fabs(lat1) <= 90 && fabs(lat2) <= 90 && fabs(lon1) <= 360 && fabs(lon2) <= 360)) {
+        // std::cout << " Cannot calculate distance, invalid lat/lon: (" << lat1 << "," << lon1 << ") (" << lat2 << "," << lon2 << ")";
+        // std::cout << '\n';
+    }
+    if(lat1 == lat2 && lon1 == lon2)
+        return 0;
+
+    double lat1r = deg2rad(lat1);
+    double lat2r = deg2rad(lat2);
+    double lon1r = deg2rad(lon1);
+    double lon2r = deg2rad(lon2);
+    double radiusEarth = 6.378137e6;
+
+    double ratio = cos(lat1r)*cos(lon1r)*cos(lat2r)*cos(lon2r)
+                   + cos(lat1r)*sin(lon1r)*cos(lat2r)*sin(lon2r)
+                   + sin(lat1r)*sin(lat2r);
+    double dist = acos(ratio)*radiusEarth;
+    return (float) dist;
+}
 float titanlib::util::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
