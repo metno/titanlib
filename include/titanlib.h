@@ -153,6 +153,12 @@ namespace titanlib {
         public:
             KDTree(const fvec& lats, const fvec& lons);
 
+            /** Find single nearest points
+             *  @param lat Latitude of lookup-point
+             *  @param lon Longitude of lookup-point
+             * */
+            int get_nearest_neighbour(float lat, float lon);
+
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
