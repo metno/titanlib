@@ -23,6 +23,7 @@ bool titanlib::buddy_check(const fvec lats,
         ivec& flags,
         const ivec obs_to_check) {
 
+    bool debug = false;
     const int s = values.size();
     // assert that the arrays we expect are of size s
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return false; }
@@ -44,9 +45,11 @@ bool titanlib::buddy_check(const fvec lats,
         int d_i = (radius.size() == s) ? i : 0;
         int t_i = (thresholds.size() == s) ? i : 0;
         if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
-            std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i]; 
-            std::cout << ", and min buddies: " << buddies_min[b_i];
-            std::cout << '\n';
+            if(debug) {
+                std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i]; 
+                std::cout << ", and min buddies: " << buddies_min[b_i];
+                std::cout << '\n';
+            }
 
             // get all neighbours that are close enough                 
             ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i]);
@@ -79,7 +82,9 @@ bool titanlib::buddy_check(const fvec lats,
                             n_buddies++;
                         }
                         else {
-                            std::cout << "too much height difference: " << elev_diff << '\n';
+                            if(debug) {
+                                std::cout << "too much height difference: " << elev_diff << '\n';
+                            }
                         }
                     }
                     // if diff_elev_max is negative then don't check elevation difference
@@ -91,7 +96,9 @@ bool titanlib::buddy_check(const fvec lats,
                 }
 
             }
-            std::cout << "buddies: " << n_buddies << '\n';
+            if(debug) {
+                std::cout << "buddies: " << n_buddies << '\n';
+            }
             if(n_buddies >= buddies_min[b_i]) {
                 // compute the average and standard deviation of the values
                 boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
@@ -100,8 +107,10 @@ bool titanlib::buddy_check(const fvec lats,
                 }
                 float mean = boost::accumulators::mean(acc);
                 float variance = boost::accumulators::variance(acc);
-                std::cout << "mean: " << mean << '\n';
-                std::cout << "variance: " << variance << '\n';
+                if(debug) {
+                    std::cout << "mean: " << mean << '\n';
+                    std::cout << "variance: " << variance << '\n';
+                }
 
                 float pog = fabs(values[i] - mean);
                 if(pog > thresholds[t_i]) {
@@ -116,8 +125,8 @@ bool titanlib::buddy_check(const fvec lats,
 
 float calc_distance(float lat1, float lon1, float lat2, float lon2) {
     if(!(fabs(lat1) <= 90 && fabs(lat2) <= 90 && fabs(lon1) <= 360 && fabs(lon2) <= 360)) {
-        std::cout << " Cannot calculate distance, invalid lat/lon: (" << lat1 << "," << lon1 << ") (" << lat2 << "," << lon2 << ")";
-        std::cout << '\n';
+        // std::cout << " Cannot calculate distance, invalid lat/lon: (" << lat1 << "," << lon1 << ") (" << lat2 << "," << lon2 << ")";
+        // std::cout << '\n';
     }
     if(lat1 == lat2 && lon1 == lon2)
         return 0;
