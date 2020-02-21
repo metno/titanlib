@@ -4,6 +4,12 @@
 #include <vector>
 #include <assert.h>
 #include <libalglib/interpolation.h>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/box.hpp>
+
+#include <boost/geometry/index/rtree.hpp>
+
 typedef std::vector<float> fvec;
 typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
@@ -219,7 +225,13 @@ namespace titanlib {
              * */
             ivec get_closest_neighbours(float lat, float lon, int num);
         private:
+            typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
+            typedef std::pair<point, unsigned> value;
+            typedef boost::geometry::model::box<point> box;
             alglib::kdtree mTree;
+            fvec mLats;
+            fvec mLons;
+            boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> > mTree2;
             static alglib::real_1d_array ll2ar(float lat, float lon);
 
     };

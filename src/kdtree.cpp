@@ -1,6 +1,9 @@
 #include "titanlib.h"
+#define USE_ALGLIB 0
 
 titanlib::KDTree::KDTree(const fvec& lats, const fvec& lons) {
+    mLats = lats;
+    mLons = lons;
     fvec x, y, z;
     int nx = 3;
     int ny = 1;
@@ -14,6 +17,9 @@ titanlib::KDTree::KDTree(const fvec& lats, const fvec& lons) {
         a[i][1] = y[i];
         a[i][2] = z[i];
         a[i][3] = i;
+        point p(x[i], y[i], z[i]);
+        mTree2.insert(std::make_pair(p, i));
+
     }
     alglib::kdtreebuild(a, nx, ny, normtype, mTree);
 }
@@ -25,25 +31,42 @@ int titanlib::KDTree::get_num_neighbours(float lat, float lon, float radius) {
 }
 
 ivec titanlib::KDTree::get_neighbours(float lat, float lon, float radius) {
+    ivec ret;
+#if USE_ALGLIB
     alglib::real_1d_array b = titanlib::KDTree::ll2ar(lat, lon);
     int num = alglib::kdtreequeryrnn(mTree, b, radius, false);
 
-    ivec ret;
     alglib::real_2d_array ans;
     alglib::kdtreequeryresultsxy(mTree, ans);
     ret.resize(num);
     for(int i = 0; i < num; i++) {
         ret[i] = ans[i][3];
     }
-    return ret;
+#else
+    std::vector<value> result_n;
+    float x, y, z;
+    titanlib::util::convert_coordinates(lat, lon, x, y, z);
+    box bx(point(x - radius, y - radius, z - radius), point(x + radius, y + radius, z + radius));
+    mTree2.query(boost::geometry::index::within(bx), std::back_inserter(result_n));
+    int num = result_n.size();
+
+    ivec ret2;
+    ret2.resize(num);
+    for(int i = 0; i < num; i++) {
+        ret2[i] = result_n[i].second;
+    }
+#endif
+    return ret2;
 
 }
 
 ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float radius, fvec& distances) {
+    ivec ret;
+#if USE_ALGLIB
+    int
     alglib::real_1d_array b = titanlib::KDTree::ll2ar(lat, lon);
     int num = alglib::kdtreequeryrnn(mTree, b, radius, false);
 
-    ivec ret;
     alglib::real_2d_array ans;
     alglib::kdtreequeryresultsxy(mTree, ans);
     ret.resize(num);
@@ -57,22 +80,53 @@ ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float 
     for(int i = 0; i < num; i++) {
         distances[i] = rdist[i];
     }
+#else
+    std::vector<value> result_n;
+    float x, y, z;
+    titanlib::util::convert_coordinates(lat, lon, x, y, z);
+    box bx(point(x - radius, y - radius, z - radius), point(x + radius, y + radius, z + radius));
+    mTree2.query(boost::geometry::index::within(bx), std::back_inserter(result_n));
+    int num = result_n.size();
+
+    distances.resize(num);
+    for(int i = 0; i < num; i++) {
+        distances[i] = titanlib::util::calc_distance(lat, lon, mLats[result_n[i].second], mLons[result_n[i].second]);
+    }
+
+    ivec ret2;
+    ret2.resize(num);
+    for(int i = 0; i < num; i++) {
+        ret2[i] = result_n[i].second;
+    }
+
+#endif
     return ret;
 }
 
 ivec titanlib::KDTree::get_closest_neighbours(float lat, float lon, int num) {
-
+    ivec ret;
+#if USE_ALGLIB
     alglib::real_1d_array b = titanlib::KDTree::ll2ar(lat, lon);
     int num_found = alglib::kdtreequeryknn(mTree, b, num, false);
 
-    ivec ret;
     alglib::real_2d_array ans;
     alglib::kdtreequeryresultsxy(mTree, ans);
     ret.resize(num_found);
     for(int i = 0; i < num_found; i++) {
         ret[i] = ans[i][3];
     }
+#else
+    std::vector<value> result_n;
+    float x, y, z;
+    titanlib::util::convert_coordinates(lat, lon, x, y, z);
+    mTree2.query(boost::geometry::index::nearest(point(x, y, z), num), std::back_inserter(result_n));
+    int num_found = result_n.size();
 
+    ret.resize(num_found);
+    for(int i = 0; i < num_found; i++) {
+        ret[i] = result_n[i].second;
+    }
+#endif
     return ret;
 }
 alglib::real_1d_array titanlib::KDTree::ll2ar(float lat, float lon) {
