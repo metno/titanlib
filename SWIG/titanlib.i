@@ -6,8 +6,7 @@ namespace std {
   %template(DoubleVector) vector<double>;
   %template(FloatVector) vector<float>;
 }
-%apply std::vector<float>& OUTPUT { std::vector<int>& output };
-%apply std::vector<float>& OUTPUT { std::vector<int>& flags };
+%apply std::vector<int>& OUTPUT { std::vector<int>& flags };
 %apply std::vector<float>& OUTPUT { std::vector<float>& sct };
 %apply std::vector<float>& OUTPUT { std::vector<float>& x_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& y_coords };
