@@ -15,7 +15,7 @@ bool titanlib::buddy_check(const fvec lats,
         const ivec buddies_min,
         const fvec thresholds,
         float diff_elev_max,
-        bool adjust_for_elev_diff,
+        float elev_gradient,
         ivec& flags,
         const ivec obs_to_check) {
 
@@ -61,20 +61,14 @@ bool titanlib::buddy_check(const fvec lats,
                     if(diff_elev_max > 0) {
                         float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
                         if(elev_diff <= diff_elev_max) {
-                            // can use this station
-                            if(adjust_for_elev_diff) {
-                                // correction for the elevation differences (add or subtract -0.0065 degC/m)
-                                // m difference from point in question
-                                float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
-                                //std::cout << "height diff: " << elev_diff;
-                                float adjusted_value = values[neighbour_indices[j]] + (elev_diff * 0.0065);
-                                //std::cout << ", adjusted value: " << adjusted_value;
-                                //std::cout << '\n';
-                                list_buddies.push_back(adjusted_value);
-                            }
-                            else {
-                                list_buddies.push_back(values[neighbour_indices[j]]);
-                            }
+                            // correction for the elevation differences (add or subtract -0.0065 degC/m)
+                            // m difference from point in question
+                            float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
+                            //std::cout << "height diff: " << elev_diff;
+                            float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
+                            //std::cout << ", adjusted value: " << adjusted_value;
+                            //std::cout << '\n';
+                            list_buddies.push_back(adjusted_value);
                             n_buddies++;
                         }
                         else {
@@ -108,7 +102,7 @@ bool titanlib::buddy_check(const fvec lats,
                     std::cout << "variance: " << variance << '\n';
                 }
 
-                float pog = fabs(values[i] - mean);
+                float pog = fabs(values[i] - mean)/variance;
                 if(pog > thresholds[t_i]) {
                     flags[i] = 1;
                 }
