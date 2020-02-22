@@ -16,6 +16,7 @@ bool titanlib::buddy_check(const fvec lats,
         const fvec thresholds,
         float diff_elev_max,
         float elev_gradient,
+        float min_std,
         ivec& flags,
         const ivec obs_to_check) {
 
@@ -102,7 +103,11 @@ bool titanlib::buddy_check(const fvec lats,
                     std::cout << "variance: " << variance << '\n';
                 }
 
-                float pog = fabs(values[i] - mean)/variance;
+                float std = sqrt(variance);
+                if(std < min_std) {
+                    std = min_std;
+                }
+                float pog = fabs(values[i] - mean)/std;
                 if(pog > thresholds[t_i]) {
                     flags[i] = 1;
                 }
