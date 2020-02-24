@@ -2,6 +2,8 @@
 
 Titanlib is a library of automatic quality control routines for in-situ observations with an emphasis on spatial checks. It is written in C++ and has bindings for python and R.
 
+![Example of titanlib]
+(extras/image.jpg)
 
 ## Installation
 
