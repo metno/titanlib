@@ -9,7 +9,7 @@ Titanlib is a library of automatic quality control routines for in-situ observat
 Here are installation instructions for Ubuntu Bionic. First, install the pre-requisites:
 
 ```
-sudo apt install swig doxygen R-base-core libboost-dev libproj-dev
+sudo apt install swig doxygen R-base-core libboost-dev libproj-dev cmake libgsl-dev
 ```
 
 Next, configure the installation cmake. Create a build directory and perform the
