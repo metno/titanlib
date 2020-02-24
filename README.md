@@ -1,18 +1,17 @@
-# titanlib
+# Titanlib
 
-Automatic quality control of in-situ observations with an emphasis on spatial controls.
+Titanlib is a library of automatic quality control routines for in-situ observations with an emphasis on spatial checks. It is written in C++ and has bindings for python and R.
 
-## Required dependencies
 
-You need to install swig:
+## Installation
+
+Here are installation instructions for Ubuntu Bionic. First, install the pre-requisites:
 
 ```
 sudo apt install swig doxygen R-base-core libboost-dev libproj-dev
 ```
 
-## Installation of library
-
-Install the library and packages using cmake. Create a build directory and perform the
+Next, configure the installation cmake. Create a build directory and perform the
 installation there:
 
 ```
@@ -21,32 +20,17 @@ cd build
 cmake ../
 ```
 
-To compile just the titan library, do this:
-```
-make titanlib
-```
+To compile the library and all bindings, run
 
-This creates the file libtitanlib.so
-
-## Installation and use of python module
-
-To **install** the python module, you only need the following (i.e. you do not need to also
-install the titan library)
-
-```
-sudo make install-python
+```bash
+sudo make all
 ```
 
-The installation above should install the python package in a central place, which should
-automatically be accessible in python3.
+This will install the library in `/usr/local/lib/libtitanlib.so`, the python bindings in
+`/usr/lib/python3/dist-packages/titanlib.py`. Currently, the R package is not installed centrally, but
+instead is placed in `SWIG/R/titanlib.R`.
 
-If you instead just want to **build** the package, do this:
-
-```
-make build-python
-```
-
-The package is then available in SWIG/python/titanlib.py. Here is an example of how to use the package:
+## Python example
 
 ```python
 import titanlib
@@ -55,15 +39,10 @@ status, flags = titanlib.sct([60,61],[10,11],[0,100],[-4,2],0,0,0,0,0,0,[2,2],[2
 print(flags)
 ```
 
-## Installation and use of R module
+## R example
 
-To build the R module, do this:
-
-```
-make build-r
-```
-
-Run the following code in R from the build directory:
+Run the following code in R from the build directory, or if you want to run from any other directory, just
+put in the proper paths for rtitanlib and titanlib.R
 
 ```
 dyn.load(paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep=""))
@@ -74,19 +53,30 @@ calc_gamma(1, 2)
 sct(c(60,61), c(10,11), c(0,100), c(-4,2),0,0,0,0,0,0,c(2,2),c(2,2),c(2,2))
 ```
 
-or if you want to run from any other directory, just put in the proper paths for rtitanlib and titanlib.R
+## Development instructions
 
-## Run the test suite
+The C++ library and python bindings can be installed separately like this:
 
-Tests are written in the tests/ directory. The tests rely on the python interface to titanlib being installed (see above). Use nosetests3 to run all tests. First install the python library  and the nose package (pip3 install nose) then run the following:
+```
+sudo make install
+sudo make install-python
+```
+
+To build the library and packages (and not install them), run:
+
+```
+make titanlib
+make build-python
+make build-r
+```
+
+*Unit tests* are written in the tests/ directory. The tests rely on the python interface to titanlib being installed (see above). Use nosetests3 to run all tests. First install the python library  and the nose package (pip3 install nose) then run the following:
 
 ```bash
 nosetests3
 ```
 
-## Build the documentation
-
-Inside the build directory, type
+To *build the documentation*, run the following from the build directory:
 
 ```bash
 make doc_doxygen
@@ -94,9 +84,7 @@ make doc_doxygen
 
 The html documentation will appear in build/doxygen/html.
 
-## Build a debug version of the library
-
-Just use the following options when running cmake:
+To build a *debug version* of the library, use the following options when running cmake:
 
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=DEBUG
