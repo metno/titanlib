@@ -21,10 +21,17 @@ cd build
 cmake ../
 ```
 
-To compile the library and all bindings, run
+To compile the library and bindings, run
 
 ```bash
-sudo make all
+make all
+sudo make install
+```
+
+To install the bindings, run
+```bash
+sudo make install-python
+make build-r
 ```
 
 This will install the library in `/usr/local/lib/libtitanlib.so`, the python bindings in
