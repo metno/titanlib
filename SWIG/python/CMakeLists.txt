@@ -11,6 +11,13 @@ include_directories(../../include)
 #set(CMAKE_SWIG_FLAGS -interface _pytitanlib)
 swig_add_library(titanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
 swig_link_libraries(titanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
+if(APPLE)
+    set_property(TARGET _titanlib PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
+    set_target_properties(_titanlib PROPERTIES
+       SUFFIX ".so"
+       INSTALL_RPATH"@loader_path;@loader_path/../../${PROJECT_NAME}/.libs"
+       )
+endif()
 #set_property(TARGET _pytitanlib PROPERTY OUTPUT_NAME titanlib)
 
 # Files to install with Python
