@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 #include <assert.h>
-#include <libalglib/interpolation.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
@@ -143,6 +142,7 @@ namespace titanlib {
         void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
         float deg2rad(float deg);
         float calc_distance(float lat1, float lon1, float lat2, float lon2);
+        float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
     }
 
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);
@@ -228,11 +228,9 @@ namespace titanlib {
             typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
             typedef std::pair<point, unsigned> value;
             typedef boost::geometry::model::box<point> box;
-            alglib::kdtree mTree;
             fvec mLats;
             fvec mLons;
-            boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> > mTree2;
-            static alglib::real_1d_array ll2ar(float lat, float lon);
+            boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> > mTree;
 
     };
 }

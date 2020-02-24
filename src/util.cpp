@@ -65,6 +65,9 @@ float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lo
     double dist = acos(ratio)*radiusEarth;
     return (float) dist;
 }
+float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, float y1, float z1) {
+    return sqrt((x0 - x1)*(x0 - x1) + (y0 - y1)*(y0 - y1) + (z0 - z1)*(z0 - z1));
+}
 float titanlib::util::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
