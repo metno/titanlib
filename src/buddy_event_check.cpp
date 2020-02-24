@@ -7,16 +7,16 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include "titanlib.h"
 
-bool titanlib::buddy_check(const fvec lats,
+bool titanlib::buddy_event_check(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
         const fvec radius,
         const ivec buddies_min,
+        const fvec event_thresholds,
         const fvec thresholds,
         float diff_elev_max,
         float elev_gradient,
-        float min_std,
         ivec& flags,
         const ivec obs_to_check) {
 
@@ -75,7 +75,11 @@ bool titanlib::buddy_check(const fvec lats,
                             float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
                             //std::cout << ", adjusted value: " << adjusted_value;
                             //std::cout << '\n';
-                            list_buddies.push_back(adjusted_value);
+                            float event_value = 0;
+                            if(adjusted_value < event_thresholds[0])
+                                event_value = 1;
+
+                            list_buddies.push_back(event_value);
                             n_buddies++;
                         }
                         else {
@@ -99,23 +103,41 @@ bool titanlib::buddy_check(const fvec lats,
             if(n_buddies >= buddies_min[b_i]) {
                 // compute the average and standard deviation of the values
                 boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
+                int count = 0;
+                int count_below = 0;
                 for(int k = 0; k < list_buddies.size(); k++) {
                     acc(list_buddies[k]);
+                    if(list_buddies[k] < event_thresholds[0])
+                        count_below++;
+                    count++;
                 }
                 float mean = boost::accumulators::mean(acc);
-                float variance = boost::accumulators::variance(acc);
-                if(debug) {
-                    std::cout << "mean: " << mean << '\n';
-                    std::cout << "variance: " << variance << '\n';
-                }
+                float fraction = float(count_below) / count;
+                float curr_event = 0;
+                if(values[i] < event_thresholds[0])
+                    curr_event = 1;
 
-                float std = sqrt(variance);
-                if(std < min_std) {
-                    std = min_std;
+                if(thresholds[t_i] < 1) {
+                    if(curr_event < event_thresholds[0] && fraction <= thresholds[t_i])
+                        flags[i] = 1;
+                    else if(curr_event >= event_thresholds[0] && (1 - fraction) <= thresholds[t_i])
+                        flags[i] = 1;
                 }
-                float pog = fabs(values[i] - mean)/std;
-                if(pog > thresholds[t_i]) {
-                    flags[i] = 1;
+                else {
+                    if(curr_event < event_thresholds[0] && count_below <= thresholds[t_i])
+                        flags[i] = 1;
+                    else if(curr_event >= event_thresholds[0] && (count - count_below <= thresholds[t_i]))
+                        flags[i] = 1;
+                }
+                if(debug && values[i] > 40) {
+                    std::cout << "value: " << values[i] << '\n';
+                    std::cout << "curr_value: " << curr_event << '\n';
+                    std::cout << "event_threshold: " << event_thresholds[0] << '\n';
+                    std::cout << "threshold: " << thresholds[t_i] << '\n';
+                    std::cout << "count: " << count << '\n';
+                    std::cout << "count_below: " << count_below << '\n';
+                    std::cout << "fraction: " << fraction << '\n';
+                    std::cout << "flag: " << flags[i] << '\n';
                 }
             }
         }
