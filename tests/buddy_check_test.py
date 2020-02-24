@@ -27,7 +27,6 @@ class BuddyCheckTest(unittest.TestCase):
         e_time = time.time()
         print(e_time - s_time)
         print("Fraction of stations removed: %.1f %%" % (np.mean(flags) * 100))
-        pass
 
 
 if __name__ == '__main__':

@@ -1,6 +1,17 @@
+import numpy as np
+
+
 def summer_temperature_example():
     directory = '/'.join(__file__.split('/')[0:-1])
-    return parse('%s/data/obs_ta_20190601T12Z.txt' % directory)
+    np.random.seed(1)
+    N = 10000
+    lats = np.random.randn(N) + 60
+    lons = np.random.randn(N) + 10.7
+    elevs = np.random.rand(N) * 100
+    values = np.random.rand(N) * 2 + 20
+
+    return lats, lons, elevs, values
+
 
 def parse(filename):
     with open(filename, 'r') as file:
