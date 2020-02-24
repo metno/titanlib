@@ -16,7 +16,7 @@ ut = 1546300800
 class BuddyEventCheckTest(unittest.TestCase):
     def test_1(self):
         """Check that the test doesn't fail"""
-        lats, lons, elevs, values = util.summer_precipitation_example()
+        lats, lons, elevs, values = util.summer_temperature_example()
         I = slice(0, len(lats))
         lats = lats[I]
         lons = lons[I]
