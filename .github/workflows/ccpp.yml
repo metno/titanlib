@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
-      run: sudo apt install swig doxygen R-base-core libboost-dev libproj-dev cmake libgsl-dev
+      run: sudo apt install swig doxygen r-base-core libboost-dev libproj-dev cmake libgsl-dev
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
     - name: build
