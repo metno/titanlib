@@ -14,6 +14,6 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
-      run: cd build && make && make build-python
+      run: cd build && make && sudo make install-python
     - name: test
       run: nosetests3
