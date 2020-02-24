@@ -1,5 +1,4 @@
 #include "titanlib.h"
-#define USE_ALGLIB 0
 
 titanlib::KDTree::KDTree(const fvec& lats, const fvec& lons) {
     mLats = lats;

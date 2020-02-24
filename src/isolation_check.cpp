@@ -4,26 +4,6 @@
 #include <assert.h>
 #include <iostream>
 
-/*
-void get_tree(const fvec lats, const fvec lons, alglib::kdtree& tree) {
-    fvec x, y, z;
-    int nx = 3;
-    int ny = 1;
-    int normtype = 2;
-    titanlib::convert_coordinates(lats, lons, x, y, z);
-
-    alglib::real_2d_array a;
-    a.setlength(lats.size(), 4);
-    for(int i = 0; i < lats.size(); i++) {
-        a[i][0] = x[i];
-        a[i][1] = y[i];
-        a[i][2] = z[i];
-        a[i][3] = i;
-    }
-    alglib::kdtreebuild(a, nx, ny, normtype, tree);
-}
-*/
-
 bool titanlib::isolation_check(const fvec lats,
         const fvec lons,
         int nmin,
