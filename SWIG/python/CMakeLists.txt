@@ -39,9 +39,13 @@ add_custom_target(install-python
         DEPENDS _titanlib
         COMMAND python3 ${SETUP_PY_OUT} install)
 
+add_custom_target(install-python-user
+        DEPENDS _titanlib
+        COMMAND python3 ${SETUP_PY_OUT} install --user)
+
 add_custom_target(build-python
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} build)
+        COMMAND python3 ${SETUP_PY_OUT} build_ext)
 
 add_custom_target(develop-python
         DEPENDS _titanlib

@@ -22,7 +22,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Add libtitanlib
 include_directories(./include)
-file(GLOB SOURCES "src/*.c*")
+file(GLOB SOURCES "src/*.cpp" "src/*.c")
 add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
 find_package(Boost REQUIRED)

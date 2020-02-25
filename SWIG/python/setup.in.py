@@ -2,34 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-import setuptools.command.install
-import shutil
-from distutils.sysconfig import get_python_lib
 from distutils.command.build import build as build_orig
-from distutils.core import Extension
+from distutils.core import setup, Extension
+from setuptools import setup, Extension
+import glob
 import itertools
 
 __version__ = '${PROJECT_VERSION}'
-
-class CompiledLibInstall(setuptools.command.install.install):
-    """
-    Specialized install to install to python libs
-    """
-
-    def run(self):
-        """
-        Run method called by setup
-        :return:
-        """
-        # Get filenames from CMake variable
-        filenames = '${PYTHON_INSTALL_FILES}'.split(';')
-
-        # Directory to install to
-        install_dir = get_python_lib()
-
-        # Install files
-        [shutil.copy(filename, install_dir) for filename in filenames]
-        print("INSTALL DIR", install_dir)
 
 def partition(pred, iterable):
     t1, t2 = itertools.tee(iterable)
@@ -37,30 +16,26 @@ def partition(pred, iterable):
 
 
 class build(build_orig):
-
     def finalize_options(self):
         super().finalize_options()
         condition = lambda el: el[0] == 'build_ext'
         rest, sub_build_ext = partition(condition, self.sub_commands)
         self.sub_commands[:] = list(sub_build_ext) + list(rest)
 
+sources = '${SOURCES}'.split(';') + ['${CMAKE_CURRENT_SOURCE_DIR}/SWIG/titanlib.i'],
+print("SOURCES:", sources)
 
+example_module = Extension('_titanlib',
+        #sources='${SOURCES}'.split(';') + ['${CMAKE_CURRENT_SOURCE_DIR}/../titanlib.i'],
+        sources='${SOURCES}'.split(';') + ['${SWIG_INTERFACE}'],
+        language="c++",
+        swig_opts=['-I../../../include', '-c++', '-I/usr/include/python3.6m'],
+        libraries=["gsl", "gslcblas", "proj"],
+        library_dirs=["/usr/lib/x86_64-linux-gnu/"],
+        include_dirs=['../../../include']
+        )
 
-
-
-"""
-if __name__ == '__main__':
-    setuptools.setup(
-        name='titanlib',
-        version='1.0.0-dev',
-        py_modules=['titanlib'],
-        license='Apache License 2.0',
-        author='Cristian Lussana',
-        author_email='cristianl@met.on',
-        cmdclass={'install': CompiledLibInstall}
-    )
-"""
-setup(
+setup (
     name='titanlib',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
@@ -129,34 +104,6 @@ setup(
     },
 
     test_suite="titanlib.tests",
-
-    # If there are data files included in your packages that need to be
-    # installed, specify them here.  If using Python 2.6 or less, then these
-    # have to be included in MANIFEST.in as well.
-    #package_data={
-    #    'sample': ['package_data.dat'],
-    #},
-    #ext_modules=[Extension('_titanlib', ['${titanlib_SOURCE_DIR}/titanlib.cpp',
-    #    '${titanlib_SOURCE_DIR}/titanlib_wrap_python.cpp'],
-    #    swig_opts=['-I./', '-c++'],
-    #    include_dirs=['./'])],
-    py_modules=['titanlib'],
-
-    cmdclass={'install': CompiledLibInstall},
-    # cmdclass={'build': build},
-
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    #data_files=[('my_data', ['data/data_file'])],
-
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # pip to create the appropriate form of executable for the target platform.
-    # entry_points={
-    #     'console_scripts': [
-    #         'verif=verif:main',
-    #     ],
-    # },
+    ext_modules = [example_module],
+    cmdclass={'build': build},
 )
