@@ -32,7 +32,7 @@ class SctTest(unittest.TestCase):
         status, sct, flags = titanlib.sct(len100, len100, len100, z100, 100, 1000,
                 nminprof, 100, 10000, 100, 2*o100, 2*o100, 0.5*o100)
         print(status)
-        self.assertTrue(status)
+        self.assertEqual(status,0)
 
 if __name__ == '__main__':
     unittest.main()

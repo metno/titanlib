@@ -47,7 +47,7 @@ def load(filename):
     assert('test' in parameters)
     assert('flag' in data)
     if 'status' not in parameters:
-        parameters['status'] = 1
+        parameters['status'] = 0
     return parameters, data
 
 

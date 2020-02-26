@@ -20,17 +20,17 @@ class IsolationTest(unittest.TestCase):
 
         # All except the last one have at least 2 neighbours
         status, flags = titanlib.isolation_check(lats, lons, 2, radius)
-        self.assertTrue(status)
+        self.assertEqual(status,0)
         self.assertListEqual(list(flags), [0, 0, 0, 0, 0, 1])
 
         # Only the middle one has 4 neighbours
         status, flags = titanlib.isolation_check(lats, lons, 4, radius)
-        self.assertTrue(status)
+        self.assertEqual(status,0)
         self.assertListEqual(list(flags), [1, 1, 0, 1, 1, 1])
 
         # None have neighbours within 1 km
         status, flags = titanlib.isolation_check(lats, lons, 1, 1000)
-        self.assertTrue(status)
+        self.assertEqual(status,0)
         self.assertListEqual(list(flags), [1, 1, 1, 1, 1, 1])
 
     def test_summer_case(self):

@@ -13,16 +13,16 @@ ut = 1546300800
 class RangeCheckTest(unittest.TestCase):
     def test_valid_input(self):
         """Check that the test doesn't fail"""
-        self.assertTrue(titanlib.range_check(len1, len1, len1)[0])
-        self.assertTrue(titanlib.range_check(len3, len1, len1)[0])
-        self.assertTrue(titanlib.range_check(len3, len1, len3)[0])
-        self.assertTrue(titanlib.range_check(len3, len1, len1)[0])
+        self.assertEquals(titanlib.range_check(len1, len1, len1)[0],0)
+        self.assertEquals(titanlib.range_check(len3, len1, len1)[0],0)
+        self.assertEquals(titanlib.range_check(len3, len1, len3)[0],0)
+        self.assertEquals(titanlib.range_check(len3, len1, len1)[0],0)
 
     def test_invalid_input(self):
         """Check that the test fails"""
         # Min/max inconsistent with inputs
         status, flags  = titanlib.range_check(len3, len2, len2)
-        self.assertFalse(status)
+        self.assertEquals(status,1)
 
     def test_simple(self):
         """Check that the test returns the correct flags"""
@@ -32,7 +32,7 @@ class RangeCheckTest(unittest.TestCase):
         max = [6, 3, 1]
 
         status, flags  = titanlib.range_check(values, min, max)
-        self.assertTrue(status)
+        self.assertEqual(status,0)
         self.assertEqual(flags, (1, 0, 1))
 
 
