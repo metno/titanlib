@@ -12,7 +12,7 @@ Titanlib is a library of automatic quality control routines for in-situ observat
 Here are installation instructions for Ubuntu Bionic. First, install the pre-requisites:
 
 ```
-sudo apt install swig doxygen R-base-core libboost-dev libproj-dev cmake libgsl-dev
+sudo apt install swig doxygen r-base-core libboost-dev libproj-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
 ```
 
 Next, configure the installation cmake. Create a build directory and perform the
@@ -45,8 +45,7 @@ instead is placed in `SWIG/R/titanlib.R`.
 
 ```python
 import titanlib
-titanlib.calc_gamma(1, 2)
-status, flags = titanlib.sct([60,61],[10,11],[0,100],[-4,2],0,0,0,0,0,0,[2,2],[2,2],[2,2])
+status, flags = titanlib.sct([60,61],[10,11],[0,100],[-4,2],100,300,100,100,100,100,[2,2],[2,2],[2,2])
 print(flags)
 ```
 
@@ -60,8 +59,7 @@ dyn.load(paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep=""))
 source("SWIG/R/titanlib.R")
 cacheMetaData(1)
 
-calc_gamma(1, 2)
-sct(c(60,61), c(10,11), c(0,100), c(-4,2),0,0,0,0,0,0,c(2,2),c(2,2),c(2,2))
+sct(c(60,61), c(10,11), c(0,100), c(-4,2),100,300,100,100,100,100,c(2,2),c(2,2),c(2,2))
 ```
 
 ## Development instructions
