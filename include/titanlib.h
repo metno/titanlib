@@ -95,13 +95,15 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
-    bool first_guess_check(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
-            int unixtime,
-            const fvec obs_min,
-            const fvec obs_max);
+    bool first_guess_check(
+        //const fvec lats,
+        //const fvec lons,
+        //const fvec elevs,
+        const fvec values,
+        const fvec fg_values,
+        const fvec fg_neg,
+        const fvec fg_pos,
+        ivec& flags);
 
     /** Isolation check. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
