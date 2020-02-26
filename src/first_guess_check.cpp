@@ -4,7 +4,7 @@
 #include "titanlib.h"
 
 
-bool titanlib::first_guess_check(
+int titanlib::first_guess_check(
         //const fvec lats,
     //const fvec lons,
     //const fvec elevs,
@@ -17,8 +17,8 @@ bool titanlib::first_guess_check(
         const int s = values.size();
         //if( (lats.size() != s && lats.size() != 1) || (lons.size() != s && lons.size() != 1) ) { return false; }
         //f( (elevs.size() != s && elevs.size() != 1) || (values.size() != s && values.size() != 1) ) { return false; }
-        if( (fg_values.size() != s && fg_values.size() != 1) ) { return false; }
-        if( (fg_neg.size() != s && fg_neg.size() != 1) || (fg_pos.size() != s && fg_pos.size() != 1) ) { return false; }
+        if( (fg_values.size() != s && fg_values.size() != 1) ) { return 1; }
+        if( (fg_neg.size() != s && fg_neg.size() != 1) || (fg_pos.size() != s && fg_pos.size() != 1) ) { return 1; }
 
         fvec min(s,0);
         fvec max(s,0);

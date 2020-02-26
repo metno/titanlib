@@ -7,7 +7,7 @@ extern "C" {
 #include "sct_smart_boxes.h"
 }
 
-bool titanlib::sct(const fvec lats,
+int titanlib::sct(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
@@ -23,6 +23,9 @@ bool titanlib::sct(const fvec lats,
         fvec& sct,
         ivec& flags) {
 
+    // Check inputs
+    if(nmin == 0 || nmax == 0)
+        return 1;
     fvec x, y;
     titanlib::util::convert_to_proj(lats, lons, "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06", x, y);
 
@@ -57,5 +60,5 @@ bool titanlib::sct(const fvec lats,
     sct_smart_boxes(&N, &dx[0], &dy[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &rep[0], &boxids[0]);
     sct = fvec(dsct.begin(), dsct.end());
 
-    return true;
+    return 0;
 }

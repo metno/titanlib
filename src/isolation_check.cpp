@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <iostream>
 
-bool titanlib::isolation_check(const fvec lats,
+int titanlib::isolation_check(const fvec lats,
         const fvec lons,
         int nmin,
         float radius,
@@ -20,11 +20,11 @@ bool titanlib::isolation_check(const fvec lats,
         }
     }
 
-    return true;
+    return 0;
 
 }
 
-bool titanlib::isolation_check(const fvec lats,
+int titanlib::isolation_check(const fvec lats,
         const fvec lons,
         const fvec elevs,
         int nmin,
@@ -49,5 +49,5 @@ bool titanlib::isolation_check(const fvec lats,
         }
     }
 
-    return true;
+    return 0;
 }

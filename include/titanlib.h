@@ -20,7 +20,7 @@ namespace titanlib {
       * @param lats vector of latitudes
       * @param flags output vector of flags
       */
-    bool sct(const fvec lats,
+    int sct(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
@@ -42,12 +42,12 @@ namespace titanlib {
      *  @param max max allowed value
      *  @param flags vector of return flags
      * */
-    bool range_check(const fvec values,
+    int range_check(const fvec values,
             const fvec min,
             const fvec max,
             ivec& flags);
 
-    bool range_check_climatology(const fvec lats,
+    int range_check_climatology(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
@@ -69,7 +69,7 @@ namespace titanlib {
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
      * */
-    bool buddy_check(const fvec lats,
+    int buddy_check(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
@@ -82,7 +82,7 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
-    bool buddy_event_check(const fvec lats,
+    int buddy_event_check(const fvec lats,
             const fvec lons,
             const fvec elevs,
             const fvec values,
@@ -95,7 +95,7 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
-    bool first_guess_check(
+    int first_guess_check(
         //const fvec lats,
         //const fvec lons,
         //const fvec elevs,
@@ -112,7 +112,7 @@ namespace titanlib {
      *  @param radius search radius [m]
      *  @param flags vector of return flags
      * */
-    bool isolation_check(const fvec lats,
+    int isolation_check(const fvec lats,
             const fvec lons,
             int nmin,
             float radius,
@@ -127,7 +127,7 @@ namespace titanlib {
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
      * */
-    bool isolation_check(const fvec lats,
+    int isolation_check(const fvec lats,
             const fvec lons,
             const fvec elevs,
             int nmin,

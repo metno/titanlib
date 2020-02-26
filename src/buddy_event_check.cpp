@@ -7,7 +7,7 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include "titanlib.h"
 
-bool titanlib::buddy_event_check(const fvec lats,
+int titanlib::buddy_event_check(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
@@ -23,15 +23,15 @@ bool titanlib::buddy_event_check(const fvec lats,
     bool debug = false;
     const int s = values.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return false; }
-    if( radius.size() != s && radius.size() != 1 ) { return false; }
-    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) { return false; }
-    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) { return false; }
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return 1; }
+    if( radius.size() != s && radius.size() != 1 ) { return 1; }
+    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) { return 1; }
+    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) { return 1; }
 
     // Check that buddies min is more than 0
     for(int i = 0; i < buddies_min.size(); i++) {
         if(buddies_min[i] <= 0)
-            return false;
+            return 1;
     }
 
     // create the KD tree to be used later
@@ -143,5 +143,5 @@ bool titanlib::buddy_event_check(const fvec lats,
         }
     }
 
-    return true;
+    return 0;
 }

@@ -10,7 +10,7 @@ double interpolate(int i1, int i2, float lat, float latitudes[], double numbers[
 std::pair<int,int> find_between(float lat, float latitudes[], int len);
 
 
-bool titanlib::range_check(const fvec values,
+int titanlib::range_check(const fvec values,
         const fvec min,
         const fvec max,
         ivec& flags) {
@@ -19,7 +19,7 @@ bool titanlib::range_check(const fvec values,
     // either min/max has length 1 or is the same length as the other vecs
     const int s = values.size();
     // assert that the max and min are either both size 1 or the size of values 
-    if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) { return false; }
+    if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) { return 1; }
 
     // resize the flags
     flags.resize(s, 0);
@@ -36,11 +36,11 @@ bool titanlib::range_check(const fvec values,
         }
     }
 
-    return true;
+    return 0;
 
 }
 
-bool titanlib::range_check_climatology(const fvec lats,
+int titanlib::range_check_climatology(const fvec lats,
         const fvec lons,
         const fvec elevs,
         const fvec values,
@@ -52,8 +52,8 @@ bool titanlib::range_check_climatology(const fvec lats,
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
     const int s = lats.size();
-    if( lons.size() != s || elevs.size() != s || values.size() != s ) { return false; }
-    if( (plus.size() != s && plus.size() != 1) || (minus.size() != s && minus.size() != 1) ) { return false; }
+    if( lons.size() != s || elevs.size() != s || values.size() != s ) { return 1; }
+    if( (plus.size() != s && plus.size() != 1) || (minus.size() != s && minus.size() != 1) ) { return 1; }
 
     flags.resize(s, 0);
 
@@ -74,7 +74,7 @@ bool titanlib::range_check_climatology(const fvec lats,
             flags[i] = 1;
         }
     }
-    return true;
+    return 0;
 }
 
 double mean_temp(float lat, int unixtime) {
