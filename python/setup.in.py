@@ -8,7 +8,7 @@ from setuptools import setup, Extension
 import glob
 import itertools
 
-__version__ = '${PROJECT_VERSION}'
+__version__ = '0.1.0a0'
 
 def partition(pred, iterable):
     t1, t2 = itertools.tee(iterable)
@@ -22,17 +22,13 @@ class build(build_orig):
         rest, sub_build_ext = partition(condition, self.sub_commands)
         self.sub_commands[:] = list(sub_build_ext) + list(rest)
 
-sources = '${SOURCES}'.split(';') + ['${CMAKE_CURRENT_SOURCE_DIR}/SWIG/titanlib.i'],
-print("SOURCES:", sources)
-
 example_module = Extension('_titanlib',
-        #sources='${SOURCES}'.split(';') + ['${CMAKE_CURRENT_SOURCE_DIR}/../titanlib.i'],
-        sources='${SOURCES}'.split(';') + ['${SWIG_INTERFACE}'],
+        sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['titanlib.i'],
         language="c++",
-        swig_opts=['-I../../../include', '-c++', '-I/usr/include/python3.6m'],
+        swig_opts=['-I./include', '-c++', '-I/usr/include/python3.6m'],
         libraries=["gsl", "gslcblas", "proj"],
         library_dirs=["/usr/lib/x86_64-linux-gnu/"],
-        include_dirs=['../../../include']
+        include_dirs=['./include']
         )
 
 setup (
@@ -49,8 +45,8 @@ setup (
     url='https://github.com/metno/titanlib',
 
     # Author details
-    author='Cristian Lussana',
-    author_email='cristianl@met.no',
+    author='Thomas Nipen',
+    author_email='thomasn@met.no',
 
     # Choose your license
     license='LGPL-3',
@@ -105,5 +101,8 @@ setup (
 
     test_suite="titanlib.tests",
     ext_modules = [example_module],
+    py_modules = ["titanlib"],
     cmdclass={'build': build},
+    include_package_data=True,
+
 )

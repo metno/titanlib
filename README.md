@@ -33,13 +33,14 @@ sudo make install
 
 To install the bindings, run
 ```bash
-sudo make install-python
+make install-python-user
 make build-r
 ```
 
 This will install the library in `/usr/local/lib/libtitanlib.so`, the python bindings in
-`/usr/lib/python3/dist-packages/titanlib.py`. Currently, the R package is not installed centrally, but
-instead is placed in `SWIG/R/titanlib.R`.
+`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings
+system-wide, use `sudo make install-python`.  Currently, the R package is not installed
+centrally, but instead is placed in `SWIG/R/titanlib.R`.
 
 ## Python example
 
