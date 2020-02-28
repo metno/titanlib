@@ -10,26 +10,31 @@ import itertools
 
 __version__ = '0.1.0a0'
 
-def partition(pred, iterable):
-    t1, t2 = itertools.tee(iterable)
-    return itertools.filterfalse(pred, t1), filter(pred, t2)
+# We need to swap the order of build_py and build_ext
+# https://stackoverflow.com/questions/12491328/python-distutils-not-include-the-swig-generated-module
+from distutils.command.build import build
+from setuptools.command.install import install
+
+class CustomBuild(build):
+    def run(self):
+        self.run_command('build_ext')
+        build.run(self)
 
 
-class build(build_orig):
-    def finalize_options(self):
-        super().finalize_options()
-        condition = lambda el: el[0] == 'build_ext'
-        rest, sub_build_ext = partition(condition, self.sub_commands)
-        self.sub_commands[:] = list(sub_build_ext) + list(rest)
+class CustomInstall(install):
+    def run(self):
+        self.run_command('build_ext')
+        self.do_egg_install()
 
-example_module = Extension('_titanlib',
+
+module = Extension('_titanlib',
         sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['titanlib.i'],
         language="c++",
         swig_opts=['-I./include', '-c++', '-I/usr/include/python3.6m'],
         libraries=["gsl", "gslcblas", "proj"],
         library_dirs=["/usr/lib/x86_64-linux-gnu/"],
         include_dirs=['./include']
-        )
+)
 
 setup (
     name='titanlib',
@@ -100,9 +105,11 @@ setup (
     },
 
     test_suite="titanlib.tests",
-    ext_modules = [example_module],
+    ext_modules = [module],
     py_modules = ["titanlib"],
-    cmdclass={'build': build},
+    # cmdclass={'build': build},
+    cmdclass={'build': CustomBuild, 'install': CustomInstall},
+
     include_package_data=True,
 
 )
