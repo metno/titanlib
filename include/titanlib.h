@@ -66,6 +66,8 @@ namespace titanlib {
      *  @param thresholds the threshold for flagging a station
      *  @param diff_elev_max the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
      *  @param elev_gradient the multiplier used to adjust the values based on elevation difference from the comparison value
+     *  @param min_std 
+     *  @param num_iterations 
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
      * */
@@ -79,6 +81,7 @@ namespace titanlib {
             float diff_elev_max,
             float elev_gradient,
             float min_std,
+            int num_iterations,
             ivec& flags,
             const ivec obs_to_check = ivec());
 
@@ -172,7 +175,7 @@ namespace titanlib {
             bool range_check(const fvec min, const fvec max, const ivec indices=ivec());
             bool range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices=ivec());
             bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, const ivec indices=ivec());
-            bool buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, const ivec obs_to_check, const ivec indices=ivec());
+            bool buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec obs_to_check, const ivec indices=ivec());
 
             fvec lats;
             fvec lons;

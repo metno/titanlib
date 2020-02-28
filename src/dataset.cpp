@@ -58,15 +58,15 @@ bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float
     else return false;
 }
 
-bool titanlib::Dataset::buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, const ivec obs_to_check, const ivec indices) {
+bool titanlib::Dataset::buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec obs_to_check, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags;
-        status = titanlib::buddy_check(lats, lons, elevs, values, subset(radius, indices), subset(buddies_min, indices), subset(thresholds, indices), diff_elev_max, elev_gradient, min_std, flags, obs_to_check);
+        status = titanlib::buddy_check(lats, lons, elevs, values, subset(radius, indices), subset(buddies_min, indices), subset(thresholds, indices), diff_elev_max, elev_gradient, min_std, num_iterations, flags, obs_to_check);
         unsubset(iflags, flags, indices);
     }
     else {
-        status = titanlib::buddy_check(lats, lons, elevs, values, radius, buddies_min, thresholds, diff_elev_max, elev_gradient, min_std, flags, obs_to_check);
+        status = titanlib::buddy_check(lats, lons, elevs, values, radius, buddies_min, thresholds, diff_elev_max, elev_gradient, min_std, num_iterations, flags, obs_to_check);
     }
     if(status == 0) {
         return true;
