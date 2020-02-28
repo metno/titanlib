@@ -36,6 +36,37 @@ namespace titanlib {
             fvec& sct,
             ivec& flags);
 
+    /** Spatial Consistency Test
+      * @param nmin Flag all observations if fewer than this number within radius
+      * @param nmax Maximum number of observations to use
+      * @param nminprof Minimum number of observations to compute vertical profile
+      * @param radius Select observations within this radius [m]
+      * @param dzmin Minimum elevation difference to compute vertical profile [m]
+      * @param dhmin Minimum horizontal decorrelation length [m]
+      * @param dz Vertical decorrelation length [m]
+      * @param pos Positive deviation allowed
+      * @param neg Negative deviation allowed
+      * @param eps2
+      * @param sct
+      * @param flags
+    */
+    int sct_window(const fvec lats,
+            const fvec lons,
+            const fvec elevs,
+            const fvec values,
+            int nmin,
+            int nmax,
+            int nminprof,
+            float radius,
+            float dzmin,
+            float dhmin,
+            float dz,
+            const fvec pos,
+            const fvec neg,
+            const fvec eps2,
+            fvec& sct,
+            ivec& flags);
+
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
      *  @param min min allowed value
