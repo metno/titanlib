@@ -78,15 +78,25 @@ int titanlib::sct_window(const fvec lats,
         dvec dsct;
         dvec rep;
         ivec boxids;
+        ivec flags_local;
         sct.resize(N, 0);
         rep.resize(N, 0);
         boxids.resize(N, 0);
-        flags.resize(N, 0);
+        flags_local.resize(N, 0);
         dsct.resize(N, 0);
 
-        spatial_consistency_test_mod(&N, &dcheck[0], &dx[0], &dy[0], &delevs[0], &dvalues[0], &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &rep[0]);
+        spatial_consistency_test_mod(&N, &dcheck[0], &dx[0], &dy[0], &delevs[0], &dvalues[0], &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags_local[0], &dsct[0], &rep[0]);
         sct = fvec(dsct.begin(), dsct.end());
 
+        // did it flag any of the obs we wanted to check?
+        for(int k = 0; k < obs_check.size(); k++) { 
+            if(obs_check[k] == 0) {
+                if(k == 0)
+                    flags[i] = flags_local[k];
+                else 
+                    flags[neighbour_indices[k]] = flags_local[k];
+            }
+        }
     }
 
     return 0;
