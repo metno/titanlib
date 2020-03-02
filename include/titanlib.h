@@ -37,8 +37,6 @@ namespace titanlib {
             ivec& flags);
 
     /** Spatial Consistency Test
-      * @param nmin Flag all observations if fewer than this number within radius
-      * @param nmax Maximum number of observations to use
       * @param nminprof Minimum number of observations to compute vertical profile
       * @param radius Select observations within this radius [m]
       * @param dzmin Minimum elevation difference to compute vertical profile [m]
@@ -54,8 +52,6 @@ namespace titanlib {
             const fvec lons,
             const fvec elevs,
             const fvec values,
-            int nmin,
-            int nmax,
             int nminprof,
             float radius,
             float dzmin,

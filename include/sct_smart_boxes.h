@@ -77,6 +77,7 @@ struct BoxList {
 
 // Run the SCT on a particular box
 void spatial_consistency_test(struct Box *currentBox, int *nminprof, double* dzmin, double* dhmin, double* dz, double *t2pos, double *t2neg, double *eps2, int *flags, double* sct_out, double* rep_out);
+void spatial_consistency_test_mod(int *N, int *obs_to_test, double *x, double *y, double *z, double *t, int *nminprof, double* dzmin, double* dhmin, double* dz, double *t2pos, double *t2neg, double *eps2, int *flags, double* sct_out, double* rep_out);
 
 int compute_vertical_profile(struct Box *box, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin, double *vp);
 // optimizer functions
