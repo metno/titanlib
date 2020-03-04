@@ -28,6 +28,7 @@ int titanlib::sct_window(const fvec lats,
 
     // create the KD tree to be used later
     titanlib::KDTree tree(lats, lons);
+
     // resize the flags and set them to 0
     flags.resize(s, 0);
 
@@ -38,17 +39,16 @@ int titanlib::sct_window(const fvec lats,
         fvec x(s_box);
         fvec y(s_box);
         fvec z(s_box);
+        fvec e(s_box);
         fvec t(s_box);
         // add the observation itself 
-        x[0] = lats[i];
-        y[0] = lons[i];
-        z[0] = elevs[i];
+        titanlib::util::convert_coordinates(lats[i], lons[i], x[0], y[0], z[0]);
+        e[0] = elevs[i];
         t[0] = values[i];
         // add all the obs that are close enough 
         for(int j = 1; s_box; j++) {
-            x[j] = lats[neighbour_indices[j]];
-            y[j] = lons[neighbour_indices[j]];
-            z[j] = elevs[neighbour_indices[j]];
+            titanlib::util::convert_coordinates(lats[neighbour_indices[j]], lons[neighbour_indices[j]], x[j], y[j], z[j]);
+            e[j] = elevs[neighbour_indices[j]];
             t[j] = values[neighbour_indices[j]];
         }
         ivec obs_check;
@@ -56,26 +56,27 @@ int titanlib::sct_window(const fvec lats,
         // just check the first one
         obs_check[0] = 1;
 
-        fvec x2, y2;
-        titanlib::util::convert_to_proj(x, y, "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06", x, y);
+        // fvec x2, y2;
+        // titanlib::util::convert_to_proj(x, y, "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06", x, y);
 
-        dvec dx(x2.begin(), x2.end());
-        dvec dy(y2.begin(), y2.end());
+        dvec d_x(x.begin(), x.end());
+        dvec d_y(y.begin(), y.end());
+        dvec d_z(z.begin(), z.end());
 
-        dvec delevs(z.begin(), z.end());
-        dvec dvalues(t.begin(), t.end());
-        dvec dt2pos(pos.begin(), pos.end());
-        dvec dt2neg(neg.begin(), neg.end());
-        dvec deps2(eps2.begin(), eps2.end());
+        dvec d_elevs(e.begin(), e.end());
+        dvec d_values(t.begin(), t.end());
+        dvec d_t2pos(pos.begin(), pos.end());
+        dvec d_t2neg(neg.begin(), neg.end());
+        dvec d_eps2(eps2.begin(), eps2.end());
         int N = x.size();
 
-        ivec dcheck(obs_check.begin(), obs_check.end());
+        ivec d_check(obs_check.begin(), obs_check.end());
 
-        double ddzmin = dzmin;
-        double ddhmin = dhmin;
-        double ddz = dz;
+        double d_dzmin = dzmin;
+        double d_dhmin = dhmin;
+        double d_dz = dz;
         
-        dvec dsct;
+        dvec d_sct;
         dvec rep;
         ivec boxids;
         ivec flags_local;
@@ -83,10 +84,10 @@ int titanlib::sct_window(const fvec lats,
         rep.resize(N, 0);
         boxids.resize(N, 0);
         flags_local.resize(N, 0);
-        dsct.resize(N, 0);
+        d_sct.resize(N, 0);
 
-        spatial_consistency_test_mod(&N, &dcheck[0], &dx[0], &dy[0], &delevs[0], &dvalues[0], &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags_local[0], &dsct[0], &rep[0]);
-        sct = fvec(dsct.begin(), dsct.end());
+        spatial_consistency_test_mod(&N, &d_check[0], &d_x[0], &d_y[0], &d_z[0], &d_elevs[0], &d_values[0], &nminprof, &d_dzmin, &d_dhmin, &d_dz, &d_t2pos[0], &d_t2neg[0], &d_eps2[0], &flags_local[0], &d_sct[0], &rep[0]);
+        sct = fvec(d_sct.begin(), d_sct.end());
 
         // did it flag any of the obs we wanted to check?
         for(int k = 0; k < obs_check.size(); k++) { 
