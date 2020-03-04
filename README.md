@@ -1,11 +1,21 @@
 # Titanlib 
 
-Titanlib is a library of automatic quality control routines for in-situ observations with an emphasis on spatial checks. It is written in C++ and has bindings for python and R.
+![C/C++ CI](https://github.com/metno/titanlib/workflows/C/C++%20CI/badge.svg)
+
+Titanlib is a library of automatic quality control routines for in-situ observations with an emphasis on
+spatial checks. It is written in C++ and has bindings for python and R. The library consists of a set of
+functions that perform tests on data.
+
+Titanlib is currently under development.
 
 ![Example of titanlib](extras/image.jpg)
 
-![C/C++ CI](https://github.com/metno/titanlib/workflows/C/C++%20CI/badge.svg)
+## Features
 
+- A wide variety of spatial checks, such as **spatial consistency test**, **buddy check**, **isolation check**.
+- Plausability tests such as **range check** and **climatology check**.
+- A graphical interface for tuning the parameters of the checks
+- Fast C++ implementation for efficient processing of large observation datasets 
 
 ## Installation
 
