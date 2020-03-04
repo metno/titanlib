@@ -109,3 +109,8 @@ To build a *debug version* of the library, use the following options when runnin
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=DEBUG
 ```
+
+## Copyright and license
+
+Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
+Public License (LGPL). See LICENSE file.
