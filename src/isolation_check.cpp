@@ -13,7 +13,7 @@ int titanlib::isolation_check(const fvec lats,
     flags.resize(lats.size());
 
     for(int i = 0; i < lats.size(); i++) {
-        int num = tree.get_num_neighbours(lats[i], lons[i], radius);
+        int num = tree.get_num_neighbours(lats[i], lons[i], radius, 0, false);
         // std::cout << i << " " << num << std::endl;
         if(num < nmin) {
             flags[i] = 1;
@@ -36,7 +36,7 @@ int titanlib::isolation_check(const fvec lats,
     flags.resize(lats.size());
 
     for(int i = 0; i < lats.size(); i++) {
-        ivec indices = tree.get_neighbours(lats[i], lons[i], radius);
+        ivec indices = tree.get_neighbours(lats[i], lons[i], radius, 0, false);
         int num = 0;
         for(int j = 0; j < indices.size(); j++) {
             int index = indices[j];

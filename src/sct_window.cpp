@@ -34,7 +34,7 @@ int titanlib::sct_window(const fvec lats,
 
     for(int i = 0; i < values.size(); i++) {
         // get all neighbours that are close enough to this point
-        ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius);
+        ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius, 0, false);
         int s_box = neighbour_indices.size()+1;
         fvec x(s_box);
         fvec y(s_box);

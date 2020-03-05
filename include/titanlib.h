@@ -239,14 +239,16 @@ namespace titanlib {
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
              * */
-            int get_nearest_neighbour(float lat, float lon);
+            int get_nearest_neighbour(float lat, float lon, bool include_match);
 
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
-             *  @param radius Lookup radius [m]
+             *  @param radius Lookup radius (use 0 for unlimited) [m]
+             *  @param max_num Maximum number of points (use 0 for unlimited)
+             *  @param include_match Should an exact match be included?
              * */
-            ivec get_neighbours(float lat, float lon, float radius, int num=0);
+            ivec get_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
 
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point
@@ -254,21 +256,14 @@ namespace titanlib {
              *  @param radius Lookup radius [m]
              *  @param distances Vector to store separation distances [m]
              * */
-            ivec get_neighbours_with_distance(float lat, float lon, float radius, fvec& distances);
+            ivec get_neighbours_with_distance(float lat, float lon, float radius, int max_num, bool include_match, fvec& distances);
 
             /** Find the number of points within a radius
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius [m]
              * */
-            int get_num_neighbours(float lat, float lon, float radius);
-
-            /** Find a set of nearest points
-             *  @param lat Latitude of lookup-point
-             *  @param lon Longitude of lookup-point
-             *  @param num Number of points to find
-             * */
-            ivec get_closest_neighbours(float lat, float lon, int num);
+            int get_num_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
         private:
             typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
             typedef std::pair<point, unsigned> value;

@@ -55,7 +55,7 @@ int titanlib::buddy_event_check(const fvec lats,
             }
 
             // get all neighbours that are close enough                 
-            ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i]);
+            ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
 
             int n_buddies = 0;
             fvec list_buddies;
