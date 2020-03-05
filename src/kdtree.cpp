@@ -33,18 +33,24 @@ ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float 
     return indices;
 }
 
-ivec titanlib::KDTree::get_neighbours(float lat, float lon, float radius) {
+ivec titanlib::KDTree::get_neighbours(float lat, float lon, float radius, int num) {
     float x, y, z;
     titanlib::util::convert_coordinates(lat, lon, x, y, z);
 
     box bx(point(x - radius, y - radius, z - radius), point(x + radius, y + radius, z + radius));
+
+    point p(x, y, z);
+
     std::vector<value> results;
-    mTree.query(boost::geometry::index::within(bx), std::back_inserter(results));
-    int num = results.size();
+    if(num == 0)
+        mTree.query(boost::geometry::index::within(bx), std::back_inserter(results));
+    else
+        mTree.query(boost::geometry::index::nearest(p, num) && boost::geometry::index::within(bx), std::back_inserter(results));
+    int num_found = results.size();
 
     ivec ret;
-    ret.reserve(num);
-    for(int i = 0; i < num; i++) {
+    ret.reserve(num_found);
+    for(int i = 0; i < num_found; i++) {
         float x1, y1, z1;
         titanlib::util::convert_coordinates(mLats[results[i].second], mLons[results[i].second], x1, y1, z1);
         float dist = titanlib::util::calc_distance(x, y, z, x1, y1, z1);

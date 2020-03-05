@@ -246,7 +246,7 @@ namespace titanlib {
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius [m]
              * */
-            ivec get_neighbours(float lat, float lon, float radius);
+            ivec get_neighbours(float lat, float lon, float radius, int num=0);
 
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point

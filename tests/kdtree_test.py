@@ -16,6 +16,12 @@ class KDTreeTest(unittest.TestCase):
         neighbours.sort()
         self.assertListEqual(neighbours, [0,1,2])
 
+    def test_get_neighbours_with_num(self):
+        tree = titanlib.KDTree(lats, lons)
+        neighbours = list(tree.get_neighbours(60, 10.101, 10000, 1))
+        neighbours.sort()
+        self.assertListEqual(neighbours, [1])
+
     def test_get_neighbours_with_distance(self):
         tree = titanlib.KDTree(lats, lons)
         neighbours, distances = tree.get_neighbours_with_distance(60, 10.101, 10000)
