@@ -140,11 +140,11 @@ setup(
     #    swig_opts=['-I./', '-c++'],
     #    include_dirs=['./'])],
     py_modules=['titanlib'],
-    package_data={'titanlib': ['_titanlib.so']},
-    include_package_data=True,
+    #package_data={'titanlib': ['_titanlib.so']},
+    #include_package_data=True,
 
 
-    # cmdclass={'install': CompiledLibInstall},
+    cmdclass={'install': CompiledLibInstall},
     # cmdclass={'build': build},
 
     # Although 'package_data' is the preferred approach, in some case you may
