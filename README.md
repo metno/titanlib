@@ -73,43 +73,6 @@ cacheMetaData(1)
 sct(c(60,61), c(10,11), c(0,100), c(-4,2),100,300,100,100,100,100,c(2,2),c(2,2),c(2,2))
 ```
 
-## Development instructions
-
-The C++ library and python bindings can be installed separately like this:
-
-```
-sudo make install
-sudo make install-python
-```
-
-To build the library and packages (and not install them), run:
-
-```
-make titanlib
-make build-python
-make build-r
-```
-
-*Unit tests* are written in the tests/ directory. The tests rely on the python interface to titanlib being installed (see above). Use nosetests3 to run all tests. First install the python library  and the nose package (pip3 install nose) then run the following:
-
-```bash
-nosetests3
-```
-
-To *build the documentation*, run the following from the build directory:
-
-```bash
-make doc_doxygen
-```
-
-The html documentation will appear in build/doxygen/html.
-
-To build a *debug version* of the library, use the following options when running cmake:
-
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=DEBUG
-```
-
 ## Copyright and license
 
 Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
