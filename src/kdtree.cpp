@@ -43,6 +43,22 @@ ivec titanlib::KDTree::get_neighbours(float lat, float lon, float radius, int ma
 
     // Radius search
     box bx(point(x - radius, y - radius, z - radius), point(x + radius, y + radius, z + radius));
+    struct within_radius {
+        bool operator()(value const& v) const {
+            float x0 = v.first.get<0>();
+            float y0 = v.first.get<1>();
+            float z0 = v.first.get<2>();
+            float x1 = p.get<0>();
+            float y1 = p.get<1>();
+            float z1 = p.get<2>();
+            return titanlib::util::calc_distance(x0, y0, z0, x1, y1, z1) < radius;
+        };
+        float radius;
+        point p;
+    };
+    within_radius r;
+    r.p = p;
+    r.radius = radius;
 
     std::vector<value> results;
     if(!include_match) {
@@ -60,19 +76,23 @@ ivec titanlib::KDTree::get_neighbours(float lat, float lon, float radius, int ma
         s.p = p;
 
         if(max_num == 0 && radius > 0)
-            mTree.query(boost::geometry::index::within(bx) && boost::geometry::index::satisfies(s), std::back_inserter(results));
+            // mTree.query(boost::geometry::index::within(bx) && boost::geometry::index::satisfies(s), std::back_inserter(results));
+            mTree.query(boost::geometry::index::satisfies(r) && boost::geometry::index::satisfies(s), std::back_inserter(results));
         else if(max_num > 0 && radius == 0)
             mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::satisfies(s), std::back_inserter(results));
         else if(max_num > 0 && radius > 0)
-            mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::within(bx) && boost::geometry::index::satisfies(s), std::back_inserter(results));
+            // mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::within(bx) && boost::geometry::index::satisfies(s), std::back_inserter(results));
+            mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::satisfies(r) && boost::geometry::index::satisfies(s), std::back_inserter(results));
     }
     else {
         if(max_num == 0 && radius > 0)
-            mTree.query(boost::geometry::index::within(bx), std::back_inserter(results));
+            // mTree.query(boost::geometry::index::within(bx), std::back_inserter(results));
+            mTree.query(boost::geometry::index::satisfies(r), std::back_inserter(results));
         else if(max_num > 0 && radius == 0)
             mTree.query(boost::geometry::index::nearest(p, max_num), std::back_inserter(results));
         else if(max_num > 0 && radius > 0)
-            mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::within(bx), std::back_inserter(results));
+            // mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::within(bx), std::back_inserter(results));
+            mTree.query(boost::geometry::index::nearest(p, max_num) && boost::geometry::index::satisfies(r), std::back_inserter(results));
     }
     int num_found = results.size();
 

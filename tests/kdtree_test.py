@@ -52,6 +52,11 @@ class KDTreeTest(unittest.TestCase):
         self.assertEqual(tree.get_nearest_neighbour(60, 10.1, True), 1)
         self.assertEqual(tree.get_nearest_neighbour(60, 10.101, True), 1)
 
+    def test_circle(self):
+        """If a circle is used, only the first and last point should match"""
+        tree = titanlib.KDTree([0, 1, 1] , [1, 0, 1])
+        self.assertEqual(tree.get_num_neighbours(0, 0, 120000, 0, False), 2)
+
 
 if __name__ == '__main__':
     unittest.main()
