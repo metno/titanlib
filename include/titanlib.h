@@ -240,6 +240,7 @@ namespace titanlib {
              *  @param lon Longitude of lookup-point
              * */
             int get_nearest_neighbour(float lat, float lon, bool include_match);
+            ivec get_nearest_neighbour(const fvec& lats, const fvec& lons, bool include_match);
 
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point

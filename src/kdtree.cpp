@@ -109,3 +109,11 @@ int titanlib::KDTree::get_nearest_neighbour(float lat, float lon, bool include_m
     assert(neighbours.size() == 1);
     return neighbours[0];
 }
+ivec titanlib::KDTree::get_nearest_neighbour(const fvec& lats, const fvec& lons, bool include_match) {
+    ivec neighbours(lats.size(), 0);
+    for(int i = 0; i < lats.size(); i++) {
+        ivec temp = get_neighbours(lats[i], lons[i], 0, 1, include_match);
+        neighbours[i] = temp[0];
+    }
+    return neighbours;
+}
