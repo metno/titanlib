@@ -6,6 +6,7 @@ namespace std {
   %template(IntVector) vector<int>;
   %template(DoubleVector) vector<double>;
   %template(FloatVector) vector<float>;
+  %template(FloatVector2) vector<vector<float> >;
 }
 %apply std::vector<int>& OUTPUT { std::vector<int>& flags };
 %apply std::vector<float>& OUTPUT { std::vector<float>& sct };

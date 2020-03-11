@@ -70,3 +70,29 @@ float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, floa
 float titanlib::util::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
+fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec output_lats, const fvec output_lons) {
+    assert(input_lats.size() > 0);
+    assert(input_lats[0].size() > 0);
+    fvec output_values(output_lats.size(), 0);
+    fvec input_lats_flat(input_lats.size() * input_lats[0].size(), 0);
+    fvec input_lons_flat(input_lats.size() * input_lats[0].size(), 0);
+    int X = input_lats[0].size();
+    int Y = input_lats.size();
+    int count = 0;
+    for(int i = 0; i < Y; i++) {
+        for(int j = 0; j < X; j++) {
+            input_lats_flat[count] = input_lats[i][j];
+            input_lons_flat[count] = input_lons[i][j];
+            count++;
+        }
+    }
+    titanlib::KDTree tree(input_lats_flat, input_lons_flat);
+    for(int i = 0; i < output_lats.size(); i++) {
+        int index = tree.get_nearest_neighbour(output_lats[i], output_lons[i], true);
+        int index_x = index % X;
+        int index_y = index / X;
+        output_values[i] = input_values[index_y][index_x];
+    }
+
+    return output_values;
+}
