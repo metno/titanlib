@@ -10,6 +10,7 @@
 #include <boost/geometry/index/rtree.hpp>
 
 typedef std::vector<float> fvec;
+typedef std::vector<std::vector<float> > fvec2;
 typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
 
@@ -185,6 +186,7 @@ namespace titanlib {
         bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
         void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
+        fvec interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec output_lats, const fvec output_lons);
         float deg2rad(float deg);
         float calc_distance(float lat1, float lon1, float lat2, float lon2);
         float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
