@@ -13,9 +13,9 @@ float compute_quantile(double quantile, const fvec array);
 // forward declarations
 fvec compute_vertical_profile(const fvec lats, const fvec lons, const fvec elevs, const fvec values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
-fvec basic_vertical_profile(int n, double *elevs, double t0);
+fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
-fvec vertical_profile(int n, double *elevs, const double meanT, const double gamma, const double a, const double h0, const double h1i);
+fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
 
 
 // start SCT //
@@ -38,6 +38,11 @@ int spatial_consistency_test(const fvec lats, const fvec lons, const fvec elevs,
 
     // calculate background
     fvec vp = compute_vertical_profile(lats, lons, elevs, values, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
+
+    // now have temperature profile (vp)
+    for(int i=0; i<s; i++) {
+        assert(vp[i] !=-999);
+    }
 
     // TODO: more SCT stuff to come...
 
@@ -76,9 +81,10 @@ fvec compute_vertical_profile(const fvec lats, const fvec lons, const fvec elevs
 
     gsl_vector* input;
     if(use_basic) {
-        vp_optim.n = 1;
+        vp_optim.n = 2;
         input = gsl_vector_alloc(vp_optim.n);
         gsl_vector_set(input, 0, meanT);
+        gsl_vector_set(input, 1, gamma);
         vp_optim.f = basic_vertical_profile_optimizer_function;  
     }
     else {
@@ -113,7 +119,7 @@ fvec compute_vertical_profile(const fvec lats, const fvec lons, const fvec elevs
     // then actually calculate the vertical profile using the minima
     fvec vp;
     if(use_basic) {
-        vp = basic_vertical_profile(nd, dpelevs, gsl_vector_get(s->x, 0));
+        vp = basic_vertical_profile(nd, dpelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
     }
     else {
         // then actually calculate the vertical profile using the minima
@@ -137,9 +143,10 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
 
     // the parameters to mess with
     double meanT = gsl_vector_get(v,0);
+    double gamma = gsl_vector_get(v,1);
 
     // give everything to vp to compute t_out
-    fvec t_out = basic_vertical_profile(n, dpelevs, meanT);
+    fvec t_out = basic_vertical_profile(n, dpelevs, meanT, gamma);
     // RMS
     float total = 0;
     for(int i=0; i<n; i++) {
@@ -149,11 +156,11 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
     return value;
 }
 
-fvec basic_vertical_profile(int n, double *elevs, double t0)
+fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma)
 {
-    fvec t_out(n);
+    fvec t_out;
+    t_out.resize(n, -999);
 
-    double gamma = -0.0065;
     for(int i=0; i<n; i++) {
         t_out[i] = t0 + gamma*elevs[i];
     }
@@ -185,24 +192,26 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data)
     return value;
 }
 
-fvec vertical_profile(int n, double *elevs, const double meanT, const double gamma, const double a, const double h0, const double h1i)
+fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i)
 {
   double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
   // loop over the array of elevations
-  fvec t_out(n);
+  fvec t_out;
+  t_out.resize(n, -999);
+
   for(int i=0; i<n; i++) {
     // define some bools
     bool z_le_h0 = elevs[i] <= h0; // z.le.h0<-which(z<=h0)
     bool z_ge_h1 = elevs[i] >= h1; // z.ge.h1<-which(z>=h1)
     bool z_in = (elevs[i]>h0 && elevs[i]<h1); // z.in<-which(z>h0 & z<h1)
     if(z_le_h0) {
-      t_out[i] = meanT-gamma*elevs[i]-a;
+      t_out[i] = t0-gamma*elevs[i]-a;
     }
     if(z_ge_h1) {
-      t_out[i] = meanT-gamma*elevs[i];
+      t_out[i] = t0-gamma*elevs[i];
     }
     if(z_in) {
-      t_out[i] = meanT-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
+      t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
     }
   }
 }
