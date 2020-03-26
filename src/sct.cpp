@@ -21,6 +21,7 @@ int titanlib::sct(const fvec lats,
         const fvec t2neg,
         const fvec eps2,
         fvec& sct,
+        fvec& rep,
         ivec& flags) {
 
     // Check inputs
@@ -49,16 +50,16 @@ int titanlib::sct(const fvec lats,
     // double dhmin = 10000;
     // double dz = 30;
     dvec dsct;
-    dvec rep;
+    dvec drep;
     ivec boxids;
-    sct.resize(N, 0);
-    rep.resize(N, 0);
     boxids.resize(N, 0);
     flags.resize(N, 0);
     dsct.resize(N, 0);
+    drep.resize(N, 0);
 
-    sct_smart_boxes(&N, &dx[0], &dy[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &rep[0], &boxids[0]);
+    sct_smart_boxes(&N, &dx[0], &dy[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &drep[0], &boxids[0]);
     sct = fvec(dsct.begin(), dsct.end());
+    rep = fvec(drep.begin(), drep.end());
 
     return 0;
 }
