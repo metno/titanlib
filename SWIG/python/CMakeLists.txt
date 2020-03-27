@@ -51,3 +51,7 @@ add_custom_target(develop-python
         DEPENDS _titanlib
         COMMAND python3 ${SETUP_PY_OUT} develop)
 
+add_custom_target(develop-python-user
+        DEPENDS _titanlib
+        COMMAND python3 ${SETUP_PY_OUT} develop --user)
+

@@ -9,6 +9,8 @@
 
 #include <boost/geometry/index/rtree.hpp>
 
+#define __version__ "0.1.0"
+
 typedef std::vector<float> fvec;
 typedef std::vector<std::vector<float> > fvec2;
 typedef std::vector<double> dvec;
@@ -17,6 +19,8 @@ typedef std::vector<int> ivec;
 /** Titanlib
 */
 namespace titanlib {
+    std::string version();
+
     /** Spatial Consistency Test
       * @param lats vector of latitudes
       * @param flags output vector of flags
@@ -71,9 +75,9 @@ namespace titanlib {
      *  @param max max allowed value
      *  @param flags vector of return flags
      * */
-    int range_check(const fvec values,
-            const fvec min,
-            const fvec max,
+    int range_check(const fvec& values,
+            const fvec& min,
+            const fvec& max,
             ivec& flags);
 
     int range_check_climatology(const fvec lats,
