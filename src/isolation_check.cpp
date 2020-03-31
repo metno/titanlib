@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <iostream>
 
-int titanlib::isolation_check(const fvec lats,
-        const fvec lons,
+int titanlib::isolation_check(const fvec& lats,
+        const fvec& lons,
         int nmin,
         float radius,
         ivec& flags) {
@@ -24,9 +24,9 @@ int titanlib::isolation_check(const fvec lats,
 
 }
 
-int titanlib::isolation_check(const fvec lats,
-        const fvec lons,
-        const fvec elevs,
+int titanlib::isolation_check(const fvec& lats,
+        const fvec& lons,
+        const fvec& elevs,
         int nmin,
         float radius,
         float dz,

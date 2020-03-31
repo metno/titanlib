@@ -8,10 +8,10 @@
 
 
 // helpers
-float compute_quantile(double quantile, const fvec array);
+float compute_quantile(double quantile, const fvec& array);
 
 // forward declarations
-fvec compute_vertical_profile(const fvec lats, const fvec lons, const fvec elevs, const fvec values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
+fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
@@ -19,7 +19,7 @@ fvec vertical_profile(const int n, const double *elevs, const double t0, const d
 
 
 // start SCT //
-int spatial_consistency_test(const fvec lats, const fvec lons, const fvec elevs, const fvec values, ivec& flags, int nminprof, double dzmin)
+int spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, ivec& flags, int nminprof, double dzmin)
 {
     const int s = values.size();
     // assert that the arrays we expect are of size s
@@ -52,7 +52,7 @@ int spatial_consistency_test(const fvec lats, const fvec lons, const fvec elevs,
 // end SCT //
 
 
-fvec compute_vertical_profile(const fvec lats, const fvec lons, const fvec elevs, const fvec values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin) {
+fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin) {
 
     // optimize inputs for VP (using Nelder-Mead Simplex algorithm)
     const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
@@ -219,7 +219,7 @@ fvec vertical_profile(const int n, const double *elevs, const double t0, const d
 
 //----------------------------------------------------------------------------//
 // HELPER FUNCTIONS
-float compute_quantile(double quantile, const fvec array)
+float compute_quantile(double quantile, const fvec& array)
 {
     int n = array.size();
     fvec array_copy(n);

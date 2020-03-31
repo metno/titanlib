@@ -7,14 +7,14 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include "titanlib.h"
 
-int titanlib::buddy_event_check(const fvec lats,
-        const fvec lons,
-        const fvec elevs,
-        const fvec values,
-        const fvec radius,
-        const ivec buddies_min,
-        const fvec event_thresholds,
-        const fvec thresholds,
+int titanlib::buddy_event_check(const fvec& lats,
+        const fvec& lons,
+        const fvec& elevs,
+        const fvec& values,
+        const fvec& radius,
+        const ivec& buddies_min,
+        const fvec& event_thresholds,
+        const fvec& thresholds,
         float diff_elev_max,
         float elev_gradient,
         ivec& flags,

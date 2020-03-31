@@ -70,7 +70,7 @@ float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, floa
 float titanlib::util::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
-fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec output_lats, const fvec output_lons) {
+fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec& output_lats, const fvec& output_lons) {
     assert(input_lats.size() > 0);
     assert(input_lats[0].size() > 0);
     fvec output_values(output_lats.size(), 0);

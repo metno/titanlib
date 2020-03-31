@@ -25,19 +25,19 @@ namespace titanlib {
       * @param lats vector of latitudes
       * @param flags output vector of flags
       */
-    int sct(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
+    int sct(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
             int nmin,
             int nmax,
             int nminprof,
             float dzmin,
             float dhmin,
             float dz,
-            const fvec t2pos,
-            const fvec t2neg,
-            const fvec eps2,
+            const fvec& t2pos,
+            const fvec& t2neg,
+            const fvec& eps2,
             fvec& sct,
             fvec& rep,
             ivec& flags);
@@ -54,18 +54,18 @@ namespace titanlib {
       * @param sct
       * @param flags
     */
-    int sct_window(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
+    int sct_window(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
             int nminprof,
             float radius,
             float dzmin,
             float dhmin,
             float dz,
-            const fvec pos,
-            const fvec neg,
-            const fvec eps2,
+            const fvec& pos,
+            const fvec& neg,
+            const fvec& eps2,
             fvec& sct,
             ivec& flags);
 
@@ -80,13 +80,13 @@ namespace titanlib {
             const fvec& max,
             ivec& flags);
 
-    int range_check_climatology(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
+    int range_check_climatology(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
             int unixtime,
-            const fvec plus,
-            const fvec minus,
+            const fvec& plus,
+            const fvec& minus,
             ivec& flags);
 
     /** Buddy check. Compares a station to all its neighbours within a certain distance
@@ -104,13 +104,13 @@ namespace titanlib {
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
      * */
-    int buddy_check(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
-            const fvec radius,
-            const ivec buddies_min,
-            const fvec thresholds,
+    int buddy_check(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
+            const fvec& radius,
+            const ivec& buddies_min,
+            const fvec& thresholds,
             float diff_elev_max,
             float elev_gradient,
             float min_std,
@@ -118,27 +118,24 @@ namespace titanlib {
             ivec& flags,
             const ivec obs_to_check = ivec());
 
-    int buddy_event_check(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
-            const fvec radius,
-            const ivec buddies_min,
-            const fvec event_thresholds,
-            const fvec thresholds,
+    int buddy_event_check(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
+            const fvec& radius,
+            const ivec& buddies_min,
+            const fvec& event_thresholds,
+            const fvec& thresholds,
             float diff_elev_max,
             float elev_gradient,
             ivec& flags,
             const ivec obs_to_check = ivec());
 
     int first_guess_check(
-        //const fvec lats,
-        //const fvec lons,
-        //const fvec elevs,
-        const fvec values,
-        const fvec fg_values,
-        const fvec fg_neg,
-        const fvec fg_pos,
+        const fvec& values,
+        const fvec& fg_values,
+        const fvec& fg_neg,
+        const fvec& fg_pos,
         ivec& flags);
 
     /** Isolation check. Checks that a station is not located alone
@@ -148,8 +145,8 @@ namespace titanlib {
      *  @param radius search radius [m]
      *  @param flags vector of return flags
      * */
-    int isolation_check(const fvec lats,
-            const fvec lons,
+    int isolation_check(const fvec& lats,
+            const fvec& lons,
             int nmin,
             float radius,
             ivec& flags);
@@ -163,9 +160,9 @@ namespace titanlib {
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
      * */
-    int isolation_check(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
+    int isolation_check(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
             int nmin,
             float radius,
             float dz,
@@ -191,7 +188,7 @@ namespace titanlib {
         bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
         void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
-        fvec interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec output_lats, const fvec output_lons);
+        fvec interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec& output_lats, const fvec& output_lons);
         float deg2rad(float deg);
         float calc_distance(float lat1, float lon1, float lat2, float lon2);
         float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
@@ -199,17 +196,17 @@ namespace titanlib {
 
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);
 
-    // bool prioritize(const fvec values, const ivec priority, float distance, ivec& flags);
+    // bool prioritize(const fvec& values, const ivec& priority, float distance, ivec& flags);
     class Dataset {
         public:
             Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues);
             /** Perform the range check on the dataset
             * @param indices Only perform the test on these indices
             **/
-            bool range_check(const fvec min, const fvec max, const ivec indices=ivec());
-            bool range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices=ivec());
-            bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, fvec& rep, const ivec indices=ivec());
-            bool buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iteratiowns, const ivec obs_to_check, const ivec indices=ivec());
+            bool range_check(const fvec& min, const fvec& max, const ivec indices=ivec());
+            bool range_check_climatology(int unixtime, const fvec& plus, const fvec& minus, const ivec indices=ivec());
+            bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices=ivec());
+            bool buddy_check(const fvec& radius, const ivec& buddies_min, const fvec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iteratiowns, const ivec& obs_to_check, const ivec indices=ivec());
 
             fvec lats;
             fvec lons;

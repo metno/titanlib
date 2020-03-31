@@ -7,19 +7,19 @@ extern "C" {
 #include "sct_smart_boxes.h"
 }
 
-int titanlib::sct(const fvec lats,
-        const fvec lons,
-        const fvec elevs,
-        const fvec values,
+int titanlib::sct(const fvec& lats,
+        const fvec& lons,
+        const fvec& elevs,
+        const fvec& values,
         int nmin,
         int nmax,
         int nminprof,
         float dzmin,
         float dhmin,
         float dz,
-        const fvec t2pos,
-        const fvec t2neg,
-        const fvec eps2,
+        const fvec& t2pos,
+        const fvec& t2neg,
+        const fvec& eps2,
         fvec& sct,
         fvec& rep,
         ivec& flags) {

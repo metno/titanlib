@@ -5,13 +5,10 @@
 
 
 int titanlib::first_guess_check(
-        //const fvec lats,
-    //const fvec lons,
-    //const fvec elevs,
-    const fvec values,
-    const fvec fg_values,
-    const fvec fg_neg,
-    const fvec fg_pos,
+    const fvec& values,
+    const fvec& fg_values,
+    const fvec& fg_neg,
+    const fvec& fg_pos,
     ivec& flags) {
 
         const int s = values.size();

@@ -7,18 +7,18 @@ extern "C" {
 #include "sct_smart_boxes.h"
 }
 
-int titanlib::sct_window(const fvec lats,
-            const fvec lons,
-            const fvec elevs,
-            const fvec values,
+int titanlib::sct_window(const fvec& lats,
+            const fvec& lons,
+            const fvec& elevs,
+            const fvec& values,
             int nminprof,
             float radius,
             float dzmin,
             float dhmin,
             float dz,
-            const fvec pos,
-            const fvec neg,
-            const fvec eps2,
+            const fvec& pos,
+            const fvec& neg,
+            const fvec& eps2,
             fvec& sct,
             ivec& flags) {
 
@@ -75,7 +75,7 @@ int titanlib::sct_window(const fvec lats,
         double d_dzmin = dzmin;
         double d_dhmin = dhmin;
         double d_dz = dz;
-        
+
         dvec d_sct;
         dvec rep;
         ivec boxids;
@@ -90,11 +90,11 @@ int titanlib::sct_window(const fvec lats,
         sct = fvec(d_sct.begin(), d_sct.end());
 
         // did it flag any of the obs we wanted to check?
-        for(int k = 0; k < obs_check.size(); k++) { 
+        for(int k = 0; k < obs_check.size(); k++) {
             if(obs_check[k] == 0) {
                 if(k == 0)
                     flags[i] = flags_local[k];
-                else 
+                else
                     flags[neighbour_indices[k]] = flags_local[k];
             }
         }

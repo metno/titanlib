@@ -10,7 +10,7 @@ titanlib::Dataset::Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues) {
     flags.resize(lats.size());
 }
 
-bool titanlib::Dataset::range_check(const fvec min, const fvec max, const ivec indices) {
+bool titanlib::Dataset::range_check(const fvec& min, const fvec& max, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags;
@@ -26,7 +26,7 @@ bool titanlib::Dataset::range_check(const fvec min, const fvec max, const ivec i
     else return false;
 }
 
-bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec plus, const fvec minus, const ivec indices) {
+bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec& plus, const fvec& minus, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags;
@@ -41,7 +41,7 @@ bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec plus, c
     }
     else return false;
 }
-bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec t2pos, const fvec t2neg, const fvec eps2, fvec& sct, fvec& rep, const ivec indices) {
+bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags;
@@ -58,7 +58,7 @@ bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float
     else return false;
 }
 
-bool titanlib::Dataset::buddy_check(const fvec radius, const ivec buddies_min, const fvec thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec obs_to_check, const ivec indices) {
+bool titanlib::Dataset::buddy_check(const fvec& radius, const ivec& buddies_min, const fvec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags;

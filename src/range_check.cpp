@@ -10,9 +10,9 @@ double interpolate(int i1, int i2, float lat, float latitudes[], double numbers[
 std::pair<int,int> find_between(float lat, float latitudes[], int len);
 
 
-int titanlib::range_check(const fvec values,
-        const fvec min,
-        const fvec max,
+int titanlib::range_check(const fvec& values,
+        const fvec& min,
+        const fvec& max,
         ivec& flags) {
 
     // loop over all the lats/lons/elevs + value 
@@ -40,13 +40,13 @@ int titanlib::range_check(const fvec values,
 
 }
 
-int titanlib::range_check_climatology(const fvec lats,
-        const fvec lons,
-        const fvec elevs,
-        const fvec values,
+int titanlib::range_check_climatology(const fvec& lats,
+        const fvec& lons,
+        const fvec& elevs,
+        const fvec& values,
         int unixtime,
-        const fvec plus,
-        const fvec minus,
+        const fvec& plus,
+        const fvec& minus,
         ivec& flags) {
 
     // loop over all the lats/lons/elevs + value 
