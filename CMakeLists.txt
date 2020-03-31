@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 # Change policy to allow a version to be set
 cmake_policy(SET CMP0048 NEW)
-project(titanlib VERSION 0.1.0)
+
+file (READ "${CMAKE_CURRENT_SOURCE_DIR}/include/titanlib.h" VERSION0)
+project(titanlib)
+string(REGEX REPLACE "^.+define TITANLIB_VERSION \"(.+)\".+" "\\1" PROJECT_VERSION ${VERSION0})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -fPIC")
@@ -45,7 +48,7 @@ install(TARGETS titanlib
 file(GLOB SWIG_INTERFACE "SWIG/titanlib.i")
 message('${SWIG_INTERFACE}')
 add_subdirectory(SWIG)
-# add_subdirectory(python)
+add_subdirectory(python)
 
 option(BUILD_DOC "Build documentation" ON)
 

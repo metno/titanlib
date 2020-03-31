@@ -8,8 +8,8 @@
 #include <boost/geometry/geometries/box.hpp>
 
 #include <boost/geometry/index/rtree.hpp>
-
-#define __version__ "0.1.0"
+#define TITANLIB_VERSION "0.1.0a1"
+#define __version__ TITANLIB_VERSION
 
 typedef std::vector<float> fvec;
 typedef std::vector<std::vector<float> > fvec2;

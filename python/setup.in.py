@@ -8,7 +8,7 @@ from setuptools import setup, Extension
 import glob
 import itertools
 
-__version__ = '0.1.0a0'
+__version__ = '${PROJECT_VERSION}'
 
 # We need to swap the order of build_py and build_ext
 # https://stackoverflow.com/questions/12491328/python-distutils-not-include-the-swig-generated-module
