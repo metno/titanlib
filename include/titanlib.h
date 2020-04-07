@@ -8,7 +8,7 @@
 #include <boost/geometry/geometries/box.hpp>
 
 #include <boost/geometry/index/rtree.hpp>
-#define TITANLIB_VERSION "0.1.0a1"
+#define TITANLIB_VERSION "0.1.0"
 #define __version__ TITANLIB_VERSION
 
 typedef std::vector<float> fvec;
@@ -19,12 +19,15 @@ typedef std::vector<int> ivec;
 /** Titanlib
 */
 namespace titanlib {
+    /**
+     * @return Titanlib version
+     */
     std::string version();
 
     /** Spatial Consistency Test
-      * @param lats vector of latitudes
-      * @param flags output vector of flags
-      */
+        @param lats vector of latitudes
+        @param flags output vector of flags
+     */
     int sct(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
@@ -43,17 +46,17 @@ namespace titanlib {
             ivec& flags);
 
     /** Spatial Consistency Test
-      * @param nminprof Minimum number of observations to compute vertical profile
-      * @param radius Select observations within this radius [m]
-      * @param dzmin Minimum elevation difference to compute vertical profile [m]
-      * @param dhmin Minimum horizontal decorrelation length [m]
-      * @param dz Vertical decorrelation length [m]
-      * @param pos Positive deviation allowed
-      * @param neg Negative deviation allowed
-      * @param eps2
-      * @param sct
-      * @param flags
-    */
+     *  @param nminprof Minimum number of observations to compute vertical profile
+     *  @param radius Select observations within this radius [m]
+     *  @param dzmin Minimum elevation difference to compute vertical profile [m]
+     *  @param dhmin Minimum horizontal decorrelation length [m]
+     *  @param dz Vertical decorrelation length [m]
+     *  @param pos Positive deviation allowed
+     *  @param neg Negative deviation allowed
+     *  @param eps2
+     *  @param sct
+     *  @param flags
+     */
     int sct_window(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
@@ -74,7 +77,7 @@ namespace titanlib {
      *  @param min min allowed value
      *  @param max max allowed value
      *  @param flags vector of return flags
-     * */
+     */
     int range_check(const fvec& values,
             const fvec& min,
             const fvec& max,
@@ -103,7 +106,7 @@ namespace titanlib {
      *  @param num_iterations 
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
-     * */
+     */
     int buddy_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
@@ -144,7 +147,7 @@ namespace titanlib {
      *  @param nmin required number of observations
      *  @param radius search radius [m]
      *  @param flags vector of return flags
-     * */
+     */
     int isolation_check(const fvec& lats,
             const fvec& lons,
             int nmin,
@@ -159,7 +162,7 @@ namespace titanlib {
      *  @param radius search radius [m]
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
-     * */
+     */
     int isolation_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
@@ -175,7 +178,7 @@ namespace titanlib {
          *  @param x_coords vector of x-coordinates [m]
          *  @param y_coords vector of y-coordinates [m]
          *  @param z_coords vector of z-coordinates [m]
-         * */
+         */
         bool convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords);
 
         /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
@@ -184,7 +187,7 @@ namespace titanlib {
          *  @param x_coord x-coordinate [m]
          *  @param y_coord y-coordinate [m]
          *  @param z_coord z-coordinate [m]
-         * */
+         */
         bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
         void convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords);
@@ -197,12 +200,13 @@ namespace titanlib {
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);
 
     // bool prioritize(const fvec& values, const ivec& priority, float distance, ivec& flags);
+
     class Dataset {
         public:
             Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues);
             /** Perform the range check on the dataset
-            * @param indices Only perform the test on these indices
-            **/
+             *  @param indices Only perform the test on these indices
+             */
             bool range_check(const fvec& min, const fvec& max, const ivec indices=ivec());
             bool range_check_climatology(int unixtime, const fvec& plus, const fvec& minus, const ivec indices=ivec());
             bool sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices=ivec());
@@ -242,7 +246,7 @@ namespace titanlib {
             /** Find single nearest points
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
-             * */
+             */
             int get_nearest_neighbour(float lat, float lon, bool include_match);
             ivec get_nearest_neighbour(const fvec& lats, const fvec& lons, bool include_match);
 
@@ -252,7 +256,7 @@ namespace titanlib {
              *  @param radius Lookup radius (use 0 for unlimited) [m]
              *  @param max_num Maximum number of points (use 0 for unlimited)
              *  @param include_match Should an exact match be included?
-             * */
+             */
             ivec get_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
 
             /** Find all points with a radius
@@ -260,14 +264,14 @@ namespace titanlib {
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius [m]
              *  @param distances Vector to store separation distances [m]
-             * */
+             */
             ivec get_neighbours_with_distance(float lat, float lon, float radius, int max_num, bool include_match, fvec& distances);
 
             /** Find the number of points within a radius
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius [m]
-             * */
+             */
             int get_num_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
         private:
             typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
