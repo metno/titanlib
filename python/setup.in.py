@@ -7,6 +7,7 @@ from distutils.core import setup, Extension
 from setuptools import setup, Extension
 import glob
 import itertools
+import os
 
 __version__ = '${PROJECT_VERSION}'
 
@@ -14,6 +15,7 @@ __version__ = '${PROJECT_VERSION}'
 # https://stackoverflow.com/questions/12491328/python-distutils-not-include-the-swig-generated-module
 from distutils.command.build import build
 from setuptools.command.install import install
+import distutils.command.install as orig
 
 class CustomBuild(build):
     def run(self):
@@ -24,17 +26,20 @@ class CustomBuild(build):
 class CustomInstall(install):
     def run(self):
         self.run_command('build_ext')
-        self.do_egg_install()
+        # self.do_egg_install()
+        orig.install.run(self)
 
 
 module = Extension('_titanlib',
-        sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['titanlib.i'],
-        language="c++",
-        swig_opts=['-I./include', '-c++', '-I/usr/include/python3.6m'],
+        sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
         libraries=["gsl", "gslcblas", "proj"],
         library_dirs=["/usr/lib/x86_64-linux-gnu/"],
         include_dirs=['./include']
 )
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup (
     name='titanlib',
@@ -45,6 +50,8 @@ setup (
     version=__version__,
 
     description='A quality control toolbox',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 
     # The project's main homepage.
     url='https://github.com/metno/titanlib',

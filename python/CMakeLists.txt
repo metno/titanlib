@@ -36,7 +36,11 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 #endforeach()
 
 add_custom_target(package-python
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/README.md ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/SWIG/python/titanlibPYTHON_wrap.cxx ${CMAKE_CURRENT_BINARY_DIR}/src
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/SWIG/python/titanlib.py ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy ${CPP_SOURCE_FILES} ${CMAKE_CURRENT_BINARY_DIR}/src
     COMMAND ${CMAKE_COMMAND} -E copy ${CPP_INCLUDE_FILES} ${CMAKE_CURRENT_BINARY_DIR}/include
     COMMAND ${CMAKE_COMMAND} -E copy ${SWIG_INTERFACE} ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND python3 ${SETUP_PY_OUT} sdist)
+add_dependencies(package-python build-python)
