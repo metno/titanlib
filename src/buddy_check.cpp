@@ -5,9 +5,10 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
+#include <exception>
 #include "titanlib.h"
 
-int titanlib::buddy_check(const fvec& lats,
+ivec titanlib::buddy_check(const fvec& lats,
         const fvec& lons,
         const fvec& elevs,
         const fvec& values,
@@ -18,27 +19,34 @@ int titanlib::buddy_check(const fvec& lats,
         float elev_gradient,
         float min_std,
         int num_iterations,
-        ivec& flags,
         const ivec obs_to_check) {
 
     bool debug = false;
     const int s = values.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return 1; }
-    if( radius.size() != s && radius.size() != 1 ) { return 1; }
-    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) { return 1; }
-    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) { return 1; }
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
+        throw std::runtime_error("Dimension mismatch");
+    }
+    else if( radius.size() != s && radius.size() != 1 ) {
+        throw std::runtime_error("Dimension mismatch");
+    }
+    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) {
+        throw std::runtime_error("Dimension mismatch");
+    }
+    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
+        throw std::runtime_error("Dimension mismatch");
+    }
 
     // Check that buddies min is more than 0
     for(int i = 0; i < buddies_min.size(); i++) {
         if(buddies_min[i] <= 0)
-            return 1;
+            throw std::runtime_error("Buddies_min must be > 0");
     }
 
     // create the KD tree to be used later
     titanlib::KDTree tree(lats, lons);
     // resize the flags and set them to 0
-    flags.resize(s, 0);
+    ivec flags(s, 0);
     // if obs_to_check is empty then check all
     bool check_all = (obs_to_check.size() == s) ? false : true;
 
@@ -128,5 +136,5 @@ int titanlib::buddy_check(const fvec& lats,
         }
     }
 
-    return 0;
+    return flags;
 }

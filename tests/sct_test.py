@@ -24,15 +24,13 @@ class SctTest(unittest.TestCase):
         t2pos = np.ones(N) * 4;
         t2neg = np.ones(N) * 4;
         eps2 = np.ones(N) * 0.5;
-        status, sct, rep, flags = titanlib.sct(lats, lons, elevs, values, 100, 1000, 100, 100, 10000,
+        sct, rep, flags = titanlib.sct(lats, lons, elevs, values, 100, 1000, 100, 100, 10000,
                 100, t2pos, t2neg, eps2)
 
     def test_nminprof(self):
         nminprof = 20
-        status, sct, rep, flags = titanlib.sct(len100, len100, len100, z100, 100, 1000,
+        sct, rep, flags = titanlib.sct(len100, len100, len100, z100, 100, 1000,
                 nminprof, 100, 10000, 100, 2*o100, 2*o100, 0.5*o100)
-        print(status)
-        self.assertEqual(status,0)
 
 if __name__ == '__main__':
     unittest.main()

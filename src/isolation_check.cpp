@@ -4,13 +4,12 @@
 #include <assert.h>
 #include <iostream>
 
-int titanlib::isolation_check(const fvec& lats,
+ivec titanlib::isolation_check(const fvec& lats,
         const fvec& lons,
         int nmin,
-        float radius,
-        ivec& flags) {
+        float radius) {
     titanlib::KDTree tree(lats, lons);
-    flags.resize(lats.size());
+    ivec flags(lats.size(), 0);
 
     for(int i = 0; i < lats.size(); i++) {
         int num = tree.get_num_neighbours(lats[i], lons[i], radius, 0, false);
@@ -20,20 +19,19 @@ int titanlib::isolation_check(const fvec& lats,
         }
     }
 
-    return 0;
+    return flags;
 
 }
 
-int titanlib::isolation_check(const fvec& lats,
+ivec titanlib::isolation_check(const fvec& lats,
         const fvec& lons,
         const fvec& elevs,
         int nmin,
         float radius,
-        float dz,
-        ivec& flags) {
+        float dz) {
 
     titanlib::KDTree tree(lats, lons);
-    flags.resize(lats.size());
+    ivec flags(lats.size(), 0);
 
     for(int i = 0; i < lats.size(); i++) {
         ivec indices = tree.get_neighbours(lats[i], lons[i], radius, 0, false);
@@ -49,5 +47,5 @@ int titanlib::isolation_check(const fvec& lats,
         }
     }
 
-    return 0;
+    return flags;
 }

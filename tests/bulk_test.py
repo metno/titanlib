@@ -46,8 +46,6 @@ def load(filename):
             data[key] = np.array(data[key], 'float')
     assert('test' in parameters)
     assert('flag' in data)
-    if 'status' not in parameters:
-        parameters['status'] = 0
     return parameters, data
 
 
@@ -56,8 +54,7 @@ class BulkTest(unittest.TestCase):
         """Check that the test doesn't fail"""
         parameters, data = load(filename)
         if parameters['test'] == 'range':
-            status, flags  = titanlib.range_check(data['value'], [parameters['min']], [parameters['max']])
-            self.assertEqual(status, parameters['status'])
+            flags  = titanlib.range_check(data['value'], [parameters['min']], [parameters['max']])
             self.assertListEqual(list(flags), data['flag'].tolist())
         else:
             raise NotImplementedError

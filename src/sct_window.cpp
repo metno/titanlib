@@ -3,11 +3,12 @@
 #include "titanlib.h"
 #include <assert.h>
 #include <iostream>
+#include <exception>
 extern "C" {
 #include "sct_smart_boxes.h"
 }
 
-int titanlib::sct_window(const fvec& lats,
+ivec titanlib::sct_window(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -19,18 +20,19 @@ int titanlib::sct_window(const fvec& lats,
             const fvec& pos,
             const fvec& neg,
             const fvec& eps2,
-            fvec& sct,
-            ivec& flags) {
+            fvec& sct) {
 
     const int s = values.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return 1; }
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
+        throw std::runtime_error("Dimension mismatch");
+    }
 
     // create the KD tree to be used later
     titanlib::KDTree tree(lats, lons);
 
     // resize the flags and set them to 0
-    flags.resize(s, 0);
+    ivec flags(s, 0);
 
     for(int i = 0; i < values.size(); i++) {
         // get all neighbours that are close enough to this point
@@ -100,5 +102,5 @@ int titanlib::sct_window(const fvec& lats,
         }
     }
 
-    return 0;
+    return flags;
 }

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iostream>
 #include <numeric>
+#include <exception>
 #include <gsl/gsl_multimin.h>
 
 
@@ -19,13 +20,15 @@ fvec vertical_profile(const int n, const double *elevs, const double t0, const d
 
 
 // start SCT //
-int spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, ivec& flags, int nminprof, double dzmin)
+ivec spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, int nminprof, double dzmin)
 {
     const int s = values.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) { return 1; }
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
+        throw std::runtime_error("Dimension mismatch");
+    }
 
-    flags.resize(s, 0);
+    ivec flags(s, 0);
 
     /*
     Stuff for VP
@@ -47,7 +50,7 @@ int spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& ele
     // TODO: more SCT stuff to come...
 
 
-    return 0;
+    return flags;
 }
 // end SCT //
 

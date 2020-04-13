@@ -3,11 +3,12 @@
 #include "titanlib.h"
 #include <assert.h>
 #include <iostream>
+#include <exception>
 extern "C" {
 #include "sct_smart_boxes.h"
 }
 
-int titanlib::sct(const fvec& lats,
+ivec titanlib::sct(const fvec& lats,
         const fvec& lons,
         const fvec& elevs,
         const fvec& values,
@@ -21,12 +22,11 @@ int titanlib::sct(const fvec& lats,
         const fvec& t2neg,
         const fvec& eps2,
         fvec& sct,
-        fvec& rep,
-        ivec& flags) {
+        fvec& rep) {
 
     // Check inputs
     if(nmin == 0 || nmax == 0)
-        return 1;
+        throw std::runtime_error("nmin and nmax must be > 0");
     fvec x, y;
     titanlib::util::convert_to_proj(lats, lons, "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06", x, y);
 
@@ -53,7 +53,7 @@ int titanlib::sct(const fvec& lats,
     dvec drep;
     ivec boxids;
     boxids.resize(N, 0);
-    flags.resize(N, 0);
+    ivec flags(N, 0);
     dsct.resize(N, 0);
     drep.resize(N, 0);
 
@@ -61,5 +61,5 @@ int titanlib::sct(const fvec& lats,
     sct = fvec(dsct.begin(), dsct.end());
     rep = fvec(drep.begin(), drep.end());
 
-    return 0;
+    return flags;
 }

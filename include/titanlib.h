@@ -6,15 +6,15 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
-
 #include <boost/geometry/index/rtree.hpp>
+
 #define TITANLIB_VERSION "0.1.0"
 #define __version__ TITANLIB_VERSION
 
-typedef std::vector<float> fvec;
-typedef std::vector<std::vector<float> > fvec2;
-typedef std::vector<double> dvec;
 typedef std::vector<int> ivec;
+typedef std::vector<float> fvec;
+typedef std::vector<double> dvec;
+typedef std::vector<fvec> fvec2;
 
 /** Titanlib
 */
@@ -28,7 +28,7 @@ namespace titanlib {
         @param lats vector of latitudes
         @param flags output vector of flags
      */
-    int sct(const fvec& lats,
+    ivec sct(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -42,8 +42,7 @@ namespace titanlib {
             const fvec& t2neg,
             const fvec& eps2,
             fvec& sct,
-            fvec& rep,
-            ivec& flags);
+            fvec& rep);
 
     /** Spatial Consistency Test
      *  @param nminprof Minimum number of observations to compute vertical profile
@@ -57,7 +56,7 @@ namespace titanlib {
      *  @param sct
      *  @param flags
      */
-    int sct_window(const fvec& lats,
+    ivec sct_window(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -69,8 +68,7 @@ namespace titanlib {
             const fvec& pos,
             const fvec& neg,
             const fvec& eps2,
-            fvec& sct,
-            ivec& flags);
+            fvec& sct);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
@@ -78,19 +76,17 @@ namespace titanlib {
      *  @param max max allowed value
      *  @param flags vector of return flags
      */
-    int range_check(const fvec& values,
+    ivec range_check(const fvec& values,
             const fvec& min,
-            const fvec& max,
-            ivec& flags);
+            const fvec& max);
 
-    int range_check_climatology(const fvec& lats,
+    ivec range_check_climatology(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
             int unixtime,
             const fvec& plus,
-            const fvec& minus,
-            ivec& flags);
+            const fvec& minus);
 
     /** Buddy check. Compares a station to all its neighbours within a certain distance
      *  @param lats vector of latitudes [deg]
@@ -107,7 +103,7 @@ namespace titanlib {
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
      */
-    int buddy_check(const fvec& lats,
+    ivec buddy_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -118,10 +114,9 @@ namespace titanlib {
             float elev_gradient,
             float min_std,
             int num_iterations,
-            ivec& flags,
             const ivec obs_to_check = ivec());
 
-    int buddy_event_check(const fvec& lats,
+    ivec buddy_event_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -131,15 +126,13 @@ namespace titanlib {
             const fvec& thresholds,
             float diff_elev_max,
             float elev_gradient,
-            ivec& flags,
             const ivec obs_to_check = ivec());
 
-    int first_guess_check(
+    ivec first_guess_check(
         const fvec& values,
         const fvec& fg_values,
         const fvec& fg_neg,
-        const fvec& fg_pos,
-        ivec& flags);
+        const fvec& fg_pos);
 
     /** Isolation check. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
@@ -148,11 +141,10 @@ namespace titanlib {
      *  @param radius search radius [m]
      *  @param flags vector of return flags
      */
-    int isolation_check(const fvec& lats,
+    ivec isolation_check(const fvec& lats,
             const fvec& lons,
             int nmin,
-            float radius,
-            ivec& flags);
+            float radius);
 
     /** Isolation check with elevation. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
@@ -163,13 +155,12 @@ namespace titanlib {
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
      */
-    int isolation_check(const fvec& lats,
+    ivec isolation_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             int nmin,
             float radius,
-            float dz,
-            ivec& flags);
+            float dz);
 
     namespace util {
         /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
@@ -201,6 +192,7 @@ namespace titanlib {
 
     // bool prioritize(const fvec& values, const ivec& priority, float distance, ivec& flags);
 
+    /** Represents point and their observed values */
     class Dataset {
         public:
             Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues);

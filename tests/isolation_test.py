@@ -19,18 +19,15 @@ class IsolationTest(unittest.TestCase):
         radius = 15000
 
         # All except the last one have at least 2 neighbours
-        status, flags = titanlib.isolation_check(lats, lons, 2, radius)
-        self.assertEqual(status,0)
+        flags = titanlib.isolation_check(lats, lons, 2, radius)
         self.assertListEqual(list(flags), [0, 0, 0, 0, 0, 1])
 
         # Only the middle one has 4 neighbours
-        status, flags = titanlib.isolation_check(lats, lons, 4, radius)
-        self.assertEqual(status,0)
+        flags = titanlib.isolation_check(lats, lons, 4, radius)
         self.assertListEqual(list(flags), [1, 1, 0, 1, 1, 1])
 
         # None have neighbours within 1 km
-        status, flags = titanlib.isolation_check(lats, lons, 1, 1000)
-        self.assertEqual(status,0)
+        flags = titanlib.isolation_check(lats, lons, 1, 1000)
         self.assertListEqual(list(flags), [1, 1, 1, 1, 1, 1])
 
     def test_summer_case(self):
@@ -40,11 +37,11 @@ class IsolationTest(unittest.TestCase):
         lats, lons, elevs, values = util.summer_temperature_example()
         dz = 100
         s_time = time.time()
-        status, flags = titanlib.isolation_check(lats, lons, elevs, nmin, radius, dz)
+        flags = titanlib.isolation_check(lats, lons, elevs, nmin, radius, dz)
         e_time = time.time()
         print("%.2f %d" %(e_time - s_time, np.sum(flags)))
         s_time = time.time()
-        status, flags = titanlib.isolation_check(lats, lons, nmin, radius)
+        flags = titanlib.isolation_check(lats, lons, nmin, radius)
         e_time = time.time()
         print("%.2f %d" %(e_time - s_time, np.sum(flags)))
         print(np.sum(flags))

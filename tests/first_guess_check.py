@@ -22,7 +22,7 @@ class FirstGuessCheckTest(unittest.TestCase):
         fg_max = [3, 2]
 
         s_time = time.time()
-        status, flags = titanlib.first_guess_check(values, fg, fg_min, fg_max)
+        flags = titanlib.first_guess_check(values, fg, fg_min, fg_max)
         e_time = time.time()
         print(e_time - s_time)
         print("Fraction of stations removed: %.1f %%" % (np.mean(flags) * 100))
