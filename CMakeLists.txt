@@ -42,10 +42,10 @@ install(TARGETS titanlib
     )
 
 # SWIG subdirectory
-file(GLOB SWIG_INTERFACE "SWIG/titanlib.i")
+file(GLOB SWIG_INTERFACE "extras/SWIG/titanlib.i")
 message('${SWIG_INTERFACE}')
-add_subdirectory(SWIG)
-add_subdirectory(python)
+add_subdirectory(extras/SWIG)
+add_subdirectory(extras/python)
 
 # Documentation
 option(BUILD_DOC "Build documentation" ON)
