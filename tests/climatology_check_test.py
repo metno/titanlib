@@ -23,13 +23,13 @@ class ClimatologyCheckTest(unittest.TestCase):
     def test_invalid_input(self):
         """Check that the test fails"""
         # TODO: Reenable these
-        # Min/max inconsistent with inputs
-        #flags  = titanlib.range_check_climatology(len3, len3, len3, len3, ut, len2, len2)
-        #self.assertEqual(status,1)
+        with self.assertRaises(RuntimeError):
+            # Min/max inconsistent with inputs
+            flags = titanlib.range_check_climatology(len3, len3, len3, len3, ut, len2, len2)
 
-        # Lat / lon inconsistent
-        #flags  = titanlib.range_check_climatology(len3, len1, len3, len3, ut, len1, len1)
-        #self.assertEqual(status,1)
+        with self.assertRaises(RuntimeError):
+            # Lat / lon inconsistent
+            flags = titanlib.range_check_climatology(len3, len1, len3, len3, ut, len1, len1)
 
 
 if __name__ == '__main__':

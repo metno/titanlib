@@ -21,9 +21,8 @@ class RangeCheckTest(unittest.TestCase):
     def test_invalid_input(self):
         """Check that the test fails"""
         # Min/max inconsistent with inputs
-        # TODO: Reenable these
-        #flags  = titanlib.range_check(len3, len2, len2)
-        # self.assertEquals(status,1)
+        with self.assertRaises(RuntimeError):
+            flags  = titanlib.range_check(len3, len2, len2)
 
     def test_simple(self):
         """Check that the test returns the correct flags"""
