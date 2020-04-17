@@ -25,8 +25,11 @@ ivec titanlib::sct(const fvec& lats,
         fvec& rep) {
 
     // Check inputs
+    int N = lats.size();
     if(nmin == 0 || nmax == 0)
         throw std::runtime_error("nmin and nmax must be > 0");
+    if(lons.size() != N || elevs.size() != N || values.size() != N)
+        throw std::invalid_argument("Input dimension mismatch");
     fvec x, y;
     titanlib::util::convert_to_proj(lats, lons, "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06", x, y);
 
@@ -38,7 +41,6 @@ ivec titanlib::sct(const fvec& lats,
     dvec dt2pos(t2pos.begin(), t2pos.end());
     dvec dt2neg(t2neg.begin(), t2neg.end());
     dvec deps2(eps2.begin(), eps2.end());
-    int N = lats.size();
 
     double ddzmin = dzmin;
     double ddhmin = dhmin;
