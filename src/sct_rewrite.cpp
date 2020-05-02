@@ -6,10 +6,19 @@
 #include <numeric>
 #include <exception>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_linalg.h>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 
 // helpers
 float compute_quantile(double quantile, const fvec& array);
+gsl_matrix* inverse_matrix(const gsl_matrix *matrix);
+bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 
 // forward declarations
 fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
@@ -20,7 +29,8 @@ fvec vertical_profile(const int n, const double *elevs, const double t0, const d
 
 
 // start SCT //
-ivec spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, int nminprof, double dzmin)
+ivec spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values,
+int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2neg[], double eps2[])
 {
     const int s = values.size();
     // assert that the arrays we expect are of size s
@@ -28,27 +38,169 @@ ivec spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& el
         throw std::runtime_error("Dimension mismatch");
     }
 
-    ivec flags(s, 0);
+    ivec flags(s, 0); // TODO: should this be the size of the full box, or the size of the part of the box we are flagging 
+    
+    // first find everything close to the point that we are testing (maxdist)
+    double maxdist = 2000;
+    // determine if we have too many or too few observations 
+    // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
+    int maxnumobs = 100;
+    int minnumobs = 10;
 
-    /*
-    Stuff for VP
-    */
-    double gamma = -0.0065;
-    double a = 5.0;
-    double meanT = std::accumulate(values.begin(), values.end(), 0.0) / s;
-    double exact_p10 = compute_quantile(0.10, elevs);
-    double exact_p90 = compute_quantile(0.90, elevs);
+    // create the KD tree
+    titanlib::KDTree tree(lats, lons);
+    // loop over all observations
+    for(int curr=0; curr < s; curr++) { 
+        // get all neighbours that are close enough
+        ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], maxdist, maxnumobs, false);
+        if(neighbour_indices.size() < minnumobs) {
+            // flag as isolated? 
+            continue; // go to next station, skip this one
+        }
+        // add the actual station at the end
+        neighbour_indices.push_back(curr);
 
-    // calculate background
-    fvec vp = compute_vertical_profile(lats, lons, elevs, values, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
+        // call SCT with this box 
+        fvec lats_box, lons_box, elevs_box, values_box;
+        int s_box = neighbour_indices.size();
+        double dz_box[s_box], t2pos_box[s_box], t2neg_box[s_box], eps2_box[s_box];
+        // add all the neighbours
+        for(int i=0; i < s_box; i++) {
+            lats_box[i] = lats[neighbour_indices[i]];
+            lons_box[i] = lons[neighbour_indices[i]];
+            elevs_box[i] = elevs[neighbour_indices[i]];            
+            values_box[i] = values[neighbour_indices[i]];
+            dz_box[i] = dz[neighbour_indices[i]];
+            t2pos_box[i] = t2pos[neighbour_indices[i]];
+            t2neg_box[i] = t2neg[neighbour_indices[i]];
+            eps2_box[i] = eps2[neighbour_indices[i]];
+        }
+        // the thing to flag is at "curr", ano not included in the box
 
-    // now have temperature profile (vp)
-    for(int i=0; i<s; i++) {
-        assert(vp[i] !=-999);
+        /*
+        Stuff for VP
+        */
+        double gamma = -0.0065;
+        double a = 5.0;
+        double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
+        double exact_p10 = compute_quantile(0.10, elevs_box);
+        double exact_p90 = compute_quantile(0.90, elevs_box);
+
+        // calculate background
+        fvec vp = compute_vertical_profile(lats_box, lons_box, elevs_box, values_box, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
+        // now have temperature profile (vp)
+        for(int i=0; i < s_box; i++) {
+            assert(vp[i] !=-999);
+        }
+
+        boost::numeric::ublas::matrix<float> disth(s, s);
+        boost::numeric::ublas::matrix<float> distz(s, s);
+        boost::numeric::ublas::vector<float> Dh(s);
+
+        for(int i=0; i < s_box; i++) {
+            fvec Dh_vector(s_box);
+            for(int j=0; j < s_box; j++) {
+                disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
+                distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
+                if(i != j) {
+                    if(i < j)
+                        Dh_vector[j - 1] = disth(i, j);
+                    else if(i > j)
+                        Dh_vector[j] = disth(i, j);
+                }
+            }
+            Dh(i) = compute_quantile(0.10, Dh_vector);
+        }
+
+        double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
+        if(Dh_mean < dhmin) {
+            Dh_mean = dhmin; 
+        }
+
+        float Dz = 200; // good value (use this default)
+        boost::numeric::ublas::matrix<float> S(s_box,s_box);
+        boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
+        boost::numeric::ublas::matrix<double> S_global(s_box,s_box);
+        for(int i=0; i < s_box; i++) { 
+            for(int j=0; j < s_box; j++) { 
+                double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
+                // TODO: is S_global really needed?
+                S_global(i,j) = value;
+                if(i==j) { // weight the diagonal?? (0.5 default)
+                    value = value + eps2_box[i];
+                }
+                S(i,j) = value;
+            }
+        }
+
+        boost::numeric::ublas::vector<float> d(s_box);
+        boost::numeric::ublas::vector<float> d_global(s_box);
+        for(int i=0; i < s_box; i++) { 
+            d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
+            d_global(i) = d(i);
+        } 
+
+        /* ---------------------------------------------------
+        Beginning of real SCT
+        ------------------------------------------------------*/
+        bool b = invertMatrix(S, Sinv);
+        // TODO: should exit if do not manage to invert the matrix
+
+        // unweight the diagonal of S
+        for(int i=0; i<s_box; i++) { 
+            double value = S(i,i) - eps2_box[i];
+            S(i,i) = value;
+        }
+
+        // do not need "throwout" variable like in c version?
+        // only trying to determine if we should throw out the 1 "curr"
+        boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
+
+        for(int i=0; i<s_box; i++) {
+            double acc = 0;
+            for(int j=0; j<s_box; j++) {
+                acc += Sinv(i,j)*d(j);
+            }
+            Sinv_d(i) = acc;
+        }
+        for(int i=0; i<s_box; i++) {
+            double acc = 0;
+            for(int j=0; j<s_box; j++) {
+                acc += S(i,j)*Sinv_d(j);
+            }
+            ares_temp(i) = acc;
+        }
+        for(int i=0; i<s_box; i++) {
+            Zinv(i) = (1/Sinv(i,i)); //Zinv<-1/diag(SRinv)
+            ares(i) = ares_temp(i)-d(i); // ares<-crossprod(S,SRinv.d)-d[sel]
+        }
+
+        boost::numeric::ublas::vector<float> cvres(s_box);
+        for(int i=0; i<s_box; i++) {
+            cvres(i) = -1*Zinv(i) * Sinv_d(i);
+        }
+
+        double sig2o = 0;
+        boost::numeric::ublas::vector<float> sig2o_temp(s_box), negAres_temp(s_box);
+        for(int i=0; i<s_box; i++) {
+            negAres_temp(i)=-1*ares(i);
+            sig2o_temp(i) = d(i)*negAres_temp(i);
+            sig2o += sig2o_temp(i);
+        }
+
+        sig2o = sig2o/s_box;
+        if(sig2o < 0.01) {
+            sig2o = 0.01;
+        }
+
+        // boost::numeric::ublas::vector<float> pog(s_box);
+        // for(int i=0; i<s_box; i++) {
+        //     pog(i) = cvres(i)*ares(i) / sig2o;
+        // }
+        float pog = cvres(s_box) * ares(s_box) / sig2o;
+        if((cvres(s_box) < 0 && pog > t2pos[curr]) || (cvres(s_box) >= 0 && pog > t2neg[curr]))
+            flags[curr] = 1;
     }
-
-    // TODO: more SCT stuff to come...
-
 
     return flags;
 }
@@ -217,6 +369,7 @@ fvec vertical_profile(const int n, const double *elevs, const double t0, const d
       t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
     }
   }
+  return t_out;
 }
 
 
@@ -251,4 +404,35 @@ float compute_quantile(double quantile, const fvec& array)
     }
 
     return exact_q;
+}
+
+gsl_matrix* inverse_matrix(const gsl_matrix *matrix) {
+  int s;
+  gsl_matrix *return_matrix = gsl_matrix_alloc(matrix->size1,matrix->size2);
+  gsl_matrix *temp_matrix = gsl_matrix_alloc(matrix->size1,matrix->size2);
+  gsl_matrix_memcpy(temp_matrix, matrix);
+  gsl_permutation * p = gsl_permutation_alloc (matrix->size1);
+
+  gsl_linalg_LU_decomp (temp_matrix, p, &s);
+  gsl_linalg_LU_invert (temp_matrix, p, return_matrix);
+  gsl_matrix_free(temp_matrix);
+  gsl_permutation_free (p);
+  return return_matrix;
+}
+
+bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
+ 	using namespace boost::numeric::ublas;
+ 	typedef permutation_matrix<std::size_t> pmatrix;
+ 	// create a working copy of the input
+ 	matrix<float> A(input);
+ 	// create a permutation matrix for the LU-factorization
+ 	pmatrix pm(A.size1());
+ 	// perform LU-factorization
+ 	int res = lu_factorize(A,pm);
+        if( res != 0 ) return false;
+ 	// create identity matrix of "inverse"
+ 	inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
+ 	// backsubstitute to get the inverse
+ 	lu_substitute(A, pm, inverse);
+ 	return true;
 }
