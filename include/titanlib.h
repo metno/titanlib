@@ -56,19 +56,21 @@ namespace titanlib {
      *  @param sct
      *  @param flags
      */
-    ivec sct_window(const fvec& lats,
+    ivec sct_rewrite(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
+            int minnumobs,
+            int maxnumobs,
+            double inner_radius,
+            double outer_radius,
             int nminprof,
-            float radius,
-            float dzmin,
-            float dhmin,
+            double dzmin,
+            double dhmin,
             float dz,
-            const fvec& pos,
-            const fvec& neg,
-            const fvec& eps2,
-            fvec& sct);
+            const fvec& t2pos,
+            const fvec& t2neg,
+            const fvec& eps2);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations

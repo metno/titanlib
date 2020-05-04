@@ -26,12 +26,28 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
 fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
-
+fvec subset(const fvec& input, const ivec& indices);
 
 // start SCT //
-ivec spatial_consistency_test(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values,
-int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2neg[], double eps2[])
-{
+ivec titanlib::sct_rewrite(const fvec& lats,
+        const fvec& lons,
+        const fvec& elevs,
+        const fvec& values,
+        // determine if we have too many or too few observations
+        // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
+        int minnumobs,
+        int maxnumobs,
+        // first find everything close to the point that we are testing (maxdist)
+        double inner_radius,
+        double outer_radius,
+        int nminprof,
+        double dzmin,
+        double dhmin,
+        float dz,
+        const fvec& t2pos,
+        const fvec& t2neg,
+        const fvec& eps2) {
+
     const int s = values.size();
     // assert that the arrays we expect are of size s
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
@@ -39,20 +55,13 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
     }
 
     ivec flags(s, 0); // TODO: should this be the size of the full box, or the size of the part of the box we are flagging 
-    
-    // first find everything close to the point that we are testing (maxdist)
-    double maxdist = 2000;
-    // determine if we have too many or too few observations 
-    // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
-    int maxnumobs = 100;
-    int minnumobs = 10;
 
     // create the KD tree
     titanlib::KDTree tree(lats, lons);
     // loop over all observations
-    for(int curr=0; curr < s; curr++) { 
+    for(int curr=0; curr < s; curr++) {
         // get all neighbours that are close enough
-        ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], maxdist, maxnumobs, false);
+        ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
         if(neighbour_indices.size() < minnumobs) {
             // flag as isolated? 
             continue; // go to next station, skip this one
@@ -61,20 +70,12 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
         neighbour_indices.push_back(curr);
 
         // call SCT with this box 
-        fvec lats_box, lons_box, elevs_box, values_box;
+        fvec lons_box = subset(lons, neighbour_indices);
+        fvec elevs_box = subset(elevs, neighbour_indices);
+        fvec lats_box = subset(lats, neighbour_indices);
+        fvec values_box = subset(values, neighbour_indices);
+        fvec eps2_box = subset(eps2, neighbour_indices);
         int s_box = neighbour_indices.size();
-        double dz_box[s_box], t2pos_box[s_box], t2neg_box[s_box], eps2_box[s_box];
-        // add all the neighbours
-        for(int i=0; i < s_box; i++) {
-            lats_box[i] = lats[neighbour_indices[i]];
-            lons_box[i] = lons[neighbour_indices[i]];
-            elevs_box[i] = elevs[neighbour_indices[i]];            
-            values_box[i] = values[neighbour_indices[i]];
-            dz_box[i] = dz[neighbour_indices[i]];
-            t2pos_box[i] = t2pos[neighbour_indices[i]];
-            t2neg_box[i] = t2neg[neighbour_indices[i]];
-            eps2_box[i] = eps2[neighbour_indices[i]];
-        }
         // the thing to flag is at "curr", ano not included in the box
 
         /*
@@ -114,16 +115,15 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
 
         double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
         if(Dh_mean < dhmin) {
-            Dh_mean = dhmin; 
+            Dh_mean = dhmin;
         }
 
-        float Dz = 200; // good value (use this default)
         boost::numeric::ublas::matrix<float> S(s_box,s_box);
         boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
         boost::numeric::ublas::matrix<double> S_global(s_box,s_box);
-        for(int i=0; i < s_box; i++) { 
-            for(int j=0; j < s_box; j++) { 
-                double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
+        for(int i=0; i < s_box; i++) {
+            for(int j=0; j < s_box; j++) {
+                double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / dz), 2));
                 // TODO: is S_global really needed?
                 S_global(i,j) = value;
                 if(i==j) { // weight the diagonal?? (0.5 default)
@@ -135,10 +135,10 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
 
         boost::numeric::ublas::vector<float> d(s_box);
         boost::numeric::ublas::vector<float> d_global(s_box);
-        for(int i=0; i < s_box; i++) { 
+        for(int i=0; i < s_box; i++) {
             d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
             d_global(i) = d(i);
-        } 
+        }
 
         /* ---------------------------------------------------
         Beginning of real SCT
@@ -147,7 +147,7 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
         // TODO: should exit if do not manage to invert the matrix
 
         // unweight the diagonal of S
-        for(int i=0; i<s_box; i++) { 
+        for(int i=0; i<s_box; i++) {
             double value = S(i,i) - eps2_box[i];
             S(i,i) = value;
         }
@@ -197,8 +197,9 @@ int nminprof, double dzmin, double dhmin, double dz[], double t2pos[], double t2
         // for(int i=0; i<s_box; i++) {
         //     pog(i) = cvres(i)*ares(i) / sig2o;
         // }
-        float pog = cvres(s_box) * ares(s_box) / sig2o;
-        if((cvres(s_box) < 0 && pog > t2pos[curr]) || (cvres(s_box) >= 0 && pog > t2neg[curr]))
+        float last = s_box - 1;
+        float pog = cvres(last) * ares(last) / sig2o;
+        if((cvres(last) < 0 && pog > t2pos[curr]) || (cvres(last) >= 0 && pog > t2neg[curr]))
             flags[curr] = 1;
     }
 
@@ -240,7 +241,7 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
         input = gsl_vector_alloc(vp_optim.n);
         gsl_vector_set(input, 0, meanT);
         gsl_vector_set(input, 1, gamma);
-        vp_optim.f = basic_vertical_profile_optimizer_function;  
+        vp_optim.f = basic_vertical_profile_optimizer_function;
     }
     else {
         vp_optim.n = 5;
@@ -250,7 +251,7 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
         gsl_vector_set(input, 2, a);
         gsl_vector_set(input, 3, exact_p10);
         gsl_vector_set(input, 4, exact_p90);
-        vp_optim.f = vertical_profile_optimizer_function; 
+        vp_optim.f = vertical_profile_optimizer_function;
     }
     ss = gsl_vector_alloc (vp_optim.n);
 
@@ -285,7 +286,7 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
     gsl_vector_free(input);
     gsl_vector_free(ss);
     gsl_multimin_fminimizer_free (s);
-    
+
     return vp;
 }
 
@@ -435,4 +436,15 @@ bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::num
  	// backsubstitute to get the inverse
  	lu_substitute(A, pm, inverse);
  	return true;
+}
+
+fvec subset(const fvec& input, const ivec& indices) {
+    fvec output(indices.size());
+    int size = indices.size();
+    for(int i=0; i < size; i++) {
+        int index = indices[i];
+        assert(index < input.size());
+        output[i] = input[index];
+    }
+    return output;
 }
