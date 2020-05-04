@@ -19,6 +19,7 @@
 float compute_quantile(double quantile, const fvec& array);
 gsl_matrix* inverse_matrix(const gsl_matrix *matrix);
 bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
+fvec subset(const fvec& input, const ivec& indices);
 
 // forward declarations
 fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
@@ -26,7 +27,6 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
 fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
-fvec subset(const fvec& input, const ivec& indices);
 
 // start SCT //
 ivec titanlib::sct_rewrite(const fvec& lats,
@@ -58,151 +58,180 @@ ivec titanlib::sct_rewrite(const fvec& lats,
 
     // create the KD tree
     titanlib::KDTree tree(lats, lons);
-    // loop over all observations
-    for(int curr=0; curr < s; curr++) {
-        // get all neighbours that are close enough
-        ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
-        if(neighbour_indices.size() < minnumobs) {
-            // flag as isolated? 
-            continue; // go to next station, skip this one
-        }
-        // add the actual station at the end
-        neighbour_indices.push_back(curr);
 
-        // call SCT with this box 
-        fvec lons_box = subset(lons, neighbour_indices);
-        fvec elevs_box = subset(elevs, neighbour_indices);
-        fvec lats_box = subset(lats, neighbour_indices);
-        fvec values_box = subset(values, neighbour_indices);
-        fvec eps2_box = subset(eps2, neighbour_indices);
-        int s_box = neighbour_indices.size();
-        // the thing to flag is at "curr", ano not included in the box
+    int numIterations = 3;
 
-        /*
-        Stuff for VP
-        */
-        double gamma = -0.0065;
-        double a = 5.0;
-        double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
-        double exact_p10 = compute_quantile(0.10, elevs_box);
-        double exact_p90 = compute_quantile(0.90, elevs_box);
+    for(int iterations = 0; iterations < numIterations; iterations++) {
+        
+        int thrownOut = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
 
-        // calculate background
-        fvec vp = compute_vertical_profile(lats_box, lons_box, elevs_box, values_box, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
-        // now have temperature profile (vp)
-        for(int i=0; i < s_box; i++) {
-            assert(vp[i] !=-999);
-        }
-
-        boost::numeric::ublas::matrix<float> disth(s, s);
-        boost::numeric::ublas::matrix<float> distz(s, s);
-        boost::numeric::ublas::vector<float> Dh(s);
-
-        for(int i=0; i < s_box; i++) {
-            fvec Dh_vector(s_box);
-            for(int j=0; j < s_box; j++) {
-                disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
-                distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
-                if(i != j) {
-                    if(i < j)
-                        Dh_vector[j - 1] = disth(i, j);
-                    else if(i > j)
-                        Dh_vector[j] = disth(i, j);
+        // loop over all observations
+        for(int curr=0; curr < s; curr++) {
+            // break out if station already flagged
+            if(flags[curr] != 0)
+                continue; 
+            // get all neighbours that are close enough
+            ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
+            if(neighbour_indices.size() < minnumobs) {
+                // flag as isolated? 
+                continue; // go to next station, skip this one
+            }
+            ivec neighbour_indices_removed_flagged;
+            neighbour_indices_removed_flagged.reserve(neighbour_indices.size());
+            for(int i=0; i<neighbour_indices.size(); i++) {
+                if(flags[neighbour_indices[i]] == 0 ) {
+                    neighbour_indices_removed_flagged.push_back(neighbour_indices[i]);
                 }
             }
-            Dh(i) = compute_quantile(0.10, Dh_vector);
-        }
+            if(neighbour_indices_removed_flagged.size() < minnumobs) {
+                // flag as isolated? 
+                continue; // go to next station, skip this one
+            }
 
-        double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
-        if(Dh_mean < dhmin) {
-            Dh_mean = dhmin;
-        }
+            // add the actual station at the end
+            neighbour_indices_removed_flagged.push_back(curr);
 
-        boost::numeric::ublas::matrix<float> S(s_box,s_box);
-        boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
-        boost::numeric::ublas::matrix<double> S_global(s_box,s_box);
-        for(int i=0; i < s_box; i++) {
-            for(int j=0; j < s_box; j++) {
-                double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / dz), 2));
-                // TODO: is S_global really needed?
-                S_global(i,j) = value;
-                if(i==j) { // weight the diagonal?? (0.5 default)
-                    value = value + eps2_box[i];
+            // call SCT with this box 
+            fvec lons_box = subset(lons, neighbour_indices_removed_flagged);
+            fvec elevs_box = subset(elevs, neighbour_indices_removed_flagged);
+            fvec lats_box = subset(lats, neighbour_indices_removed_flagged);
+            fvec values_box = subset(values, neighbour_indices_removed_flagged);
+            fvec eps2_box = subset(eps2, neighbour_indices_removed_flagged);
+            int s_box = neighbour_indices_removed_flagged.size();
+            // the thing to flag is at "curr", ano not included in the box
+
+            /*
+            Stuff for VP
+            */
+            double gamma = -0.0065;
+            double a = 5.0;
+            double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
+            double exact_p10 = compute_quantile(0.10, elevs_box);
+            double exact_p90 = compute_quantile(0.90, elevs_box);
+
+            // calculate background
+            fvec vp = compute_vertical_profile(lats_box, lons_box, elevs_box, values_box, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
+            // now have temperature profile (vp)
+            for(int i=0; i < s_box; i++) {
+                assert(vp[i] !=-999);
+            }
+
+            boost::numeric::ublas::matrix<float> disth(s, s);
+            boost::numeric::ublas::matrix<float> distz(s, s);
+            boost::numeric::ublas::vector<float> Dh(s);
+
+            for(int i=0; i < s_box; i++) {
+                fvec Dh_vector(s_box);
+                for(int j=0; j < s_box; j++) {
+                    disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
+                    distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
+                    if(i != j) {
+                        if(i < j)
+                            Dh_vector[j - 1] = disth(i, j);
+                        else if(i > j)
+                            Dh_vector[j] = disth(i, j);
+                    }
                 }
-                S(i,j) = value;
+                Dh(i) = compute_quantile(0.10, Dh_vector);
             }
-        }
 
-        boost::numeric::ublas::vector<float> d(s_box);
-        boost::numeric::ublas::vector<float> d_global(s_box);
-        for(int i=0; i < s_box; i++) {
-            d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
-            d_global(i) = d(i);
-        }
-
-        /* ---------------------------------------------------
-        Beginning of real SCT
-        ------------------------------------------------------*/
-        bool b = invertMatrix(S, Sinv);
-        // TODO: should exit if do not manage to invert the matrix
-
-        // unweight the diagonal of S
-        for(int i=0; i<s_box; i++) {
-            double value = S(i,i) - eps2_box[i];
-            S(i,i) = value;
-        }
-
-        // do not need "throwout" variable like in c version?
-        // only trying to determine if we should throw out the 1 "curr"
-        boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
-
-        for(int i=0; i<s_box; i++) {
-            double acc = 0;
-            for(int j=0; j<s_box; j++) {
-                acc += Sinv(i,j)*d(j);
+            double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
+            if(Dh_mean < dhmin) {
+                Dh_mean = dhmin;
             }
-            Sinv_d(i) = acc;
-        }
-        for(int i=0; i<s_box; i++) {
-            double acc = 0;
-            for(int j=0; j<s_box; j++) {
-                acc += S(i,j)*Sinv_d(j);
+
+            boost::numeric::ublas::matrix<float> S(s_box,s_box);
+            boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
+            boost::numeric::ublas::matrix<double> S_global(s_box,s_box);
+            for(int i=0; i < s_box; i++) {
+                for(int j=0; j < s_box; j++) {
+                    double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / dz), 2));
+                    // TODO: is S_global really needed?
+                    S_global(i,j) = value;
+                    if(i==j) { // weight the diagonal?? (0.5 default)
+                        value = value + eps2_box[i];
+                    }
+                    S(i,j) = value;
+                }
             }
-            ares_temp(i) = acc;
-        }
-        for(int i=0; i<s_box; i++) {
-            Zinv(i) = (1/Sinv(i,i)); //Zinv<-1/diag(SRinv)
-            ares(i) = ares_temp(i)-d(i); // ares<-crossprod(S,SRinv.d)-d[sel]
-        }
 
-        boost::numeric::ublas::vector<float> cvres(s_box);
-        for(int i=0; i<s_box; i++) {
-            cvres(i) = -1*Zinv(i) * Sinv_d(i);
-        }
+            boost::numeric::ublas::vector<float> d(s_box);
+            boost::numeric::ublas::vector<float> d_global(s_box);
+            for(int i=0; i < s_box; i++) {
+                d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
+                d_global(i) = d(i);
+            }
 
-        double sig2o = 0;
-        boost::numeric::ublas::vector<float> sig2o_temp(s_box), negAres_temp(s_box);
-        for(int i=0; i<s_box; i++) {
-            negAres_temp(i)=-1*ares(i);
-            sig2o_temp(i) = d(i)*negAres_temp(i);
-            sig2o += sig2o_temp(i);
-        }
+            /* ---------------------------------------------------
+            Beginning of real SCT
+            ------------------------------------------------------*/
+            bool b = invertMatrix(S, Sinv);
+            // TODO: should exit if do not manage to invert the matrix
 
-        sig2o = sig2o/s_box;
-        if(sig2o < 0.01) {
-            sig2o = 0.01;
-        }
+            // unweight the diagonal of S
+            for(int i=0; i<s_box; i++) {
+                double value = S(i,i) - eps2_box[i];
+                S(i,i) = value;
+            }
 
-        // boost::numeric::ublas::vector<float> pog(s_box);
-        // for(int i=0; i<s_box; i++) {
-        //     pog(i) = cvres(i)*ares(i) / sig2o;
-        // }
-        float last = s_box - 1;
-        float pog = cvres(last) * ares(last) / sig2o;
-        if((cvres(last) < 0 && pog > t2pos[curr]) || (cvres(last) >= 0 && pog > t2neg[curr]))
-            flags[curr] = 1;
+            // do not need "throwout" variable like in c version?
+            // only trying to determine if we should throw out the 1 "curr"
+            boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
+
+            for(int i=0; i<s_box; i++) {
+                double acc = 0;
+                for(int j=0; j<s_box; j++) {
+                    acc += Sinv(i,j)*d(j);
+                }
+                Sinv_d(i) = acc;
+            }
+            for(int i=0; i<s_box; i++) {
+                double acc = 0;
+                for(int j=0; j<s_box; j++) {
+                    acc += S(i,j)*Sinv_d(j);
+                }
+                ares_temp(i) = acc;
+            }
+            for(int i=0; i<s_box; i++) {
+                Zinv(i) = (1/Sinv(i,i)); //Zinv<-1/diag(SRinv)
+                ares(i) = ares_temp(i)-d(i); // ares<-crossprod(S,SRinv.d)-d[sel]
+            }
+
+            boost::numeric::ublas::vector<float> cvres(s_box);
+            for(int i=0; i<s_box; i++) {
+                cvres(i) = -1*Zinv(i) * Sinv_d(i);
+            }
+
+            double sig2o = 0;
+            boost::numeric::ublas::vector<float> sig2o_temp(s_box), negAres_temp(s_box);
+            for(int i=0; i<s_box; i++) {
+                negAres_temp(i)=-1*ares(i);
+                sig2o_temp(i) = d(i)*negAres_temp(i);
+                sig2o += sig2o_temp(i);
+            }
+
+            sig2o = sig2o/s_box;
+            if(sig2o < 0.01) {
+                sig2o = 0.01;
+            }
+
+            // boost::numeric::ublas::vector<float> pog(s_box);
+            // for(int i=0; i<s_box; i++) {
+            //     pog(i) = cvres(i)*ares(i) / sig2o;
+            // }
+            float last = s_box - 1;
+            float pog = cvres(last) * ares(last) / sig2o;
+            if((cvres(last) < 0 && pog > t2pos[curr]) || (cvres(last) >= 0 && pog > t2neg[curr])) {
+                flags[curr] = 1;
+                thrownOut++;
+            }
+
+        }
+        if(thrownOut == 0) 
+            break;
+
     }
-
+   
     return flags;
 }
 // end SCT //
