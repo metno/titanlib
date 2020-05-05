@@ -40,13 +40,16 @@ ivec titanlib::sct_rewrite(const fvec& lats,
         // first find everything close to the point that we are testing (maxdist)
         double inner_radius,
         double outer_radius,
+        int niterations,
         int nminprof,
         double dzmin,
         double dhmin,
         float dz,
         const fvec& t2pos,
         const fvec& t2neg,
-        const fvec& eps2) {
+        const fvec& eps2,
+        fvec& sct,
+        fvec& rep) {
 
     const int s = values.size();
     // assert that the arrays we expect are of size s
@@ -55,21 +58,23 @@ ivec titanlib::sct_rewrite(const fvec& lats,
     }
 
     ivec flags(s, 0); // TODO: should this be the size of the full box, or the size of the part of the box we are flagging 
+    sct.clear();
+    sct.resize(s, 0);
+    rep.clear();
+    rep.resize(s, 0);
 
     // create the KD tree
     titanlib::KDTree tree(lats, lons);
 
-    int numIterations = 3;
+    for(int iteration = 0; iteration < niterations; iteration++) {
 
-    for(int iterations = 0; iterations < numIterations; iterations++) {
-        
         int thrownOut = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
 
         // loop over all observations
         for(int curr=0; curr < s; curr++) {
             // break out if station already flagged
             if(flags[curr] != 0)
-                continue; 
+                continue;
             // get all neighbours that are close enough
             ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
             if(neighbour_indices.size() < minnumobs) {
@@ -106,6 +111,7 @@ ivec titanlib::sct_rewrite(const fvec& lats,
             double gamma = -0.0065;
             double a = 5.0;
             double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
+            // std::cout << meanT << std::endl;
             double exact_p10 = compute_quantile(0.10, elevs_box);
             double exact_p90 = compute_quantile(0.90, elevs_box);
 
@@ -221,17 +227,22 @@ ivec titanlib::sct_rewrite(const fvec& lats,
             // }
             float last = s_box - 1;
             float pog = cvres(last) * ares(last) / sig2o;
+            // std::cout << "sig2o: " << sig2o << std::endl;
+            sct[curr] = pog;
             if((cvres(last) < 0 && pog > t2pos[curr]) || (cvres(last) >= 0 && pog > t2neg[curr])) {
                 flags[curr] = 1;
                 thrownOut++;
             }
 
         }
-        if(thrownOut == 0) 
+        if(thrownOut == 0) {
+            if(iteration + 1 < niterations)
+                std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
+        }
 
     }
-   
+
     return flags;
 }
 // end SCT //

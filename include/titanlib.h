@@ -64,13 +64,16 @@ namespace titanlib {
             int maxnumobs,
             double inner_radius,
             double outer_radius,
+            int niterations,
             int nminprof,
             double dzmin,
             double dhmin,
             float dz,
             const fvec& t2pos,
             const fvec& t2neg,
-            const fvec& eps2);
+            const fvec& eps2,
+            fvec& sct,
+            fvec& rep);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
