@@ -148,12 +148,9 @@ ivec titanlib::sct_rewrite(const fvec& lats,
 
             boost::numeric::ublas::matrix<float> S(s_box,s_box);
             boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
-            boost::numeric::ublas::matrix<double> S_global(s_box,s_box);
             for(int i=0; i < s_box; i++) {
                 for(int j=0; j < s_box; j++) {
                     double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / dz), 2));
-                    // TODO: is S_global really needed?
-                    S_global(i,j) = value;
                     if(i==j) { // weight the diagonal?? (0.5 default)
                         value = value + eps2_box[i];
                     }
@@ -162,28 +159,20 @@ ivec titanlib::sct_rewrite(const fvec& lats,
             }
 
             boost::numeric::ublas::vector<float> d(s_box);
-            boost::numeric::ublas::vector<float> d_global(s_box);
             for(int i=0; i < s_box; i++) {
                 d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
-                d_global(i) = d(i);
             }
 
             /* ---------------------------------------------------
             Beginning of real SCT
             ------------------------------------------------------*/
             bool b = invertMatrix(S, Sinv);
-            // TODO: should exit if do not manage to invert the matrix
-
-            // unweight the diagonal of S
-            for(int i=0; i<s_box; i++) {
-                double value = S(i,i) - eps2_box[i];
-                S(i,i) = value;
+            if(b != true) {
+                // TODO: flag differently or give an error???
+                continue;
             }
 
-            // do not need "throwout" variable like in c version?
-            // only trying to determine if we should throw out the 1 "curr"
             boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
-
             for(int i=0; i<s_box; i++) {
                 double acc = 0;
                 for(int j=0; j<s_box; j++) {
