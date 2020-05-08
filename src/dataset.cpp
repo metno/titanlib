@@ -41,13 +41,14 @@ bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec& plus, 
 }
 bool titanlib::Dataset::sct(int nmin, int nmax, int nminprof, float dzmin, float dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices) {
     int status;
+    ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), nmin, nmax, nminprof, dzmin, dhmin , dz, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), sct, rep);
+        ivec iflags = titanlib::sct_old(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), nmin, nmax, nminprof, dzmin, dhmin , dz, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), sct, rep, boxids);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
     }
     else {
-        flags = titanlib::sct(lats, lons, elevs, values, nmin, nmax, nminprof, dzmin, dhmin , dz, t2pos, t2neg, eps2, sct, rep);
+        flags = titanlib::sct_old(lats, lons, elevs, values, nmin, nmax, nminprof, dzmin, dhmin , dz, t2pos, t2neg, eps2, sct, rep, boxids);
     }
     if(status == 0) {
         return true;

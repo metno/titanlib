@@ -28,7 +28,7 @@ namespace titanlib {
         @param lats vector of latitudes
         @param flags output vector of flags
      */
-    ivec sct(const fvec& lats,
+    ivec sct_old(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
@@ -42,7 +42,8 @@ namespace titanlib {
             const fvec& t2neg,
             const fvec& eps2,
             fvec& sct,
-            fvec& rep);
+            fvec& rep,
+            ivec& boxids);
 
     /** Spatial Consistency Test
      *  @param nminprof Minimum number of observations to compute vertical profile
@@ -56,7 +57,7 @@ namespace titanlib {
      *  @param sct
      *  @param flags
      */
-    ivec sct_rewrite(const fvec& lats,
+    ivec sct(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,

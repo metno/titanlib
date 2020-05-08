@@ -41,6 +41,7 @@ namespace std {
 %apply std::vector<int>& OUTPUT { std::vector<int>& flags };
 %apply std::vector<float>& OUTPUT { std::vector<float>& sct };
 %apply std::vector<float>& OUTPUT { std::vector<float>& rep };
+%apply std::vector<int>& OUTPUT { std::vector<int>& boxids };
 %apply std::vector<float>& OUTPUT { std::vector<float>& x_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& y_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& z_coords };
