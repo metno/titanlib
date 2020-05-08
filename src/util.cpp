@@ -96,3 +96,44 @@ fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2&
 
     return output_values;
 }
+
+float titanlib::util::compute_quantile(double quantile, const fvec& array) {
+    int n = array.size();
+    fvec array_copy(n);
+    // make a copy of the vector
+    for(int i = 0; i < n; i++)
+        array_copy[i] = array[i];
+    float exact_q;
+    std::sort(array_copy.begin(), array_copy.end());
+    // get the quantile from sorted array
+    int lowerIndex = floor(quantile * (n-1));
+    int upperIndex = ceil(quantile * (n-1));
+    float lowerValue = array_copy[lowerIndex];
+    float upperValue = array_copy[upperIndex];
+    float lowerQuantile = (float) lowerIndex / (n-1);
+    float upperQuantile = (float) upperIndex / (n-1);
+    if(lowerIndex == upperIndex) {
+        exact_q = lowerValue;
+    }
+    else {
+        assert(upperQuantile > lowerQuantile);
+        assert(quantile >= lowerQuantile);
+        float f = (quantile - lowerQuantile)/(upperQuantile - lowerQuantile);
+        assert(f >= 0);
+        assert(f <= 1);
+        exact_q = lowerValue + (upperValue - lowerValue) * f;
+    }
+
+    return exact_q;
+}
+
+fvec titanlib::util::subset(const fvec& input, const ivec& indices) {
+    fvec output(indices.size());
+    int size = indices.size();
+    for(int i=0; i < size; i++) {
+        int index = indices[i];
+        assert(index < input.size());
+        output[i] = input[index];
+    }
+    return output;
+}

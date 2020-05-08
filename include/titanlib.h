@@ -192,6 +192,9 @@ namespace titanlib {
         float deg2rad(float deg);
         float calc_distance(float lat1, float lon1, float lat2, float lon2);
         float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
+
+        float compute_quantile(double quantile, const fvec& array);
+        fvec subset(const fvec& input, const ivec& indices);
     }
 
     // ivec nearest_neighbours(const fvec& lats, const fvec& lons, float radius, float lat, float lon);

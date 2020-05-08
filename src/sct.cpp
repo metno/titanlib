@@ -16,10 +16,7 @@
 
 
 // helpers
-float compute_quantile(double quantile, const fvec& array);
-gsl_matrix* inverse_matrix(const gsl_matrix *matrix);
-bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
-fvec subset(const fvec& input, const ivec& indices);
+bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 
 // forward declarations
 fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
@@ -97,23 +94,23 @@ ivec titanlib::sct(const fvec& lats,
             neighbour_indices_removed_flagged.push_back(curr);
 
             // call SCT with this box 
-            fvec lons_box = subset(lons, neighbour_indices_removed_flagged);
-            fvec elevs_box = subset(elevs, neighbour_indices_removed_flagged);
-            fvec lats_box = subset(lats, neighbour_indices_removed_flagged);
-            fvec values_box = subset(values, neighbour_indices_removed_flagged);
-            fvec eps2_box = subset(eps2, neighbour_indices_removed_flagged);
+            fvec lons_box = titanlib::util::subset(lons, neighbour_indices_removed_flagged);
+            fvec elevs_box = titanlib::util::subset(elevs, neighbour_indices_removed_flagged);
+            fvec lats_box = titanlib::util::subset(lats, neighbour_indices_removed_flagged);
+            fvec values_box = titanlib::util::subset(values, neighbour_indices_removed_flagged);
+            fvec eps2_box = titanlib::util::subset(eps2, neighbour_indices_removed_flagged);
             int s_box = neighbour_indices_removed_flagged.size();
             // the thing to flag is at "curr", ano not included in the box
 
             /*
-            Stuff for VP
-            */
+               Stuff for VP
+               */
             double gamma = -0.0065;
             double a = 5.0;
             double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
             // std::cout << meanT << std::endl;
-            double exact_p10 = compute_quantile(0.10, elevs_box);
-            double exact_p90 = compute_quantile(0.90, elevs_box);
+            double exact_p10 = titanlib::util::compute_quantile(0.10, elevs_box);
+            double exact_p90 = titanlib::util::compute_quantile(0.90, elevs_box);
 
             // calculate background
             fvec vp = compute_vertical_profile(lats_box, lons_box, elevs_box, values_box, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
@@ -138,7 +135,7 @@ ivec titanlib::sct(const fvec& lats,
                             Dh_vector[j] = disth(i, j);
                     }
                 }
-                Dh(i) = compute_quantile(0.10, Dh_vector);
+                Dh(i) = titanlib::util::compute_quantile(0.10, Dh_vector);
             }
 
             double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
@@ -164,9 +161,9 @@ ivec titanlib::sct(const fvec& lats,
             }
 
             /* ---------------------------------------------------
-            Beginning of real SCT
-            ------------------------------------------------------*/
-            bool b = invertMatrix(S, Sinv);
+               Beginning of real SCT
+               ------------------------------------------------------*/
+            bool b = invert_matrix(S, Sinv);
             if(b != true) {
                 // TODO: flag differently or give an error???
                 continue;
@@ -258,8 +255,8 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
     double * data[3] = {&nd, dpelevs, dpvalues};
 
     // Check if terrain is too flat
-    double z05 = compute_quantile(0.05, elevs);
-    double z95 = compute_quantile(0.95, elevs);
+    double z05 = titanlib::util::compute_quantile(0.05, elevs);
+    double z95 = titanlib::util::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < nminprof || (z95 - z05) < dzmin;
@@ -294,7 +291,7 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
         status = gsl_multimin_fminimizer_iterate(s);
 
         if (status)
-         break;
+            break;
 
         size = gsl_multimin_fminimizer_size (s);
         status = gsl_multimin_test_size (size, 1e-2);
@@ -309,7 +306,7 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
     else {
         // then actually calculate the vertical profile using the minima
         vp = vertical_profile(nd, dpelevs,  gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1),
-            gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), gsl_vector_get(s->x, 4));
+                gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), gsl_vector_get(s->x, 4));
     }
 
     gsl_vector_free(input);
@@ -379,101 +376,47 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data)
 
 fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i)
 {
-  double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
-  // loop over the array of elevations
-  fvec t_out;
-  t_out.resize(n, -999);
+    double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
+    // loop over the array of elevations
+    fvec t_out;
+    t_out.resize(n, -999);
 
-  for(int i=0; i<n; i++) {
-    // define some bools
-    bool z_le_h0 = elevs[i] <= h0; // z.le.h0<-which(z<=h0)
-    bool z_ge_h1 = elevs[i] >= h1; // z.ge.h1<-which(z>=h1)
-    bool z_in = (elevs[i]>h0 && elevs[i]<h1); // z.in<-which(z>h0 & z<h1)
-    if(z_le_h0) {
-      t_out[i] = t0-gamma*elevs[i]-a;
+    for(int i=0; i<n; i++) {
+        // define some bools
+        bool z_le_h0 = elevs[i] <= h0; // z.le.h0<-which(z<=h0)
+        bool z_ge_h1 = elevs[i] >= h1; // z.ge.h1<-which(z>=h1)
+        bool z_in = (elevs[i]>h0 && elevs[i]<h1); // z.in<-which(z>h0 & z<h1)
+        if(z_le_h0) {
+            t_out[i] = t0-gamma*elevs[i]-a;
+        }
+        if(z_ge_h1) {
+            t_out[i] = t0-gamma*elevs[i];
+        }
+        if(z_in) {
+            t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
+        }
     }
-    if(z_ge_h1) {
-      t_out[i] = t0-gamma*elevs[i];
-    }
-    if(z_in) {
-      t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
-    }
-  }
-  return t_out;
+    return t_out;
 }
 
 
 //----------------------------------------------------------------------------//
 // HELPER FUNCTIONS
-float compute_quantile(double quantile, const fvec& array)
-{
-    int n = array.size();
-    fvec array_copy(n);
-    // make a copy of the vector
-    for(int i = 0; i < n; i++)
-        array_copy[i] = array[i];
-    float exact_q;
-    std::sort(array_copy.begin(), array_copy.end());
-    // get the quantile from sorted array
-    int lowerIndex = floor(quantile * (n-1));
-    int upperIndex = ceil(quantile * (n-1));
-    float lowerValue = array_copy[lowerIndex];
-    float upperValue = array_copy[upperIndex];
-    float lowerQuantile = (float) lowerIndex / (n-1);
-    float upperQuantile = (float) upperIndex / (n-1);
-    if(lowerIndex == upperIndex) {
-        exact_q = lowerValue;
-    }
-    else {
-        assert(upperQuantile > lowerQuantile);
-        assert(quantile >= lowerQuantile);
-        float f = (quantile - lowerQuantile)/(upperQuantile - lowerQuantile);
-        assert(f >= 0);
-        assert(f <= 1);
-        exact_q = lowerValue + (upperValue - lowerValue) * f;
-    }
 
-    return exact_q;
+bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
+    using namespace boost::numeric::ublas;
+    typedef permutation_matrix<std::size_t> pmatrix;
+    // create a working copy of the input
+    matrix<float> A(input);
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+    // perform LU-factorization
+    int res = lu_factorize(A,pm);
+    if( res != 0 ) return false;
+    // create identity matrix of "inverse"
+    inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inverse);
+    return true;
 }
 
-gsl_matrix* inverse_matrix(const gsl_matrix *matrix) {
-  int s;
-  gsl_matrix *return_matrix = gsl_matrix_alloc(matrix->size1,matrix->size2);
-  gsl_matrix *temp_matrix = gsl_matrix_alloc(matrix->size1,matrix->size2);
-  gsl_matrix_memcpy(temp_matrix, matrix);
-  gsl_permutation * p = gsl_permutation_alloc (matrix->size1);
-
-  gsl_linalg_LU_decomp (temp_matrix, p, &s);
-  gsl_linalg_LU_invert (temp_matrix, p, return_matrix);
-  gsl_matrix_free(temp_matrix);
-  gsl_permutation_free (p);
-  return return_matrix;
-}
-
-bool invertMatrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
- 	using namespace boost::numeric::ublas;
- 	typedef permutation_matrix<std::size_t> pmatrix;
- 	// create a working copy of the input
- 	matrix<float> A(input);
- 	// create a permutation matrix for the LU-factorization
- 	pmatrix pm(A.size1());
- 	// perform LU-factorization
- 	int res = lu_factorize(A,pm);
-        if( res != 0 ) return false;
- 	// create identity matrix of "inverse"
- 	inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
- 	// backsubstitute to get the inverse
- 	lu_substitute(A, pm, inverse);
- 	return true;
-}
-
-fvec subset(const fvec& input, const ivec& indices) {
-    fvec output(indices.size());
-    int size = indices.size();
-    for(int i=0; i < size; i++) {
-        int index = indices[i];
-        assert(index < input.size());
-        output[i] = input[index];
-    }
-    return output;
-}
