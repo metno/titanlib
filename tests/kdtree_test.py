@@ -52,7 +52,7 @@ class KDTreeTest(unittest.TestCase):
         self.assertEqual(tree.get_nearest_neighbour(60, 10.1, True), 1)
         self.assertEqual(tree.get_nearest_neighbour(60, 10.101, True), 1)
 
-    def test_get_neearest_neighbour(self):
+    def test_get_nearest_neighbour(self):
         tree = titanlib.KDTree(lats, lons)
         index = tree.get_nearest_neighbour(60, 10.1, True)
         self.assertEqual(index, 1)
