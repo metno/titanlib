@@ -39,7 +39,7 @@ namespace titanlib {
             const fvec& values,
             int nmin,
             int nmax,
-            int nminprof,
+            int num_min_prof,
             float dzmin,
             float dhmin,
             float dz,
@@ -51,7 +51,7 @@ namespace titanlib {
             ivec& boxids);
 
     /** Spatial Consistency Test
-     *  @param nminprof Minimum number of observations to compute vertical profile
+     *  @param num_min_prof Minimum number of observations to compute vertical profile
      *  @param radius Select observations within this radius [m]
      *  @param dzmin Minimum elevation difference to compute vertical profile [m]
      *  @param dhmin Minimum horizontal decorrelation length [m]
@@ -66,12 +66,12 @@ namespace titanlib {
             const fvec& lons,
             const fvec& elevs,
             const fvec& values,
-            int minnumobs,
-            int maxnumobs,
+            int num_min,
+            int num_max,
             double inner_radius,
             double outer_radius,
-            int niterations,
-            int nminprof,
+            int num_iterations,
+            int num_min_prof,
             double dzmin,
             double dhmin,
             float dz,
@@ -96,8 +96,8 @@ namespace titanlib {
             const fvec& elevs,
             const fvec& values,
             int unixtime,
-            const fvec& plus,
-            const fvec& minus);
+            const fvec& pos,
+            const fvec& neg);
 
     /** Buddy check. Compares a station to all its neighbours within a certain distance
      *  @param lats vector of latitudes [deg]
@@ -141,27 +141,27 @@ namespace titanlib {
 
     ivec first_guess_check(
         const fvec& values,
-        const fvec& fg_values,
-        const fvec& fg_neg,
-        const fvec& fg_pos);
+        const fvec& first_guess,
+        const fvec& neg,
+        const fvec& pos);
 
     /** Isolation check. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
      *  @param lons vector of longitudes [deg]
-     *  @param nmin required number of observations
+     *  @param num_min required number of observations
      *  @param radius search radius [m]
      *  @param flags vector of return flags
      */
     ivec isolation_check(const fvec& lats,
             const fvec& lons,
-            int nmin,
+            int num_min,
             float radius);
 
     /** Isolation check with elevation. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
      *  @param lons vector of longitudes [deg]
      *  @param elevs vector of elevations [m]
-     *  @param nmin required number of observations
+     *  @param num_min required number of observations
      *  @param radius search radius [m]
      *  @param dz vertical search radius [m]
      *  @param flags vector of return flags
@@ -169,7 +169,7 @@ namespace titanlib {
     ivec isolation_check(const fvec& lats,
             const fvec& lons,
             const fvec& elevs,
-            int nmin,
+            int num_min,
             float radius,
             float dz);
 
@@ -221,10 +221,10 @@ namespace titanlib {
              *  @param indices Only perform the test on these indices
              */
             bool range_check(const fvec& min, const fvec& max, const ivec indices=ivec());
-            bool range_check_climatology(int unixtime, const fvec& plus, const fvec& minus, const ivec indices=ivec());
-            bool sct(int minnumobs, int maxnumobs, double inner_radius, double outer_radius, int niterations, int nminprof, double dzmin, double dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices=ivec());
+            bool range_check_climatology(int unixtime, const fvec& pos, const fvec& neg, const ivec indices=ivec());
+            bool sct(int num_min, int num_max, double inner_radius, double outer_radius, int num_iterations, int num_min_prof, double dzmin, double dhmin, float dz, const fvec& t2pos, const fvec& t2neg, const fvec& eps2, fvec& sct, fvec& rep, const ivec indices=ivec());
             bool buddy_check(const fvec& radius, const ivec& buddies_min, const fvec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iteratiowns, const ivec& obs_to_check, const ivec indices=ivec());
-            bool isolation_check(int nmin, float radius, float dz);
+            bool isolation_check(int num_min, float radius, float dz);
 
             fvec lats;
             fvec lons;
@@ -268,10 +268,10 @@ namespace titanlib {
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius (use 0 for unlimited) [m]
-             *  @param max_num Maximum number of points (use 0 for unlimited)
+             *  @param num_max Maximum number of points (use 0 for unlimited)
              *  @param include_match Should an exact match be included?
              */
-            ivec get_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
+            ivec get_neighbours(float lat, float lon, float radius, int num_max, bool include_match);
 
             /** Find all points with a radius
              *  @param lat Latitude of lookup-point
@@ -279,14 +279,14 @@ namespace titanlib {
              *  @param radius Lookup radius [m]
              *  @param distances Vector to store separation distances [m]
              */
-            ivec get_neighbours_with_distance(float lat, float lon, float radius, int max_num, bool include_match, fvec& distances);
+            ivec get_neighbours_with_distance(float lat, float lon, float radius, int num_max, bool include_match, fvec& distances);
 
             /** Find the number of points within a radius
              *  @param lat Latitude of lookup-point
              *  @param lon Longitude of lookup-point
              *  @param radius Lookup radius [m]
              */
-            int get_num_neighbours(float lat, float lon, float radius, int max_num, bool include_match);
+            int get_num_neighbours(float lat, float lon, float radius, int num_max, bool include_match);
         private:
             typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
             typedef std::pair<point, unsigned> value;

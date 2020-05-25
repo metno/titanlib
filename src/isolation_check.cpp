@@ -6,7 +6,7 @@
 
 ivec titanlib::isolation_check(const fvec& lats,
         const fvec& lons,
-        int nmin,
+        int num_min,
         float radius) {
     titanlib::KDTree tree(lats, lons);
     ivec flags(lats.size(), 0);
@@ -14,7 +14,7 @@ ivec titanlib::isolation_check(const fvec& lats,
     for(int i = 0; i < lats.size(); i++) {
         int num = tree.get_num_neighbours(lats[i], lons[i], radius, 0, false);
         // std::cout << i << " " << num << std::endl;
-        if(num < nmin) {
+        if(num < num_min) {
             flags[i] = 1;
         }
     }
@@ -26,7 +26,7 @@ ivec titanlib::isolation_check(const fvec& lats,
 ivec titanlib::isolation_check(const fvec& lats,
         const fvec& lons,
         const fvec& elevs,
-        int nmin,
+        int num_min,
         float radius,
         float dz) {
 
@@ -42,7 +42,7 @@ ivec titanlib::isolation_check(const fvec& lats,
                 num++;
         }
         // std::cout << i << " " << num << std::endl;
-        if(num < nmin ) {
+        if(num < num_min ) {
             flags[i] = 1;
         }
     }

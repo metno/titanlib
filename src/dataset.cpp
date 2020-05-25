@@ -25,22 +25,22 @@ bool titanlib::Dataset::range_check(const fvec& min, const fvec& max, const ivec
     else return false;
 }
 
-bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec& plus, const fvec& minus, const ivec indices) {
+bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec& pos, const fvec& neg, const ivec indices) {
     int status;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::range_check_climatology(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), unixtime, subset(plus, indices), subset(minus, indices));
+        ivec iflags = titanlib::range_check_climatology(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), unixtime, subset(pos, indices), subset(neg, indices));
         unsubset(iflags, flags, indices);
     }
     else {
-        flags = titanlib::range_check_climatology(lats, lons, elevs, values, unixtime, plus, minus);
+        flags = titanlib::range_check_climatology(lats, lons, elevs, values, unixtime, pos, neg);
     }
     if(status == 0) {
         return true;
     }
     else return false;
 }
-bool titanlib::Dataset::sct(int nmin, int nmax, double inner_radius, double outer_radius, int niterations,
-            int nminprof,
+bool titanlib::Dataset::sct(int num_min, int num_max, double inner_radius, double outer_radius, int num_iterations,
+            int num_min_prof,
             double dzmin,
             double dhmin,
             float dz,
@@ -51,12 +51,12 @@ bool titanlib::Dataset::sct(int nmin, int nmax, double inner_radius, double oute
     int status;
     ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), nmin, nmax, inner_radius, outer_radius, niterations, nminprof, dzmin, dhmin , dz, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), sct, rep);
+        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, dzmin, dhmin , dz, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), sct, rep);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
     }
     else {
-        flags = titanlib::sct(lats, lons, elevs, values, nmin, nmax, inner_radius, outer_radius, niterations, nminprof, dzmin, dhmin , dz, t2pos, t2neg, eps2, sct, rep);
+        flags = titanlib::sct(lats, lons, elevs, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, dzmin, dhmin , dz, t2pos, t2neg, eps2, sct, rep);
     }
     if(status == 0) {
         return true;
@@ -78,6 +78,6 @@ bool titanlib::Dataset::buddy_check(const fvec& radius, const ivec& buddies_min,
     }
     else return false;
 }
-bool titanlib::Dataset::isolation_check(int nmin, float radius, float dz) {
-    flags = titanlib::isolation_check(lats, lons, elevs, nmin, radius, dz);
+bool titanlib::Dataset::isolation_check(int num_min, float radius, float dz) {
+    flags = titanlib::isolation_check(lats, lons, elevs, num_min, radius, dz);
 }

@@ -18,7 +18,7 @@
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 ivec remove_flagged(ivec indices, ivec flags);
-fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, double gamma, double a, int nminprof, double dzmin);
+fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, int num_min_prof, double dzmin);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
@@ -31,13 +31,13 @@ ivec titanlib::sct(const fvec& lats,
         const fvec& values,
         // determine if we have too many or too few observations
         // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
-        int minnumobs,
-        int maxnumobs,
+        int num_min,
+        int num_max,
         // first find everything close to the point that we are testing (maxdist)
         double inner_radius,
         double outer_radius,
-        int niterations,
-        int nminprof,
+        int num_iterations,
+        int num_min_prof,
         double dzmin,
         double dhmin,
         float dz,
@@ -48,9 +48,14 @@ ivec titanlib::sct(const fvec& lats,
         fvec& rep) {
 
     const int s = values.size();
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s)
         throw std::runtime_error("Dimension mismatch");
-    }
+    if(num_min < 2)
+        throw std::invalid_argument("num_min must be > 1");
+    if(num_max < num_min)
+        throw std::invalid_argument("num_max must be > num_min");
+
+    bool reuse = true; // Should the OI results be reused in the inner radius?
 
     ivec flags(s, 0);
     sct.clear();
@@ -58,14 +63,11 @@ ivec titanlib::sct(const fvec& lats,
     rep.clear();
     rep.resize(s, 0);
 
-    // create the KD tree
     titanlib::KDTree tree(lats, lons);
 
-    for(int iteration = 0; iteration < niterations; iteration++) {
+    for(int iteration = 0; iteration < num_iterations; iteration++) {
 
         int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
-        double s_time0 = titanlib::util::clock();
-
         /* Compute background settings based on an outer radius, but reuse the settings for all
          * points in an inner radius.
         */
@@ -79,27 +81,33 @@ ivec titanlib::sct(const fvec& lats,
             if(flags[curr] != 0)
                 continue;
 
-            double gamma = -0.0065;
-            double a = 5.0;
-
-            ivec neighbour_indices_outer = tree.get_neighbours(lats[curr], lons[curr], outer_radius, maxnumobs, true);
-            ivec neighbour_indices_inner = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, true);
+            ivec neighbour_indices_outer = tree.get_neighbours(lats[curr], lons[curr], outer_radius, num_max, true);
+            ivec neighbour_indices_inner = tree.get_neighbours(lats[curr], lons[curr], inner_radius, num_max, true);
             neighbour_indices_outer = remove_flagged(neighbour_indices_outer, flags);
             neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags);
 
-            if(neighbour_indices_inner.size() < minnumobs)
+            if(neighbour_indices_inner.size() < num_min)
                 continue;
 
             fvec elevs_inner = titanlib::util::subset(elevs, neighbour_indices_inner);
             fvec elevs_outer = titanlib::util::subset(elevs, neighbour_indices_outer);
             fvec values_outer = titanlib::util::subset(values, neighbour_indices_outer);
 
-            fvec vp_inner = compute_vertical_profile(elevs_outer, elevs_inner, values_outer, gamma, a, nminprof, dzmin);
-            for(int l=0; l< vp_inner.size(); l++) {
-                int index = neighbour_indices_inner[l];
-                vp[index] = vp_inner[l];
+            if(num_min_prof >= 0) {
+                fvec vp_inner = compute_vertical_profile(elevs_outer, elevs_inner, values_outer, num_min_prof, dzmin);
+                for(int l=0; l< vp_inner.size(); l++) {
+                    int index = neighbour_indices_inner[l];
+                    vp[index] = vp_inner[l];
+                }
+                count++;
             }
-            count++;
+            else {
+                double meanT = std::accumulate(values_outer.begin(), values_outer.end(), 0.0) / values_outer.size();
+                for(int l = 0; l < neighbour_indices_inner.size(); l++) {
+                    int index = neighbour_indices_inner[l];
+                    vp[index] = meanT;
+                }
+            }
         }
         int count_valid = 0;
         for(int curr=0; curr < s; curr++) {
@@ -107,9 +115,6 @@ ivec titanlib::sct(const fvec& lats,
             if(flags[curr] == 0)
                 count_valid++;
         }
-        std::cout << "Stations: " << count_valid << " Num:" << count << " time: " << titanlib::util::clock() - s_time0 << "s" << std::endl;
-
-        bool reuse = false;
 
         // loop over all observations
         ivec checked(s, 0);  // Keep track of which observations have been checked
@@ -123,9 +128,9 @@ ivec titanlib::sct(const fvec& lats,
                 continue;
             }
             // get all neighbours that are close enough
-            ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
+            ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, num_max, false);
             neighbour_indices = remove_flagged(neighbour_indices, flags);
-            if(neighbour_indices.size() < minnumobs) {
+            if(neighbour_indices.size() < num_min) {
                 checked[curr] = 1;
                 // flag as isolated? 
                 continue; // go to next station, skip this one
@@ -272,7 +277,7 @@ ivec titanlib::sct(const fvec& lats,
 
         }
         if(thrown_out == 0) {
-            if(iteration + 1 < niterations)
+            if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
@@ -284,7 +289,11 @@ ivec titanlib::sct(const fvec& lats,
 // end SCT //
 
 
-fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, double gamma, double a, int nminprof, double dzmin) {
+fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, int num_min_prof, double dzmin) {
+    // Starting value guesses
+    double gamma = -0.0065;
+    double a = 5.0;
+
     double meanT = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
     double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
     double exact_p90 = titanlib::util::compute_quantile(0.90, elevs);
@@ -315,7 +324,7 @@ fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec&
     double z95 = titanlib::util::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
-    bool use_basic = elevs.size() < nminprof || (z95 - z05) < dzmin;
+    bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < dzmin;
 
     gsl_vector* input;
     if(use_basic) {
@@ -372,8 +381,7 @@ fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec&
     return vp;
 }
 
-double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data) 
-{
+double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data) {
     double **p = (double **)data;
     int n = (int) *p[0]; // is of type double but should be an int
     double *dpelevs = p[1];
@@ -394,19 +402,14 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
     return value;
 }
 
-fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma)
-{
-    fvec t_out;
-    t_out.resize(n, -999);
-
-    for(int i=0; i<n; i++) {
+fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma) {
+    fvec t_out(n, -999);
+    for(int i=0; i<n; i++)
         t_out[i] = t0 + gamma*elevs[i];
-    }
     return t_out;
 }
 
-double vertical_profile_optimizer_function(const gsl_vector *v, void *data)
-{
+double vertical_profile_optimizer_function(const gsl_vector *v, void *data) {
     double **p = (double **)data;
     int n = (int) *p[0]; // is of type double but should be an int
     double *dpelevs = p[1];
@@ -430,8 +433,7 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data)
     return value;
 }
 
-fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i)
-{
+fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i) {
     double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
     // loop over the array of elevations
     fvec t_out;

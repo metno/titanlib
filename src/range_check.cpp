@@ -46,8 +46,8 @@ ivec titanlib::range_check_climatology(const fvec& lats,
         const fvec& elevs,
         const fvec& values,
         int unixtime,
-        const fvec& plus,
-        const fvec& minus) {
+        const fvec& pos,
+        const fvec& neg) {
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
@@ -55,7 +55,7 @@ ivec titanlib::range_check_climatology(const fvec& lats,
     if( lons.size() != s || elevs.size() != s || values.size() != s ) {
         throw std::runtime_error("Dimension mismatch");
     }
-    if( (plus.size() != s && plus.size() != 1) || (minus.size() != s && minus.size() != 1) ) {
+    if( (pos.size() != s && pos.size() != 1) || (neg.size() != s && neg.size() != 1) ) {
         throw std::runtime_error("Dimension mismatch");
     }
 
@@ -64,17 +64,17 @@ ivec titanlib::range_check_climatology(const fvec& lats,
     for(int i = 0; i < s; i++) {
         // leave the index to 0 if its the same max/min applied to everything
         // else same as loop
-        int plus_i = (plus.size() == s) ? i : 0;
-        int minus_i = (minus.size() == s) ? i : 0;
+        int pos_i = (pos.size() == s) ? i : 0;
+        int neg_i = (neg.size() == s) ? i : 0;
 
         // get best guess mean temp
         double t = mean_temp(lats[i], unixtime);
         std::cout << "mean t: " << t << "\n";
-        double mean_plus = t + plus[plus_i];
-        double mean_minus = t + minus[minus_i];  
+        double mean_pos = t + pos[pos_i];
+        double mean_neg = t + neg[neg_i];  
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < mean_minus || values[i] > mean_plus) {
+        if(values[i] < mean_neg || values[i] > mean_pos) {
             flags[i] = 1;
         }
     }
