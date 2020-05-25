@@ -43,8 +43,8 @@ namespace titanlib {
             float dzmin,
             float dhmin,
             float dz,
-            const fvec& t2pos,
-            const fvec& t2neg,
+            const fvec& pos,
+            const fvec& neg,
             const fvec& eps2,
             fvec& sct,
             fvec& rep,
@@ -75,8 +75,8 @@ namespace titanlib {
             double dzmin,
             double dhmin,
             float dz,
-            const fvec& t2pos,
-            const fvec& t2neg,
+            const fvec& pos,
+            const fvec& neg,
             const fvec& eps2,
             fvec& sct,
             fvec& rep);
@@ -180,6 +180,7 @@ namespace titanlib {
     void initialize_omp();
 
     namespace util {
+        double clock();
         /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
          *  @param lats vector of latitudes [deg]
          *  @param lons vector of longitudes [deg]

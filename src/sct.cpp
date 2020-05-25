@@ -17,9 +17,8 @@
 
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
-
-// forward declarations
-fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin);
+ivec remove_flagged(ivec indices, ivec flags);
+fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, double gamma, double a, int nminprof, double dzmin);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
@@ -42,19 +41,18 @@ ivec titanlib::sct(const fvec& lats,
         double dzmin,
         double dhmin,
         float dz,
-        const fvec& t2pos,
-        const fvec& t2neg,
+        const fvec& pos,
+        const fvec& neg,
         const fvec& eps2,
         fvec& sct,
         fvec& rep) {
 
     const int s = values.size();
-    // assert that the arrays we expect are of size s
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
         throw std::runtime_error("Dimension mismatch");
     }
 
-    ivec flags(s, 0); // TODO: should this be the size of the full box, or the size of the part of the box we are flagging 
+    ivec flags(s, 0);
     sct.clear();
     sct.resize(s, 0);
     rep.clear();
@@ -65,59 +63,85 @@ ivec titanlib::sct(const fvec& lats,
 
     for(int iteration = 0; iteration < niterations; iteration++) {
 
-        int thrownOut = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
+        int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
+        double s_time0 = titanlib::util::clock();
 
-        // loop over all observations
+        /* Compute background settings based on an outer radius, but reuse the settings for all
+         * points in an inner radius.
+        */
+        fvec vp(s, -999);
+        int count = 0;
         for(int curr=0; curr < s; curr++) {
-            // break out if station already flagged
+            if(vp[curr] != -999)
+                // Background already computed
+                continue;
+
             if(flags[curr] != 0)
                 continue;
+
+            double gamma = -0.0065;
+            double a = 5.0;
+
+            ivec neighbour_indices_outer = tree.get_neighbours(lats[curr], lons[curr], outer_radius, maxnumobs, true);
+            ivec neighbour_indices_inner = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, true);
+            neighbour_indices_outer = remove_flagged(neighbour_indices_outer, flags);
+            neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags);
+
+            if(neighbour_indices_inner.size() < minnumobs)
+                continue;
+
+            fvec elevs_inner = titanlib::util::subset(elevs, neighbour_indices_inner);
+            fvec elevs_outer = titanlib::util::subset(elevs, neighbour_indices_outer);
+            fvec values_outer = titanlib::util::subset(values, neighbour_indices_outer);
+
+            fvec vp_inner = compute_vertical_profile(elevs_outer, elevs_inner, values_outer, gamma, a, nminprof, dzmin);
+            for(int l=0; l< vp_inner.size(); l++) {
+                int index = neighbour_indices_inner[l];
+                vp[index] = vp_inner[l];
+            }
+            count++;
+        }
+        int count_valid = 0;
+        for(int curr=0; curr < s; curr++) {
+            assert((flags[curr] == 0 && vp[curr] != -999) || (flags[curr] == 1));
+            if(flags[curr] == 0)
+                count_valid++;
+        }
+        std::cout << "Stations: " << count_valid << " Num:" << count << " time: " << titanlib::util::clock() - s_time0 << "s" << std::endl;
+
+        bool reuse = false;
+
+        // loop over all observations
+        ivec checked(s, 0);  // Keep track of which observations have been checked
+        for(int curr=0; curr < s; curr++) {
+            // break out if station already flagged
+            if(flags[curr] != 0) {
+                checked[curr] = 1;
+                continue;
+            }
+            if(reuse && checked[curr] > 0) {
+                continue;
+            }
             // get all neighbours that are close enough
             ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, maxnumobs, false);
+            neighbour_indices = remove_flagged(neighbour_indices, flags);
             if(neighbour_indices.size() < minnumobs) {
-                // flag as isolated? 
-                continue; // go to next station, skip this one
-            }
-            ivec neighbour_indices_removed_flagged;
-            neighbour_indices_removed_flagged.reserve(neighbour_indices.size());
-            for(int i=0; i<neighbour_indices.size(); i++) {
-                if(flags[neighbour_indices[i]] == 0 ) {
-                    neighbour_indices_removed_flagged.push_back(neighbour_indices[i]);
-                }
-            }
-            if(neighbour_indices_removed_flagged.size() < minnumobs) {
+                checked[curr] = 1;
                 // flag as isolated? 
                 continue; // go to next station, skip this one
             }
 
             // add the actual station at the end
-            neighbour_indices_removed_flagged.push_back(curr);
+            neighbour_indices.push_back(curr);
 
             // call SCT with this box 
-            fvec lons_box = titanlib::util::subset(lons, neighbour_indices_removed_flagged);
-            fvec elevs_box = titanlib::util::subset(elevs, neighbour_indices_removed_flagged);
-            fvec lats_box = titanlib::util::subset(lats, neighbour_indices_removed_flagged);
-            fvec values_box = titanlib::util::subset(values, neighbour_indices_removed_flagged);
-            fvec eps2_box = titanlib::util::subset(eps2, neighbour_indices_removed_flagged);
-            int s_box = neighbour_indices_removed_flagged.size();
+            fvec lons_box = titanlib::util::subset(lons, neighbour_indices);
+            fvec elevs_box = titanlib::util::subset(elevs, neighbour_indices);
+            fvec lats_box = titanlib::util::subset(lats, neighbour_indices);
+            fvec values_box = titanlib::util::subset(values, neighbour_indices);
+            fvec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
+            int s_box = neighbour_indices.size();
             // the thing to flag is at "curr", ano not included in the box
-
-            /*
-               Stuff for VP
-               */
-            double gamma = -0.0065;
-            double a = 5.0;
-            double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / s;
-            // std::cout << meanT << std::endl;
-            double exact_p10 = titanlib::util::compute_quantile(0.10, elevs_box);
-            double exact_p90 = titanlib::util::compute_quantile(0.90, elevs_box);
-
-            // calculate background
-            fvec vp = compute_vertical_profile(lats_box, lons_box, elevs_box, values_box, meanT, gamma, a, exact_p10, exact_p90, nminprof, dzmin);
-            // now have temperature profile (vp)
-            for(int i=0; i < s_box; i++) {
-                assert(vp[i] !=-999);
-            }
 
             boost::numeric::ublas::matrix<float> disth(s, s);
             boost::numeric::ublas::matrix<float> distz(s, s);
@@ -157,7 +181,8 @@ ivec titanlib::sct(const fvec& lats,
 
             boost::numeric::ublas::vector<float> d(s_box);
             for(int i=0; i < s_box; i++) {
-                d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
+                int vp_index = neighbour_indices[i];
+                d(i) = values_box[i] - vp[vp_index]; // difference between actual temp and temperature from vertical profile
             }
 
             /* ---------------------------------------------------
@@ -167,6 +192,11 @@ ivec titanlib::sct(const fvec& lats,
             if(b != true) {
                 // TODO: flag differently or give an error???
                 continue;
+            }
+
+            // Unweight the diagonal
+            for(int i=0; i < s_box; i++) {
+                S(i,i) -= eps2_box[i];
             }
 
             boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
@@ -211,22 +241,42 @@ ivec titanlib::sct(const fvec& lats,
             // for(int i=0; i<s_box; i++) {
             //     pog(i) = cvres(i)*ares(i) / sig2o;
             // }
-            float last = s_box - 1;
-            float pog = cvres(last) * ares(last) / sig2o;
-            // std::cout << "sig2o: " << sig2o << std::endl;
-            sct[curr] = pog;
-            if((cvres(last) < 0 && pog > t2pos[curr]) || (cvres(last) >= 0 && pog > t2neg[curr])) {
-                flags[curr] = 1;
-                thrownOut++;
+            if(reuse) {
+                int ccount = 0;
+                for(int i = 0; i < s_box; i++) {
+                    int index = neighbour_indices[i];
+                    if(checked[index] == 0) {
+                        float pog = cvres(i) * ares(i) / sig2o;
+                        sct[index] = pog;
+                        if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
+                            flags[index] = 1;
+                            thrown_out++;
+                        }
+                        checked[index] = 1;
+                        ccount++;
+                    }
+                }
+                // std::cout << "Checked " << ccount << std::endl;
+
+            }
+            else {
+                float last = s_box - 1;
+                float pog = cvres(last) * ares(last) / sig2o;
+                // std::cout << "sig2o: " << sig2o << std::endl;
+                sct[curr] = pog;
+                if((cvres(last) < 0 && pog > pos[curr]) || (cvres(last) >= 0 && pog > neg[curr])) {
+                    flags[curr] = 1;
+                    thrown_out++;
+                }
             }
 
         }
-        if(thrownOut == 0) {
+        if(thrown_out == 0) {
             if(iteration + 1 < niterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
-
+        std::cout << "Removing " << thrown_out << std::endl;
     }
 
     return flags;
@@ -234,7 +284,10 @@ ivec titanlib::sct(const fvec& lats,
 // end SCT //
 
 
-fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& elevs, const fvec& values, double meanT, double gamma, double a, double exact_p10, double exact_p90, int nminprof, double dzmin) {
+fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, double gamma, double a, int nminprof, double dzmin) {
+    double meanT = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
+    double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
+    double exact_p90 = titanlib::util::compute_quantile(0.90, elevs);
 
     // optimize inputs for VP (using Nelder-Mead Simplex algorithm)
     const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
@@ -248,9 +301,12 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
 
     // data (params) that needs to be passed into vp
     double nd = (double) elevs.size(); // cast + resize to double
+    double nod = (double) oelevs.size(); // cast + resize to double
     std::vector<double> delevs(elevs.begin(), elevs.end());
+    std::vector<double> doelevs(oelevs.begin(), oelevs.end());
     std::vector<double> dvalues(values.begin(), values.end());
     double * dpelevs = delevs.data();
+    double * dpoelevs = doelevs.data();
     double * dpvalues = dvalues.data();
     double * data[3] = {&nd, dpelevs, dpvalues};
 
@@ -301,11 +357,11 @@ fvec compute_vertical_profile(const fvec& lats, const fvec& lons, const fvec& el
     // then actually calculate the vertical profile using the minima
     fvec vp;
     if(use_basic) {
-        vp = basic_vertical_profile(nd, dpelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
+        vp = basic_vertical_profile(nod, dpoelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
     }
     else {
         // then actually calculate the vertical profile using the minima
-        vp = vertical_profile(nd, dpelevs,  gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1),
+        vp = vertical_profile(nod, dpoelevs,  gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1),
                 gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), gsl_vector_get(s->x, 4));
     }
 
@@ -420,3 +476,14 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
     return true;
 }
 
+
+ivec remove_flagged(ivec indices, ivec flags) {
+    ivec removed;
+    removed.reserve(indices.size());
+    for(int i=0; i<indices.size(); i++) {
+        if(flags[indices[i]] == 0 ) {
+            removed.push_back(indices[i]);
+        }
+    }
+    return removed;
+}

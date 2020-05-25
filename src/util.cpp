@@ -99,6 +99,9 @@ fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2&
 
 float titanlib::util::compute_quantile(double quantile, const fvec& array) {
     int n = array.size();
+    if(n == 0) {
+        throw std::runtime_error("Cannot compute quantile on empty array");
+    }
     fvec array_copy(n);
     // make a copy of the vector
     for(int i = 0; i < n; i++)

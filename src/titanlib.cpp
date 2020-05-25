@@ -1,4 +1,5 @@
 #include "titanlib.h"
+#include <sys/time.h>
 
 std::string titanlib::version() {
     return __version__;
@@ -28,4 +29,11 @@ void titanlib::set_omp_threads(int num) {
     // omp_set_dynamic(0);
     omp_set_num_threads(num);
 #endif
+}
+double titanlib::util::clock() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    double sec = (t.tv_sec);
+    double msec= (t.tv_usec);
+    return sec + msec/1e6;
 }
