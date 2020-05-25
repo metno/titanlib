@@ -48,12 +48,24 @@ ivec titanlib::sct(const fvec& lats,
         fvec& rep) {
 
     const int s = values.size();
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s)
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
         throw std::runtime_error("Dimension mismatch");
     if(num_min < 2)
         throw std::invalid_argument("num_min must be > 1");
     if(num_max < num_min)
         throw std::invalid_argument("num_max must be > num_min");
+    if(num_iterations < 1)
+        throw std::invalid_argument("num_iterations must be >= 1");
+    if(dzmin <= 0)
+        throw std::invalid_argument("dzmin must be > 0");
+    if(dhmin <= 0)
+        throw std::invalid_argument("dhmin must be > 0");
+    if(dz <= 0)
+        throw std::invalid_argument("dz must be > 0");
+    if(inner_radius <= 0)
+        throw std::invalid_argument("inner_radius must be > 0");
+    if(outer_radius < inner_radius)
+        throw std::invalid_argument("outer_radius must be >= inner_radius");
 
     bool reuse = true; // Should the OI results be reused in the inner radius?
 
