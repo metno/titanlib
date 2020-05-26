@@ -10,9 +10,13 @@ void PRINT_DEBUG(std::string message) {
 #endif
 }
 %}
+#if defined(SWIGPYTHON)
 %include "numpy.i"
+#endif
 %init %{
+#if defined(SWIGPYTHON)
     import_array();
+#endif
     titanlib::initialize_omp();
 %}
 
@@ -59,6 +63,7 @@ namespace std {
 %apply (float* IN_ARRAY1, int DIM1) {(float* v, int n)}
 %apply (double* IN_ARRAY1, int DIM1) {(double* v, int n)}
 
+#if defined(SWIGPYTHON)
 %define %np_vector_typemaps(DTYPE, NPY_DTYPE)
 /*
  * 1D vectors
@@ -399,6 +404,7 @@ namespace std {
 %np_vector_typemaps(long, NPY_LONG)
 %np_vector_typemaps(float, NPY_FLOAT)
 %np_vector_typemaps(double, NPY_DOUBLE)
+#endif
 
 %apply std::vector<int>& OUTPUT { std::vector<int>& flags };
 %apply std::vector<float>& OUTPUT { std::vector<float>& sct };
