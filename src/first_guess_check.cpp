@@ -6,10 +6,10 @@
 
 
 ivec titanlib::first_guess_check(
-    const fvec& values,
-    const fvec& first_guess,
-    const fvec& neg,
-    const fvec& pos) {
+    const vec& values,
+    const vec& first_guess,
+    const vec& neg,
+    const vec& pos) {
 
         const int s = values.size();
         //if( (lats.size() != s && lats.size() != 1) || (lons.size() != s && lons.size() != 1) ) { return false; }
@@ -21,8 +21,8 @@ ivec titanlib::first_guess_check(
             throw std::runtime_error("Dimension mismatch");
         }
 
-        fvec min(s,0);
-        fvec max(s,0);
+        vec min(s,0);
+        vec max(s,0);
         for(int i = 0; i < s; i++) { 
              int fgn_i = (neg.size() == s) ? i : 0;
              int fgp_i = (pos.size() == s) ? i : 0;

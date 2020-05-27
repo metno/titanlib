@@ -8,13 +8,13 @@
 #include <exception>
 #include "titanlib.h"
 
-ivec titanlib::buddy_check(const fvec& lats,
-        const fvec& lons,
-        const fvec& elevs,
-        const fvec& values,
-        const fvec& radius,
+ivec titanlib::buddy_check(const vec& lats,
+        const vec& lons,
+        const vec& elevs,
+        const vec& values,
+        const vec& radius,
         const ivec& buddies_min,
-        const fvec& thresholds,
+        const vec& thresholds,
         float diff_elev_max,
         float elev_gradient,
         float min_std,
@@ -70,7 +70,7 @@ ivec titanlib::buddy_check(const fvec& lats,
                 ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
 
                 int n_buddies = 0;
-                fvec list_buddies;
+                vec list_buddies;
                 // based on tree do have enough neighbours? 
                 if(neighbour_indices.size() > buddies_min[b_i]) {
                     // loop over everything that was near enough

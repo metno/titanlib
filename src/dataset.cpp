@@ -2,7 +2,7 @@
 #include <vector>
 #include "titanlib.h"
 
-titanlib::Dataset::Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues) {
+titanlib::Dataset::Dataset(vec ilats, vec ilons, vec ielevs, vec ivalues) {
     lats = ilats;
     lons = ilons;
     elevs = ielevs;
@@ -10,7 +10,7 @@ titanlib::Dataset::Dataset(fvec ilats, fvec ilons, fvec ielevs, fvec ivalues) {
     flags.resize(lats.size());
 }
 
-bool titanlib::Dataset::range_check(const fvec& min, const fvec& max, const ivec indices) {
+bool titanlib::Dataset::range_check(const vec& min, const vec& max, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags = titanlib::range_check(subset(values, indices), subset(min, indices), subset(max, indices));
@@ -25,7 +25,7 @@ bool titanlib::Dataset::range_check(const fvec& min, const fvec& max, const ivec
     else return false;
 }
 
-bool titanlib::Dataset::range_check_climatology(int unixtime, const fvec& pos, const fvec& neg, const ivec indices) {
+bool titanlib::Dataset::range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags = titanlib::range_check_climatology(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), unixtime, subset(pos, indices), subset(neg, indices));
@@ -44,10 +44,10 @@ bool titanlib::Dataset::sct(int num_min, int num_max, double inner_radius, doubl
             double dzmin,
             double dhmin,
             float dz,
-            const fvec& t2pos,
-            const fvec& t2neg,
-            const fvec& eps2,
-            fvec& sct, fvec& rep, const ivec indices) {
+            const vec& t2pos,
+            const vec& t2neg,
+            const vec& eps2,
+            vec& sct, vec& rep, const ivec indices) {
     int status;
     ivec boxids;
     if(indices.size() > 0) {
@@ -64,7 +64,7 @@ bool titanlib::Dataset::sct(int num_min, int num_max, double inner_radius, doubl
     else return false;
 }
 
-bool titanlib::Dataset::buddy_check(const fvec& radius, const ivec& buddies_min, const fvec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec indices) {
+bool titanlib::Dataset::buddy_check(const vec& radius, const ivec& buddies_min, const vec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec indices) {
     int status;
     if(indices.size() > 0) {
         ivec iflags = titanlib::buddy_check(lats, lons, elevs, values, subset(radius, indices), subset(buddies_min, indices), subset(thresholds, indices), diff_elev_max, elev_gradient, min_std, num_iterations, obs_to_check);

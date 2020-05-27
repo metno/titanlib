@@ -3,7 +3,7 @@
 #include <proj_api.h>
 #include <math.h>
 
-bool titanlib::util::convert_coordinates(const fvec& lats, const fvec& lons, fvec& x_coords, fvec& y_coords, fvec& z_coords) {
+bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
     int N = lats.size();
     x_coords.resize(N);
     y_coords.resize(N);
@@ -26,7 +26,7 @@ bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, f
     z_coord = std::sin(latr) * earth_radius;
     return true;
 }
-void titanlib::util::convert_to_proj(const fvec& lats, const fvec& lons, std::string proj4, fvec& x_coords, fvec& y_coords) {
+void titanlib::util::convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords) {
     int N = lats.size();
     x_coords.resize(N);
     y_coords.resize(N);
@@ -70,12 +70,12 @@ float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, floa
 float titanlib::util::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
-fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2& input_lons, const fvec2& input_values, const fvec& output_lats, const fvec& output_lons) {
+vec titanlib::util::interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons) {
     assert(input_lats.size() > 0);
     assert(input_lats[0].size() > 0);
-    fvec output_values(output_lats.size(), 0);
-    fvec input_lats_flat(input_lats.size() * input_lats[0].size(), 0);
-    fvec input_lons_flat(input_lats.size() * input_lats[0].size(), 0);
+    vec output_values(output_lats.size(), 0);
+    vec input_lats_flat(input_lats.size() * input_lats[0].size(), 0);
+    vec input_lons_flat(input_lats.size() * input_lats[0].size(), 0);
     int X = input_lats[0].size();
     int Y = input_lats.size();
     int count = 0;
@@ -97,12 +97,12 @@ fvec titanlib::util::interpolate_to_points(const fvec2& input_lats, const fvec2&
     return output_values;
 }
 
-float titanlib::util::compute_quantile(double quantile, const fvec& array) {
+float titanlib::util::compute_quantile(double quantile, const vec& array) {
     int n = array.size();
     if(n == 0) {
         throw std::runtime_error("Cannot compute quantile on empty array");
     }
-    fvec array_copy(n);
+    vec array_copy(n);
     // make a copy of the vector
     for(int i = 0; i < n; i++)
         array_copy[i] = array[i];
@@ -130,8 +130,8 @@ float titanlib::util::compute_quantile(double quantile, const fvec& array) {
     return exact_q;
 }
 
-fvec titanlib::util::subset(const fvec& input, const ivec& indices) {
-    fvec output(indices.size());
+vec titanlib::util::subset(const vec& input, const ivec& indices) {
+    vec output(indices.size());
     int size = indices.size();
     for(int i=0; i < size; i++) {
         int index = indices[i];

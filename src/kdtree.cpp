@@ -1,9 +1,9 @@
 #include "titanlib.h"
 
-titanlib::KDTree::KDTree(const fvec& lats, const fvec& lons) {
+titanlib::KDTree::KDTree(const vec& lats, const vec& lons) {
     mLats = lats;
     mLons = lons;
-    fvec x, y, z;
+    vec x, y, z;
     titanlib::util::convert_coordinates(lats, lons, x, y, z);
 
     for(int i = 0; i < lats.size(); i++) {
@@ -17,7 +17,7 @@ int titanlib::KDTree::get_num_neighbours(float lat, float lon, float radius, int
     return indices.size();
 }
 
-ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float radius, int max_num, bool include_match, fvec& distances) {
+ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float radius, int max_num, bool include_match, vec& distances) {
     float x, y, z;
     titanlib::util::convert_coordinates(lat, lon, x, y, z);
     ivec indices = get_neighbours(lat, lon, radius, max_num, include_match);
@@ -109,7 +109,7 @@ int titanlib::KDTree::get_nearest_neighbour(float lat, float lon, bool include_m
     assert(neighbours.size() == 1);
     return neighbours[0];
 }
-ivec titanlib::KDTree::get_nearest_neighbour(const fvec& lats, const fvec& lons, bool include_match) {
+ivec titanlib::KDTree::get_nearest_neighbour(const vec& lats, const vec& lons, bool include_match) {
     ivec neighbours(lats.size(), 0);
     for(int i = 0; i < lats.size(); i++) {
         ivec temp = get_neighbours(lats[i], lons[i], 0, 1, include_match);

@@ -11,9 +11,9 @@ double interpolate(int i1, int i2, float lat, float latitudes[], double numbers[
 std::pair<int,int> find_between(float lat, float latitudes[], int len);
 
 
-ivec titanlib::range_check(const fvec& values,
-        const fvec& min,
-        const fvec& max) {
+ivec titanlib::range_check(const vec& values,
+        const vec& min,
+        const vec& max) {
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
@@ -41,13 +41,13 @@ ivec titanlib::range_check(const fvec& values,
 
 }
 
-ivec titanlib::range_check_climatology(const fvec& lats,
-        const fvec& lons,
-        const fvec& elevs,
-        const fvec& values,
+ivec titanlib::range_check_climatology(const vec& lats,
+        const vec& lons,
+        const vec& elevs,
+        const vec& values,
         int unixtime,
-        const fvec& pos,
-        const fvec& neg) {
+        const vec& pos,
+        const vec& neg) {
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs

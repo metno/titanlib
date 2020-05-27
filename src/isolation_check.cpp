@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <iostream>
 
-ivec titanlib::isolation_check(const fvec& lats,
-        const fvec& lons,
+ivec titanlib::isolation_check(const vec& lats,
+        const vec& lons,
         int num_min,
         float radius) {
     titanlib::KDTree tree(lats, lons);
@@ -23,9 +23,9 @@ ivec titanlib::isolation_check(const fvec& lats,
 
 }
 
-ivec titanlib::isolation_check(const fvec& lats,
-        const fvec& lons,
-        const fvec& elevs,
+ivec titanlib::isolation_check(const vec& lats,
+        const vec& lons,
+        const vec& elevs,
         int num_min,
         float radius,
         float dz) {

@@ -18,17 +18,17 @@
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 ivec remove_flagged(ivec indices, ivec flags);
-fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, int num_min_prof, double dzmin);
+vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double dzmin);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
-fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
+vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
-fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
+vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
 
 // start SCT //
-ivec titanlib::sct(const fvec& lats,
-        const fvec& lons,
-        const fvec& elevs,
-        const fvec& values,
+ivec titanlib::sct(const vec& lats,
+        const vec& lons,
+        const vec& elevs,
+        const vec& values,
         // determine if we have too many or too few observations
         // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
         int num_min,
@@ -41,11 +41,11 @@ ivec titanlib::sct(const fvec& lats,
         double dzmin,
         double dhmin,
         float dz,
-        const fvec& pos,
-        const fvec& neg,
-        const fvec& eps2,
-        fvec& sct,
-        fvec& rep) {
+        const vec& pos,
+        const vec& neg,
+        const vec& eps2,
+        vec& sct,
+        vec& rep) {
 
     const int s = values.size();
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
@@ -92,7 +92,7 @@ ivec titanlib::sct(const fvec& lats,
                 continue;
             }
             // get all neighbours that are close enough
-            fvec distances;
+            vec distances;
             ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
             neighbour_indices = remove_flagged(neighbour_indices, flags);
             if(neighbour_indices.size() < num_min) {
@@ -102,16 +102,16 @@ ivec titanlib::sct(const fvec& lats,
             }
 
             // call SCT with this box 
-            fvec lons_box = titanlib::util::subset(lons, neighbour_indices);
-            fvec elevs_box = titanlib::util::subset(elevs, neighbour_indices);
-            fvec lats_box = titanlib::util::subset(lats, neighbour_indices);
-            fvec values_box = titanlib::util::subset(values, neighbour_indices);
-            fvec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
+            vec lons_box = titanlib::util::subset(lons, neighbour_indices);
+            vec elevs_box = titanlib::util::subset(elevs, neighbour_indices);
+            vec lats_box = titanlib::util::subset(lats, neighbour_indices);
+            vec values_box = titanlib::util::subset(values, neighbour_indices);
+            vec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
             int s_box = neighbour_indices.size();
             // the thing to flag is at "curr", ano not included in the box
 
             // Compute the background
-            fvec vp;
+            vec vp;
             if(num_min_prof >= 0) {
                 vp = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, dzmin);
             }
@@ -128,7 +128,7 @@ ivec titanlib::sct(const fvec& lats,
             boost::numeric::ublas::vector<float> Dh(s);
 
             for(int i=0; i < s_box; i++) {
-                fvec Dh_vector(s_box);
+                vec Dh_vector(s_box);
                 for(int j=0; j < s_box; j++) {
                     disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
                     distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
@@ -252,7 +252,7 @@ ivec titanlib::sct(const fvec& lats,
 // end SCT //
 
 
-fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec& values, int num_min_prof, double dzmin) {
+vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double dzmin) {
     // Starting value guesses
     double gamma = -0.0065;
     double a = 5.0;
@@ -327,7 +327,7 @@ fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec&
     while (status == GSL_CONTINUE && iter < 100);
 
     // then actually calculate the vertical profile using the minima
-    fvec vp;
+    vec vp;
     if(use_basic) {
         vp = basic_vertical_profile(nod, dpoelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
         // std::cout << "meanT=" << gsl_vector_get(s->x, 0) << " gamma=" << gsl_vector_get(s->x, 1) << std::endl;
@@ -356,7 +356,7 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
     double gamma = gsl_vector_get(v,1);
 
     // give everything to vp to compute t_out
-    fvec t_out = basic_vertical_profile(n, dpelevs, meanT, gamma);
+    vec t_out = basic_vertical_profile(n, dpelevs, meanT, gamma);
     // RMS
     float total = 0;
     for(int i=0; i<n; i++) {
@@ -366,8 +366,8 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
     return value;
 }
 
-fvec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma) {
-    fvec t_out(n, -999);
+vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma) {
+    vec t_out(n, -999);
     for(int i=0; i<n; i++)
         t_out[i] = t0 + gamma*elevs[i];
     return t_out;
@@ -387,7 +387,7 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data) {
     double exact_p90 = gsl_vector_get(v,4);
 
     // give everything to vp to compute t_out
-    fvec t_out = vertical_profile(n, dpelevs, meanT, gamma, a, exact_p10, exact_p90);
+    vec t_out = vertical_profile(n, dpelevs, meanT, gamma, a, exact_p10, exact_p90);
     // RMS
     double total = 0;
     for(int i=0; i<n; i++) {
@@ -397,10 +397,10 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data) {
     return value;
 }
 
-fvec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i) {
+vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i) {
     double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
     // loop over the array of elevations
-    fvec t_out;
+    vec t_out;
     t_out.resize(n, -999);
 
     for(int i=0; i<n; i++) {
