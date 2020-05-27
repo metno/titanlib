@@ -52,6 +52,7 @@ ivec titanlib::buddy_check(const vec& lats,
 
     // loop over all the observations
     for(int it = 0; it < num_iterations; it++) {
+        #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
             int b_i = (buddies_min.size() == s) ? i : 0;
