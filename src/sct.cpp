@@ -62,12 +62,10 @@ ivec titanlib::sct(const fvec& lats,
         throw std::invalid_argument("dhmin must be > 0");
     if(dz <= 0)
         throw std::invalid_argument("dz must be > 0");
-    if(inner_radius <= 0)
-        throw std::invalid_argument("inner_radius must be > 0");
+    if(inner_radius < 0)
+        throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
-
-    bool reuse = true; // Should the OI results be reused in the inner radius?
 
     ivec flags(s, 0);
     sct.clear();
@@ -78,78 +76,30 @@ ivec titanlib::sct(const fvec& lats,
     titanlib::KDTree tree(lats, lons);
 
     for(int iteration = 0; iteration < num_iterations; iteration++) {
+        double s_time0 = titanlib::util::clock();
 
         int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
-        /* Compute background settings based on an outer radius, but reuse the settings for all
-         * points in an inner radius.
-        */
-        fvec vp(s, -999);
-        int count = 0;
-        for(int curr=0; curr < s; curr++) {
-            if(vp[curr] != -999)
-                // Background already computed
-                continue;
 
-            if(flags[curr] != 0)
-                continue;
-
-            ivec neighbour_indices_outer = tree.get_neighbours(lats[curr], lons[curr], outer_radius, num_max, true);
-            ivec neighbour_indices_inner = tree.get_neighbours(lats[curr], lons[curr], inner_radius, num_max, true);
-            neighbour_indices_outer = remove_flagged(neighbour_indices_outer, flags);
-            neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags);
-
-            if(neighbour_indices_inner.size() < num_min)
-                continue;
-
-            fvec elevs_inner = titanlib::util::subset(elevs, neighbour_indices_inner);
-            fvec elevs_outer = titanlib::util::subset(elevs, neighbour_indices_outer);
-            fvec values_outer = titanlib::util::subset(values, neighbour_indices_outer);
-
-            if(num_min_prof >= 0) {
-                fvec vp_inner = compute_vertical_profile(elevs_outer, elevs_inner, values_outer, num_min_prof, dzmin);
-                for(int l=0; l< vp_inner.size(); l++) {
-                    int index = neighbour_indices_inner[l];
-                    vp[index] = vp_inner[l];
-                }
-                count++;
-            }
-            else {
-                double meanT = std::accumulate(values_outer.begin(), values_outer.end(), 0.0) / values_outer.size();
-                for(int l = 0; l < neighbour_indices_inner.size(); l++) {
-                    int index = neighbour_indices_inner[l];
-                    vp[index] = meanT;
-                }
-            }
-        }
-        int count_valid = 0;
-        for(int curr=0; curr < s; curr++) {
-            assert((flags[curr] == 0 && vp[curr] != -999) || (flags[curr] == 1));
-            if(flags[curr] == 0)
-                count_valid++;
-        }
-
-        // loop over all observations
         ivec checked(s, 0);  // Keep track of which observations have been checked
+        int count_oi = 0;
         for(int curr=0; curr < s; curr++) {
             // break out if station already flagged
             if(flags[curr] != 0) {
                 checked[curr] = 1;
                 continue;
             }
-            if(reuse && checked[curr] > 0) {
+            if(checked[curr] > 0) {
                 continue;
             }
             // get all neighbours that are close enough
-            ivec neighbour_indices = tree.get_neighbours(lats[curr], lons[curr], inner_radius, num_max, false);
+            fvec distances;
+            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
             neighbour_indices = remove_flagged(neighbour_indices, flags);
             if(neighbour_indices.size() < num_min) {
                 checked[curr] = 1;
                 // flag as isolated? 
                 continue; // go to next station, skip this one
             }
-
-            // add the actual station at the end
-            neighbour_indices.push_back(curr);
 
             // call SCT with this box 
             fvec lons_box = titanlib::util::subset(lons, neighbour_indices);
@@ -159,6 +109,19 @@ ivec titanlib::sct(const fvec& lats,
             fvec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
             int s_box = neighbour_indices.size();
             // the thing to flag is at "curr", ano not included in the box
+
+            // Compute the background
+            fvec vp;
+            if(num_min_prof >= 0) {
+                vp = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, dzmin);
+            }
+            else {
+                double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
+                vp.resize(s, -999);
+                for(int l = 0; l < s; l++) {
+                    vp[l] = meanT;
+                }
+            }
 
             boost::numeric::ublas::matrix<float> disth(s, s);
             boost::numeric::ublas::matrix<float> distz(s, s);
@@ -198,8 +161,7 @@ ivec titanlib::sct(const fvec& lats,
 
             boost::numeric::ublas::vector<float> d(s_box);
             for(int i=0; i < s_box; i++) {
-                int vp_index = neighbour_indices[i];
-                d(i) = values_box[i] - vp[vp_index]; // difference between actual temp and temperature from vertical profile
+                d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
             }
 
             /* ---------------------------------------------------
@@ -258,42 +220,31 @@ ivec titanlib::sct(const fvec& lats,
             // for(int i=0; i<s_box; i++) {
             //     pog(i) = cvres(i)*ares(i) / sig2o;
             // }
-            if(reuse) {
-                int ccount = 0;
-                for(int i = 0; i < s_box; i++) {
-                    int index = neighbour_indices[i];
-                    if(checked[index] == 0) {
-                        float pog = cvres(i) * ares(i) / sig2o;
-                        sct[index] = pog;
-                        if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
-                            flags[index] = 1;
-                            thrown_out++;
-                        }
-                        checked[index] = 1;
-                        ccount++;
+            int ccount = 0;
+            for(int i = 0; i < s_box; i++) {
+                int index = neighbour_indices[i];
+                float dist = distances[i];
+                if(dist <= inner_radius) {
+                    float pog = cvres(i) * ares(i) / sig2o;
+                    sct[index] = std::max(pog, sct[index]);
+                    if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
+                        flags[index] = 1;
+                        thrown_out++;
                     }
-                }
-                // std::cout << "Checked " << ccount << std::endl;
-
-            }
-            else {
-                float last = s_box - 1;
-                float pog = cvres(last) * ares(last) / sig2o;
-                // std::cout << "sig2o: " << sig2o << std::endl;
-                sct[curr] = pog;
-                if((cvres(last) < 0 && pog > pos[curr]) || (cvres(last) >= 0 && pog > neg[curr])) {
-                    flags[curr] = 1;
-                    thrown_out++;
+                    checked[index] = 1;
+                    ccount++;
                 }
             }
-
+            count_oi++;
         }
         if(thrown_out == 0) {
             if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
-        std::cout << "Removing " << thrown_out << std::endl;
+        std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
+        double e_time0 = titanlib::util::clock();
+        std::cout << e_time0 - s_time0 << std::endl;
     }
 
     return flags;
@@ -379,6 +330,7 @@ fvec compute_vertical_profile(const fvec& elevs, const fvec& oelevs, const fvec&
     fvec vp;
     if(use_basic) {
         vp = basic_vertical_profile(nod, dpoelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
+        // std::cout << "meanT=" << gsl_vector_get(s->x, 0) << " gamma=" << gsl_vector_get(s->x, 1) << std::endl;
     }
     else {
         // then actually calculate the vertical profile using the minima
