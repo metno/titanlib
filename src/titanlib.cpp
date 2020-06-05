@@ -5,13 +5,6 @@ std::string titanlib::version() {
     return __version__;
 }
 
-float* titanlib::test_array(float* v, int n) {
-    int count = 0;
-    for(int i = 0; i < n; i++)
-        count++;
-    return v;
- }
-
 void titanlib::initialize_omp() {
 #ifdef _OPENMP
     int num_threads = 1;

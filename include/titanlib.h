@@ -27,29 +27,6 @@ namespace titanlib {
      */
     std::string version();
 
-    float* test_array(float* v, int n);
-
-    /** Spatial Consistency Test
-        @param lats vector of latitudes
-        @param flags output vector of flags
-     */
-    ivec sct_old(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
-            const vec& values,
-            int nmin,
-            int nmax,
-            int num_min_prof,
-            float dzmin,
-            float dhmin,
-            float dz,
-            const vec& pos,
-            const vec& neg,
-            const vec& eps2,
-            vec& sct,
-            vec& rep,
-            ivec& boxids);
-
     /** Spatial Consistency Test
      *  @param num_min_prof Minimum number of observations to compute vertical profile
      *  @param radius Select observations within this radius [m]
@@ -180,7 +157,11 @@ namespace titanlib {
     void initialize_omp();
 
     namespace util {
+        /**
+         * @return The current UTC time (in seconds since 1970-01-01 00:00:00Z)
+         */
         double clock();
+
         /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
          *  @param lats vector of latitudes [deg]
          *  @param lons vector of longitudes [deg]
@@ -207,6 +188,9 @@ namespace titanlib {
 
         float compute_quantile(double quantile, const vec& array);
         vec subset(const vec& input, const ivec& indices);
+
+        /** Required for SWIG only */
+        float* test_array(float* v, int n);
     }
 
     // ivec nearest_neighbours(const vec& lats, const vec& lons, float radius, float lat, float lon);
@@ -296,5 +280,23 @@ namespace titanlib {
             boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> > mTree;
 
     };
+
+    /** Old version of the spatial consistency test (for testing purposes only) */
+    ivec sct_old(const vec& lats,
+            const vec& lons,
+            const vec& elevs,
+            const vec& values,
+            int nmin,
+            int nmax,
+            int num_min_prof,
+            float dzmin,
+            float dhmin,
+            float dz,
+            const vec& pos,
+            const vec& neg,
+            const vec& eps2,
+            vec& sct,
+            vec& rep,
+            ivec& boxids);
 }
 #endif

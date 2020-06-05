@@ -140,3 +140,10 @@ vec titanlib::util::subset(const vec& input, const ivec& indices) {
     }
     return output;
 }
+
+float* titanlib::util::test_array(float* v, int n) {
+    int count = 0;
+    for(int i = 0; i < n; i++)
+        count++;
+    return v;
+ }
