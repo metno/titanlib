@@ -122,20 +122,18 @@ ivec titanlib::buddy_event_check(const vec& lats,
                 }
                 float mean = boost::accumulators::mean(acc);
                 float fraction = float(count_below) / count;
-                float curr_event = 0;
-                if(values[i] < event_thresholds[0])
-                    curr_event = 1;
+                bool curr_event = values[i] < event_thresholds[0];
 
                 if(thresholds[t_i] < 1) {
-                    if(curr_event < event_thresholds[0] && fraction <= thresholds[t_i])
+                    if(curr_event && fraction <= thresholds[t_i])
                         flags[i] = 1;
-                    else if(curr_event >= event_thresholds[0] && (1 - fraction) <= thresholds[t_i])
+                    else if(!curr_event && (1 - fraction) <= thresholds[t_i])
                         flags[i] = 1;
                 }
                 else {
-                    if(curr_event < event_thresholds[0] && count_below <= thresholds[t_i])
+                    if(curr_event && count_below <= thresholds[t_i])
                         flags[i] = 1;
-                    else if(curr_event >= event_thresholds[0] && (count - count_below <= thresholds[t_i]))
+                    else if(!curr_event && (count - count_below <= thresholds[t_i]))
                         flags[i] = 1;
                 }
                 if(debug && values[i] > 40) {
