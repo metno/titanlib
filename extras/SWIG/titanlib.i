@@ -1,6 +1,5 @@
 %module titanlib
 %include "typemaps.i"
-%include "std_string.i"
 %{
 #define SWIG_FILE_WITH_INIT
 #include <iostream>
@@ -50,6 +49,7 @@ void PRINT_DEBUG(std::string message) {
     }
 }
 %include "std_vector.i"
+%include "std_string.i"
 namespace std {
 %template(IntVector) vector<int>;
 %template(FloatVector) vector<float>;
@@ -68,19 +68,18 @@ namespace std {
 /*
  * 1D vectors
  */
-%typemap(in) std::vector<DTYPE> (std::vector<DTYPE>*ptr=NULL, PyArrayObject* py_array){
+%typemap(in) std::vector<DTYPE> (std::vector<DTYPE>*ptr, PyArrayObject* py_array, PyObject* py_obj=NULL, PyObject* py_obj0=NULL){
     PRINT_DEBUG("Typemap(in) std::vector<DTYPE>");
     ptr = NULL;
     if(is_array($input)) {
         int num_dims = array_numdims($input);
         if(num_dims != 1)
             throw std::runtime_error("Vector must be 1 dimensional");
-        PyObject* py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, array_type($input), 1, 1, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 1, 1, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 1, 1, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -101,19 +100,18 @@ namespace std {
     }
 }
 
-%typemap(in) const std::vector<DTYPE> & (std::vector<DTYPE>*ptr=NULL, std::vector<DTYPE> temp, PyArrayObject* py_array){
+%typemap(in) const std::vector<DTYPE> & (std::vector<DTYPE>*ptr, std::vector<DTYPE> temp, PyArrayObject* py_array, PyObject* py_obj=NULL, PyObject* py_obj0=NULL){
     PRINT_DEBUG("Typemap(in) const std::vector<DTYPE> &");
     ptr = NULL;
     if(is_array($input)) {
         int num_dims = array_numdims($input);
         if(num_dims != 1)
             throw std::runtime_error("Vector must be 1 dimensional");
-        PyObject* py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, NPY_DTYPE, 1, 1, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 1, 1, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 1, 1, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -136,6 +134,12 @@ namespace std {
 }
 
 %typemap(freearg) std::vector<DTYPE>, const std::vector<DTYPE>&, std::vector<std::vector<DTYPE> >, const std::vector<std::vector<DTYPE> >&, std::vector<std::vector<std::vector<DTYPE> > >, const std::vector<std::vector<std::vector<DTYPE> > >& {
+    if(py_obj0$argnum != NULL)
+        Py_DECREF(py_obj0$argnum);
+
+    if(py_obj$argnum != NULL)
+        Py_DECREF(py_obj$argnum);
+
     if(ptr$argnum != NULL) {
         delete ptr$argnum;
     }
@@ -144,9 +148,9 @@ namespace std {
 %typemap(out) std::vector<DTYPE> {
     PRINT_DEBUG("Typemap(out) std::vector<DTYPE>");
     npy_intp dims[1] = {$1.size()};
-    $result = PyArray_ZEROS(1, dims, NPY_FLOAT, 0);
+    $result = PyArray_ZEROS(1, dims, NPY_DTYPE, 0);
     for(long i = 0; i < $1.size(); i++) {
-        float* ref = (float*) PyArray_GETPTR1((PyArrayObject*) $result, i);
+        DTYPE* ref = (DTYPE*) PyArray_GETPTR1((PyArrayObject*) $result, i);
         ref[0] = $1[i];
     }
 }
@@ -172,12 +176,11 @@ namespace std {
         int num_dims = array_numdims($input);
         if(num_dims != 2)
             throw std::runtime_error("Vector must be 2 dimensional");
-        PyObject* py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -203,19 +206,19 @@ namespace std {
     }
 }
 
-%typemap(in) const std::vector<std::vector<DTYPE> > & (std::vector<std::vector<DTYPE> >*ptr=NULL, std::vector<std::vector<DTYPE> > temp, PyArrayObject* py_array){
+%typemap(in) const std::vector<std::vector<DTYPE> > & (std::vector<std::vector<DTYPE> >*ptr=NULL, std::vector<std::vector<DTYPE> > temp, PyArrayObject* py_array, PyObject* py_obj=NULL, PyObject* py_obj0=NULL){
     PRINT_DEBUG("Typemap(in) const std::vector<std::vector<DTYPE> > &");
     ptr = NULL;
     if(is_array($input)) {
         int num_dims = array_numdims($input);
         if(num_dims != 2)
             throw std::runtime_error("Vector must be 2 dimensional");
-        PyObject* py_obj;
+        py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 2, 2, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -252,10 +255,10 @@ namespace std {
     if(s0 != 0)
         s1 = temp[0].size();
     npy_intp dims[2] = {s0, s1};
-    $result = PyArray_ZEROS(2, dims, NPY_FLOAT, 0);
+    $result = PyArray_ZEROS(2, dims, NPY_DTYPE, 0);
     for(long i = 0; i < s0; i++) {
         for(long j = 0; j < s1; j++) {
-            float* ref = (float*) PyArray_GETPTR2((PyArrayObject*) $result, i, j);
+            DTYPE* ref = (DTYPE*) PyArray_GETPTR2((PyArrayObject*) $result, i, j);
             ref[0] = temp[i][j];
         }
     }
@@ -274,19 +277,19 @@ namespace std {
 /*
  * 3D vectors
  */
-%typemap(in) std::vector<std::vector<std::vector<DTYPE> > > (std::vector<std::vector<std::vector<DTYPE> > >*ptr, PyArrayObject* py_array){
+%typemap(in) std::vector<std::vector<std::vector<DTYPE> > > (std::vector<std::vector<std::vector<DTYPE> > >*ptr, PyArrayObject* py_array, PyObject* py_obj=NULL, PyObject* py_obj0=NULL){
     PRINT_DEBUG("Typemap(in) std::vector<std::vector<std::vector<DTYPE> > >");
     ptr = NULL;
     if(is_array($input)) {
         int num_dims = array_numdims($input);
         if(num_dims != 3)
             throw std::runtime_error("Vector must be 3 dimensional");
-        PyObject* py_obj;
+        py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -316,19 +319,19 @@ namespace std {
     }
 }
 
-%typemap(in) const std::vector<std::vector<std::vector<DTYPE> > > & (std::vector<std::vector<std::vector<DTYPE> > >*ptr, std::vector<std::vector<std::vector<DTYPE> > > temp, PyArrayObject* py_array){
+%typemap(in) const std::vector<std::vector<std::vector<DTYPE> > > & (std::vector<std::vector<std::vector<DTYPE> > >*ptr, std::vector<std::vector<std::vector<DTYPE> > > temp, PyArrayObject* py_array, PyObject* py_obj=NULL, PyObject* py_obj0=NULL){
     PRINT_DEBUG("Typemap(in) const std::vector<std::vector<std::vector<DTYPE> > > &");
     ptr = NULL;
     if(is_array($input)) {
         int num_dims = array_numdims($input);
         if(num_dims != 3)
             throw std::runtime_error("Vector must be 3 dimensional");
-        PyObject* py_obj;
+        py_obj;
         if(array_type($input) == NPY_FLOAT) {
             py_obj = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
         }
         else {
-            PyObject* py_obj0 = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
+            py_obj0 = PyArray_FROMANY($input, array_type($input), 3, 3, NPY_ARRAY_DEFAULT);
             assert(py_obj0 != NULL);
             py_obj = PyArray_CastToType((PyArrayObject*) py_obj0, PyArray_DescrFromType(NPY_FLOAT), 0);
         }
@@ -371,11 +374,11 @@ namespace std {
     if(s0 != 0 && s1 != 0)
         s2 = temp[0][0].size();
     npy_intp dims[3] = {s0, s1, s2};
-    $result = PyArray_ZEROS(3, dims, NPY_FLOAT, 0);
+    $result = PyArray_ZEROS(3, dims, NPY_DTYPE, 0);
     for(long i = 0; i < s0; i++) {
         for(long j = 0; j < s1; j++) {
             for(long k = 0; k < s2; k++) {
-                float* ref = (float*) PyArray_GETPTR3((PyArrayObject*) $result, i, j, k);
+                DTYPE* ref = (DTYPE*) PyArray_GETPTR3((PyArrayObject*) $result, i, j, k);
                 ref[0] = temp[i][j][k];
             }
         }
