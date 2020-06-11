@@ -32,7 +32,6 @@ sudo apt-get update
 sudo apt-get install libboost-all-dev
 sudo apt-get install libgsl-dev libblas-dev
 sudo apt-get install libproj-dev
-sudo apt-get install cmake
 ```
 
 ## Installing the python bindings from pip
@@ -48,14 +47,6 @@ import titanlib
 print(titanlib.version())
 ```
 
-# Installing the R bindings
-
-Additionally, you need the following for python and R installation:
-
-```
-sudo apt install swig r-base-core
-```
-
 ## Full installation from source
 
 1. Either download the source code from the [latest release](https://github.com/metno/titanlib/releases), unzip
@@ -69,23 +60,30 @@ cd build
 cmake ..
 ```
 
-3. Install the C++ library
+3. Install extra requirements
+
+These are only required when installing from source
+```
+sudo apt install swig r-base-core cmake
+```
+
+4. Install the C++ library
 
 ```bash
 sudo make install
 ```
 This will install the library in `/usr/local/lib/libtitanlib.so`.
 
-4. Install the python bindings
+5. Install the python bindings
 
 ```bash
 make install-python-user
 ```
 
 This installs the python bindings in
-`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings system-wide, use `sudo make install-ppython` instead.
+`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings system-wide, use `sudo make install-python` instead.
 
-5. Install the R bindings
+6. Install the R bindings
 
 ```bash
 make build-r
