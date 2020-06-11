@@ -1,0 +1,15 @@
+Source: titanlib
+Maintainer: Thomas Nipen <thomasn@met.no>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9.0.0), cmake, libnetcdf-dev (>= 4.1.1-6), libboost-dev, libgsl-dev, libproj-dev
+Homepage: https://github.com/metno/titanlib
+Vcs-Git: git@github.com:metno/titanlib.git
+Vcs-Browser: https://github.com/metno/titanlib
+
+Package: titanlib
+Architecture: amd64
+Depends: ${release:Depends}, ${shlibs:Depends}
+Description: Titanlib
+ A library of quality control routines for weather observations.
