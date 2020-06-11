@@ -11,7 +11,7 @@
     #include <omp.h>
 #endif
 
-#define TITANLIB_VERSION "0.1.0"
+#define TITANLIB_VERSION "0.2.0b1"
 #define __version__ TITANLIB_VERSION
 
 typedef std::vector<int> ivec;
@@ -118,12 +118,6 @@ namespace titanlib {
             float elev_gradient,
             int num_iterations,
             const ivec& obs_to_check = ivec());
-
-    ivec first_guess_check(
-        const vec& values,
-        const vec& first_guess,
-        const vec& neg,
-        const vec& pos);
 
     /** Isolation check. Checks that a station is not located alone
      *  @param lats vector of latitudes [deg]
