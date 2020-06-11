@@ -23,7 +23,8 @@ class BuddyCheckTest(unittest.TestCase):
         elevs = elevs[I]
         values = values[I]
         s_time = time.time()
-        flags = titanlib.buddy_check(lats, lons, elevs, values, [10000], [5], [2], 5, 0.0065, 1, 1)
+        num_iterations = 5
+        flags = titanlib.buddy_check(lats, lons, elevs, values, [10000], [5], 2, 5, -0.0065, 1, num_iterations)
         e_time = time.time()
         print(e_time - s_time)
         print("Fraction of stations removed: %.1f %%" % (np.mean(flags) * 100))

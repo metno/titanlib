@@ -28,7 +28,7 @@ ivec titanlib::isolation_check(const vec& lats,
         const vec& elevs,
         int num_min,
         float radius,
-        float dz) {
+        float vertical_radius) {
 
     titanlib::KDTree tree(lats, lons);
     ivec flags(lats.size(), 0);
@@ -38,7 +38,7 @@ ivec titanlib::isolation_check(const vec& lats,
         int num = 0;
         for(int j = 0; j < indices.size(); j++) {
             int index = indices[j];
-            if(fabs(elevs[index] - elevs[i]) < dz)
+            if(fabs(elevs[index] - elevs[i]) < vertical_radius)
                 num++;
         }
         // std::cout << i << " " << num << std::endl;

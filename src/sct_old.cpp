@@ -15,13 +15,13 @@ ivec titanlib::sct_old(const vec& lats,
         int nmin,
         int nmax,
         int nminprof,
-        float dzmin,
+        float min_elev_diff,
         float dhmin,
         float dz,
         const vec& t2pos,
         const vec& t2neg,
         const vec& eps2,
-        vec& sct,
+        vec& prob_gross_error,
         vec& rep,
         ivec& boxids) {
 
@@ -43,13 +43,13 @@ ivec titanlib::sct_old(const vec& lats,
     dvec dt2neg(t2neg.begin(), t2neg.end());
     dvec deps2(eps2.begin(), eps2.end());
 
-    double ddzmin = dzmin;
+    double dmin_elev_diff = min_elev_diff;
     double ddhmin = dhmin;
     double ddz = dz;
     // int nmax = 200;
     // int nmin = 50;
     // int nminprof = 10;
-    // double dzmin = 100;
+    // double min_elev_diff = 100;
     // double dhmin = 10000;
     // double dz = 30;
     dvec dsct;
@@ -59,8 +59,8 @@ ivec titanlib::sct_old(const vec& lats,
     dsct.resize(N, 0);
     drep.resize(N, 0);
 
-    sct_smart_boxes(&N, &dx[0], &dy[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &ddzmin, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &drep[0], &boxids[0]);
-    sct = vec(dsct.begin(), dsct.end());
+    sct_smart_boxes(&N, &dx[0], &dy[0], &delevs[0], &dvalues[0], &nmax, &nmin, &nminprof, &dmin_elev_diff, &ddhmin, &ddz, &dt2pos[0], &dt2neg[0], &deps2[0], &flags[0], &dsct[0], &drep[0], &boxids[0]);
+    prob_gross_error = vec(dsct.begin(), dsct.end());
     rep = vec(drep.begin(), drep.end());
 
     return flags;

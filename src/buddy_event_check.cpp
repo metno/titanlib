@@ -14,11 +14,12 @@ ivec titanlib::buddy_event_check(const vec& lats,
         const vec& values,
         const vec& radius,
         const ivec& buddies_min,
-        const vec& event_thresholds,
-        const vec& thresholds,
-        float diff_elev_max,
+        float event_threshold,
+        float threshold,
+        float max_elev_diff,
         float elev_gradient,
-        const ivec obs_to_check) {
+        int num_iterations,
+        const ivec& obs_to_check) {
 
     bool debug = false;
     const int s = values.size();
@@ -29,7 +30,7 @@ ivec titanlib::buddy_event_check(const vec& lats,
     if( radius.size() != s && radius.size() != 1 ) {
         throw std::runtime_error("Dimension mismatch");
     }
-    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) {
+    if( (buddies_min.size() != s && buddies_min.size() != 1)) {
         throw std::runtime_error("Dimension mismatch");
     }
     if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
@@ -47,104 +48,106 @@ ivec titanlib::buddy_event_check(const vec& lats,
     // resize the flags and set them to 0
     ivec flags(s, 0);
     // if obs_to_check is empty then check all
-    bool check_all = (obs_to_check.size() == s) ? false : true;
+    bool check_all = obs_to_check.size() != s;
 
-    // loop over all the observations
-    #pragma omp parallel for
-    for(int i = 0; i < values.size(); i++) {
-        // is this one we are supposed to check?
-        int b_i = (buddies_min.size() == s) ? i : 0;
-        int d_i = (radius.size() == s) ? i : 0;
-        int t_i = (thresholds.size() == s) ? i : 0;
-        if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
-            if(debug) {
-                std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i]; 
-                std::cout << ", and min buddies: " << buddies_min[b_i];
-                std::cout << '\n';
-            }
+    for(int it = 0; it < num_iterations; it++) {
+        #pragma omp parallel for
+        for(int i = 0; i < values.size(); i++) {
+            // is this one we are supposed to check?
+            int b_i = (buddies_min.size() == s) ? i : 0;
+            int d_i = (radius.size() == s) ? i : 0;
+            if(flags[i] != 0)
+                continue;
+            if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
+                if(debug) {
+                    std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
+                    std::cout << ", and min buddies: " << buddies_min[b_i];
+                    std::cout << '\n';
+                }
 
-            // get all neighbours that are close enough                 
-            ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
+                // get all neighbours that are close enough                 
+                ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
 
-            int n_buddies = 0;
-            vec list_buddies;
-            // based on tree do have enough neighbours? 
-            if(neighbour_indices.size() > buddies_min[b_i]) {
-                // loop over everything that was near enough
-                // count buddies and make list of values (adjusting for height diff if needed)
-                for(int j = 0; j < neighbour_indices.size(); j++) {
-                    // don't use ones that differ too much in height (diff_elev_max)
-                    if(diff_elev_max > 0) {
-                        float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
-                        if(elev_diff <= diff_elev_max) {
-                            // correction for the elevation differences (add or subtract -0.0065 degC/m)
-                            // m difference from point in question
-                            float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
-                            //std::cout << "height diff: " << elev_diff;
-                            float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
-                            //std::cout << ", adjusted value: " << adjusted_value;
-                            //std::cout << '\n';
-                            float event_value = 0;
-                            if(adjusted_value < event_thresholds[0])
-                                event_value = 1;
+                int n_buddies = 0;
+                vec list_buddies;
+                // based on tree do have enough neighbours? 
+                if(neighbour_indices.size() > buddies_min[b_i]) {
+                    // loop over everything that was near enough
+                    // count buddies and make list of values (adjusting for height diff if needed)
+                    for(int j = 0; j < neighbour_indices.size(); j++) {
+                        // don't use ones that differ too much in height (max_elev_diff)
+                        if(max_elev_diff > 0) {
+                            float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
+                            if(elev_diff <= max_elev_diff) {
+                                // correction for the elevation differences (add or subtract -0.0065 degC/m)
+                                // m difference from point in question
+                                float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
+                                //std::cout << "height diff: " << elev_diff;
+                                float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
+                                //std::cout << ", adjusted value: " << adjusted_value;
+                                //std::cout << '\n';
+                                float event_value = 0;
+                                if(adjusted_value < event_threshold)
+                                    event_value = 1;
 
-                            list_buddies.push_back(event_value);
-                            n_buddies++;
-                        }
-                        else {
-                            if(debug) {
-                                std::cout << "too much height difference: " << elev_diff << '\n';
+                                list_buddies.push_back(event_value);
+                                n_buddies++;
+                            }
+                            else {
+                                if(debug) {
+                                    std::cout << "too much height difference: " << elev_diff << '\n';
+                                }
                             }
                         }
+                        // if max_elev_diff is negative then don't check elevation difference
+                        else {
+                            // can use this station
+                            list_buddies.push_back(values[neighbour_indices[j]]);
+                            n_buddies++;
+                        }
                     }
-                    // if diff_elev_max is negative then don't check elevation difference
+
+                }
+                if(debug) {
+                    std::cout << "buddies: " << n_buddies << '\n';
+                }
+                if(n_buddies >= buddies_min[b_i]) {
+                    // compute the average and standard deviation of the values
+                    boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
+                    int count = 0;
+                    int count_below = 0;
+                    for(int k = 0; k < list_buddies.size(); k++) {
+                        acc(list_buddies[k]);
+                        if(list_buddies[k] < event_threshold)
+                            count_below++;
+                        count++;
+                    }
+                    float mean = boost::accumulators::mean(acc);
+                    float fraction = float(count_below) / count;
+                    bool curr_event = values[i] < event_threshold;
+
+                    if(threshold < 1) {
+                        if(curr_event && fraction <= threshold)
+                            flags[i] = 1;
+                        else if(!curr_event && (1 - fraction) <= threshold)
+                            flags[i] = 1;
+                    }
                     else {
-                        // can use this station
-                        list_buddies.push_back(values[neighbour_indices[j]]);
-                        n_buddies++;
+                        if(curr_event && count_below <= threshold)
+                            flags[i] = 1;
+                        else if(!curr_event && (count - count_below <= threshold))
+                            flags[i] = 1;
                     }
-                }
-
-            }
-            if(debug) {
-                std::cout << "buddies: " << n_buddies << '\n';
-            }
-            if(n_buddies >= buddies_min[b_i]) {
-                // compute the average and standard deviation of the values
-                boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
-                int count = 0;
-                int count_below = 0;
-                for(int k = 0; k < list_buddies.size(); k++) {
-                    acc(list_buddies[k]);
-                    if(list_buddies[k] < event_thresholds[0])
-                        count_below++;
-                    count++;
-                }
-                float mean = boost::accumulators::mean(acc);
-                float fraction = float(count_below) / count;
-                bool curr_event = values[i] < event_thresholds[0];
-
-                if(thresholds[t_i] < 1) {
-                    if(curr_event && fraction <= thresholds[t_i])
-                        flags[i] = 1;
-                    else if(!curr_event && (1 - fraction) <= thresholds[t_i])
-                        flags[i] = 1;
-                }
-                else {
-                    if(curr_event && count_below <= thresholds[t_i])
-                        flags[i] = 1;
-                    else if(!curr_event && (count - count_below <= thresholds[t_i]))
-                        flags[i] = 1;
-                }
-                if(debug && values[i] > 40) {
-                    std::cout << "value: " << values[i] << '\n';
-                    std::cout << "curr_value: " << curr_event << '\n';
-                    std::cout << "event_threshold: " << event_thresholds[0] << '\n';
-                    std::cout << "threshold: " << thresholds[t_i] << '\n';
-                    std::cout << "count: " << count << '\n';
-                    std::cout << "count_below: " << count_below << '\n';
-                    std::cout << "fraction: " << fraction << '\n';
-                    std::cout << "flag: " << flags[i] << '\n';
+                    if(debug && values[i] > 40) {
+                        std::cout << "value: " << values[i] << '\n';
+                        std::cout << "curr_value: " << curr_event << '\n';
+                        std::cout << "event_threshold: " << event_threshold << '\n';
+                        std::cout << "threshold: " << threshold << '\n';
+                        std::cout << "count: " << count << '\n';
+                        std::cout << "count_below: " << count_below << '\n';
+                        std::cout << "fraction: " << fraction << '\n';
+                        std::cout << "flag: " << flags[i] << '\n';
+                    }
                 }
             }
         }

@@ -29,15 +29,17 @@ namespace titanlib {
 
     /** Spatial Consistency Test
      *  @param num_min_prof Minimum number of observations to compute vertical profile
-     *  @param radius Select observations within this radius [m]
-     *  @param dzmin Minimum elevation difference to compute vertical profile [m]
-     *  @param dhmin Minimum horizontal decorrelation length [m]
-     *  @param dz Vertical decorrelation length [m]
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
+     *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     *  @param vertical_scale Vertical decorrelation length [m]
      *  @param pos Positive deviation allowed
      *  @param neg Negative deviation allowed
      *  @param eps2
-     *  @param sct
-     *  @param flags
+     *  @param prob_gross_error Probability of gross error for each observation
+     *  @param rep Coefficient of representativity
+     *  @return flags
      */
     ivec sct(const vec& lats,
             const vec& lons,
@@ -45,17 +47,17 @@ namespace titanlib {
             const vec& values,
             int num_min,
             int num_max,
-            double inner_radius,
-            double outer_radius,
+            float inner_radius,
+            float outer_radius,
             int num_iterations,
             int num_min_prof,
-            double dzmin,
-            double dhmin,
-            float dz,
+            float min_elev_diff,
+            float min_horizontal_scale,
+            float vertical_scale,
             const vec& pos,
             const vec& neg,
             const vec& eps2,
-            vec& sct,
+            vec& prob_gross_error,
             vec& rep);
 
     /** Range check. Checks observation is within the ranges given
@@ -82,10 +84,10 @@ namespace titanlib {
      *  @param elevs vector of elevations [m]
      *  @param values vector of observation values
      *  @param radius search radius [m]
-     *  @param buddies_min the minimum number of buddies a station can have
-     *  @param thresholds the threshold for flagging a station
-     *  @param diff_elev_max the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
-     *  @param elev_gradient the multiplier used to adjust the values based on elevation difference from the comparison value
+     *  @param num_min the minimum number of buddies a station can have
+     *  @param threshold the threshold for flagging a station
+     *  @param max_elev_diff the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
+     *  @param elev_gradient linear elevation gradient with height. For temperature, use something like -0.0065.
      *  @param min_std 
      *  @param num_iterations 
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
@@ -96,25 +98,26 @@ namespace titanlib {
             const vec& elevs,
             const vec& values,
             const vec& radius,
-            const ivec& buddies_min,
-            const vec& thresholds,
-            float diff_elev_max,
+            const ivec& num_min,
+            float threshold,
+            float max_elev_diff,
             float elev_gradient,
             float min_std,
             int num_iterations,
-            const ivec obs_to_check = ivec());
+            const ivec& obs_to_check = ivec());
 
     ivec buddy_event_check(const vec& lats,
             const vec& lons,
             const vec& elevs,
             const vec& values,
             const vec& radius,
-            const ivec& buddies_min,
-            const vec& event_thresholds,
-            const vec& thresholds,
-            float diff_elev_max,
+            const ivec& num_min,
+            float event_threshold,
+            float threshold,
+            float max_elev_diff,
             float elev_gradient,
-            const ivec obs_to_check = ivec());
+            int num_iterations,
+            const ivec& obs_to_check = ivec());
 
     ivec first_guess_check(
         const vec& values,
@@ -135,20 +138,20 @@ namespace titanlib {
             float radius);
 
     /** Isolation check with elevation. Checks that a station is not located alone
-     *  @param lats vector of latitudes [deg]
-     *  @param lons vector of longitudes [deg]
-     *  @param elevs vector of elevations [m]
-     *  @param num_min required number of observations
-     *  @param radius search radius [m]
-     *  @param dz vertical search radius [m]
-     *  @param flags vector of return flags
+     *  @param lats Vector of latitudes [deg]
+     *  @param lons Vector of longitudes [deg]
+     *  @param elevs Vector of elevations [m]
+     *  @param num_min Required number of observations
+     *  @param radius Search radius [m]
+     *  @param vertical_radius Vertical search radius [m]
+     *  @param flags Vector of return flags
      */
     ivec isolation_check(const vec& lats,
             const vec& lons,
             const vec& elevs,
             int num_min,
             float radius,
-            float dz);
+            float vertical_radius);
 
     /** Set the number of OpenMP threads to use. Overwrides OMP_NUM_THREAD env variable. */
     void set_omp_threads(int num);
@@ -204,11 +207,12 @@ namespace titanlib {
             /** Perform the range check on the dataset
              *  @param indices Only perform the test on these indices
              */
-            bool range_check(const vec& min, const vec& max, const ivec indices=ivec());
-            bool range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec indices=ivec());
-            bool sct(int num_min, int num_max, double inner_radius, double outer_radius, int num_iterations, int num_min_prof, double dzmin, double dhmin, float dz, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& sct, vec& rep, const ivec indices=ivec());
-            bool buddy_check(const vec& radius, const ivec& buddies_min, const vec& thresholds, float diff_elev_max, float elev_gradient, float min_std, int num_iteratiowns, const ivec& obs_to_check, const ivec indices=ivec());
-            bool isolation_check(int num_min, float radius, float dz);
+            void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
+            void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& sct, vec& rep, const ivec& indices=ivec());
+            void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
+            void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
+            void isolation_check(int num_min, float radius, float vertical_radius);
 
             vec lats;
             vec lons;
@@ -289,13 +293,13 @@ namespace titanlib {
             int nmin,
             int nmax,
             int num_min_prof,
-            float dzmin,
-            float dhmin,
+            float min_elev_diff,
+            float min_horizontal_scale,
             float dz,
             const vec& pos,
             const vec& neg,
             const vec& eps2,
-            vec& sct,
+            vec& prob_gross_error,
             vec& rep,
             ivec& boxids);
 }

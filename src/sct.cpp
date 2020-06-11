@@ -18,7 +18,7 @@
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 ivec remove_flagged(ivec indices, ivec flags);
-vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double dzmin);
+vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
@@ -34,17 +34,17 @@ ivec titanlib::sct(const vec& lats,
         int num_min,
         int num_max,
         // first find everything close to the point that we are testing (maxdist)
-        double inner_radius,
-        double outer_radius,
+        float inner_radius,
+        float outer_radius,
         int num_iterations,
         int num_min_prof,
-        double dzmin,
-        double dhmin,
-        float dz,
+        float min_elev_diff,
+        float min_horizontal_scale,
+        float vertical_scale,
         const vec& pos,
         const vec& neg,
         const vec& eps2,
-        vec& sct,
+        vec& prob_gross_error,
         vec& rep) {
 
     const int s = values.size();
@@ -56,20 +56,20 @@ ivec titanlib::sct(const vec& lats,
         throw std::invalid_argument("num_max must be > num_min");
     if(num_iterations < 1)
         throw std::invalid_argument("num_iterations must be >= 1");
-    if(dzmin <= 0)
-        throw std::invalid_argument("dzmin must be > 0");
-    if(dhmin <= 0)
-        throw std::invalid_argument("dhmin must be > 0");
-    if(dz <= 0)
-        throw std::invalid_argument("dz must be > 0");
+    if(min_elev_diff <= 0)
+        throw std::invalid_argument("min_elev_diff must be > 0");
+    if(min_horizontal_scale <= 0)
+        throw std::invalid_argument("min_horizontal_scale must be > 0");
+    if(vertical_scale <= 0)
+        throw std::invalid_argument("vertical_scale must be > 0");
     if(inner_radius < 0)
         throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
 
     ivec flags(s, 0);
-    sct.clear();
-    sct.resize(s, 0);
+    prob_gross_error.clear();
+    prob_gross_error.resize(s, 0);
     rep.clear();
     rep.resize(s, 0);
 
@@ -113,7 +113,7 @@ ivec titanlib::sct(const vec& lats,
             // Compute the background
             vec vp;
             if(num_min_prof >= 0) {
-                vp = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, dzmin);
+                vp = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, min_elev_diff);
             }
             else {
                 double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
@@ -143,15 +143,15 @@ ivec titanlib::sct(const vec& lats,
             }
 
             double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
-            if(Dh_mean < dhmin) {
-                Dh_mean = dhmin;
+            if(Dh_mean < min_horizontal_scale) {
+                Dh_mean = min_horizontal_scale;
             }
 
             boost::numeric::ublas::matrix<float> S(s_box,s_box);
             boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
             for(int i=0; i < s_box; i++) {
                 for(int j=0; j < s_box; j++) {
-                    double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / dz), 2));
+                    double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / vertical_scale), 2));
                     if(i==j) { // weight the diagonal?? (0.5 default)
                         value = value + eps2_box[i];
                     }
@@ -226,7 +226,7 @@ ivec titanlib::sct(const vec& lats,
                 float dist = distances[i];
                 if(dist <= inner_radius) {
                     float pog = cvres(i) * ares(i) / sig2o;
-                    sct[index] = std::max(pog, sct[index]);
+                    prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
                     if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
                         flags[index] = 1;
                         thrown_out++;
@@ -252,7 +252,7 @@ ivec titanlib::sct(const vec& lats,
 // end SCT //
 
 
-vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double dzmin) {
+vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff) {
     // Starting value guesses
     double gamma = -0.0065;
     double a = 5.0;
@@ -287,7 +287,7 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     double z95 = titanlib::util::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
-    bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < dzmin;
+    bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_elev_diff;
 
     gsl_vector* input;
     if(use_basic) {

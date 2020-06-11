@@ -13,13 +13,13 @@ ivec titanlib::buddy_check(const vec& lats,
         const vec& elevs,
         const vec& values,
         const vec& radius,
-        const ivec& buddies_min,
-        const vec& thresholds,
-        float diff_elev_max,
+        const ivec& num_min,
+        float threshold,
+        float max_elev_diff,
         float elev_gradient,
         float min_std,
         int num_iterations,
-        const ivec obs_to_check) {
+        const ivec& obs_to_check) {
 
     bool debug = false;
     const int s = values.size();
@@ -30,7 +30,7 @@ ivec titanlib::buddy_check(const vec& lats,
     else if( radius.size() != s && radius.size() != 1 ) {
         throw std::runtime_error("Dimension mismatch");
     }
-    if( (buddies_min.size() != s && buddies_min.size() != 1) || (thresholds.size() != s && thresholds.size() != 1) ) {
+    if( (num_min.size() != s && num_min.size() != 1)) {
         throw std::runtime_error("Dimension mismatch");
     }
     if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
@@ -38,8 +38,8 @@ ivec titanlib::buddy_check(const vec& lats,
     }
 
     // Check that buddies min is more than 0
-    for(int i = 0; i < buddies_min.size(); i++) {
-        if(buddies_min[i] <= 0)
+    for(int i = 0; i < num_min.size(); i++) {
+        if(num_min[i] <= 0)
             throw std::runtime_error("Buddies_min must be > 0");
     }
 
@@ -48,22 +48,20 @@ ivec titanlib::buddy_check(const vec& lats,
     // resize the flags and set them to 0
     ivec flags(s, 0);
     // if obs_to_check is empty then check all
-    bool check_all = (obs_to_check.size() == s) ? false : true;
+    bool check_all = obs_to_check.size() != s;
 
-    // loop over all the observations
     for(int it = 0; it < num_iterations; it++) {
         #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
-            int b_i = (buddies_min.size() == s) ? i : 0;
+            int b_i = (num_min.size() == s) ? i : 0;
             int d_i = (radius.size() == s) ? i : 0;
-            int t_i = (thresholds.size() == s) ? i : 0;
             if(flags[i] != 0)
                 continue;
             if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
-                    std::cout << ", and min buddies: " << buddies_min[b_i];
+                    std::cout << ", and min buddies: " << num_min[b_i];
                     std::cout << '\n';
                 }
 
@@ -73,15 +71,15 @@ ivec titanlib::buddy_check(const vec& lats,
                 int n_buddies = 0;
                 vec list_buddies;
                 // based on tree do have enough neighbours? 
-                if(neighbour_indices.size() > buddies_min[b_i]) {
+                if(neighbour_indices.size() > num_min[b_i]) {
                     // loop over everything that was near enough
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
-                        // don't use ones that differ too much in height (diff_elev_max)
+                        // don't use ones that differ too much in height (max_elev_diff)
                         if(flags[neighbour_indices[j]] == 0) {
-                            if(diff_elev_max > 0) {
+                            if(max_elev_diff > 0) {
                                 float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
-                                if(elev_diff <= diff_elev_max) {
+                                if(elev_diff <= max_elev_diff) {
                                     // correction for the elevation differences (add or subtract -0.0065 degC/m)
                                     // m difference from point in question
                                     float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
@@ -98,7 +96,7 @@ ivec titanlib::buddy_check(const vec& lats,
                                     }
                                 }
                             }
-                            // if diff_elev_max is negative then don't check elevation difference
+                            // if max_elev_diff is negative then don't check elevation difference
                             else {
                                 // can use this station
                                 list_buddies.push_back(values[neighbour_indices[j]]);
@@ -111,7 +109,7 @@ ivec titanlib::buddy_check(const vec& lats,
                 if(debug) {
                     std::cout << "buddies: " << n_buddies << '\n';
                 }
-                if(n_buddies >= buddies_min[b_i]) {
+                if(n_buddies >= num_min[b_i]) {
                     // compute the average and standard deviation of the values
                     boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
                     for(int k = 0; k < list_buddies.size(); k++) {
@@ -129,7 +127,7 @@ ivec titanlib::buddy_check(const vec& lats,
                         std = min_std;
                     }
                     float pog = fabs(values[i] - mean)/std;
-                    if(pog > thresholds[t_i]) {
+                    if(pog > threshold) {
                         flags[i] = 1;
                     }
                 }
