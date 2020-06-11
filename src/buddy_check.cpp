@@ -25,16 +25,16 @@ ivec titanlib::buddy_check(const vec& lats,
     const int s = values.size();
     // assert that the arrays we expect are of size s
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::invalid_argument("Lats, lons, elevs, values dimension mismatch");
     }
     else if( radius.size() != s && radius.size() != 1 ) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::invalid_argument("Radius has an invalid length");
     }
     if( (num_min.size() != s && num_min.size() != 1)) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::invalid_argument("'num_min' has an invalid length");
     }
     if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::invalid_argument("'obs_to_check' has an invalid length");
     }
 
     // Check that buddies min is more than 0
@@ -82,7 +82,7 @@ ivec titanlib::buddy_check(const vec& lats,
                                 if(elev_diff <= max_elev_diff) {
                                     // correction for the elevation differences (add or subtract -0.0065 degC/m)
                                     // m difference from point in question
-                                    float elev_diff = elevs[neighbour_indices[j]] - elevs[i];
+                                    float elev_diff = elevs[i] - elevs[neighbour_indices[j]];
                                     //std::cout << "height diff: " << elev_diff;
                                     float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
                                     //std::cout << ", adjusted value: " << adjusted_value;

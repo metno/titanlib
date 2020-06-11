@@ -13,8 +13,45 @@ len100 = np.random.randn(100)
 z100 = np.zeros(100)
 o100 = np.ones(100)
 
+lats = [60, 60, 60]
+lons = [10, 10.01, 10.02]
+elevs = [0, 0, 0]
+values = [0, 0, -100]
+N = len(lats)
+num_min = 3
+num_max = 10
+inner_radius = 10000
+outer_radius = 10000
+num_iterations = 1
+num_min_prof = 0
+min_elev_diff = 100
+min_horizontal_scale = 10000
+vertical_scale = 200
+pos = np.ones(N) * 2;
+neg = np.ones(N) * 2;
+eps2 = np.ones(N) * 0.5;
+
 
 class SctTest(unittest.TestCase):
+    def test_simple(self):
+        elevs0 = [0, 0, 0]
+        values0 = [0, 1, 100]
+
+        flags, sct, rep = titanlib.sct(lats, lons, elevs0, values0, num_min, num_max, inner_radius,
+                outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
+                vertical_scale, pos, neg, eps2)
+        np.testing.assert_array_equal(flags, [0, 0, 1])
+
+    def test_simple(self):
+        elevs0 = [0, 0, 100 / 0.0065]
+        values0 = [0, 1, -100]
+
+        flags, sct, rep = titanlib.sct(lats, lons, elevs0, values0, num_min, num_max, inner_radius,
+                outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
+                vertical_scale, pos, neg, eps2)
+        print(sct)
+        np.testing.assert_array_equal(flags, [0, 0, 0])
+
     def test_time(self):
         s_time = time.time()
 
