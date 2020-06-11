@@ -48,19 +48,6 @@ class build(build_orig):
         rest, sub_build_ext = partition(condition, self.sub_commands)
         self.sub_commands[:] = list(sub_build_ext) + list(rest)
 
-
-"""
-if __name__ == '__main__':
-    setuptools.setup(
-        name='titanlib',
-        version='1.0.0-dev',
-        py_modules=['titanlib'],
-        license='Apache License 2.0',
-        author='Cristian Lussana',
-        author_email='cristianl@met.on',
-        cmdclass={'install': CompiledLibInstall}
-    )
-"""
 setup(
     name='titanlib',
 
@@ -70,13 +57,14 @@ setup(
     version=__version__,
 
     description='A quality control toolbox',
+    long_description="Titanlib is a library of automatic quality control routines for weather observations. It emphases spatial checks and is suitable for use with dense observation networks, such as citizen weather observations. It is written in C++ and has bindings for python and R. The library consists of a set of functions that perform tests on data.",
 
     # The project's main homepage.
     url='https://github.com/metno/titanlib',
 
     # Author details
-    author='Cristian Lussana',
-    author_email='cristianl@met.no',
+    author='Thomas Nipen',
+    author_email='thomasn@met.no',
 
     # Choose your license
     license='LGPL-3',
@@ -87,7 +75,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 3 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
