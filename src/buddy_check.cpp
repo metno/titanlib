@@ -123,11 +123,10 @@ ivec titanlib::buddy_check(const vec& lats,
                     }
 
                     float std = sqrt(variance);
-                    if(std < min_std) {
-                        std = min_std;
-                    }
                     float std_adjusted = sqrt(variance + variance / n_buddies);
-                    std::cout << n_buddies << " " << std << " " << std_adjusted << std::endl;
+                    if(std_adjusted < min_std) {
+                        std_adjusted = min_std;
+                    }
                     float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
                         flags[i] = 1;
