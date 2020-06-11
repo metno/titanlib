@@ -11,6 +11,10 @@ Titanlib is currently under development.
 
 ![Example of titanlib](extras/image.jpg)
 
+## Documentation
+
+For more information on how to use Titanlib, check out the wiki at https://github.com/metno/titanlib/wiki.
+
 ## Features
 
 - A wide variety of spatial checks, such as **spatial consistency test**, **buddy check**, **isolation check**.
@@ -18,44 +22,76 @@ Titanlib is currently under development.
 - A graphical interface for tuning the parameters of the checks
 - Fast C++ implementation for efficient processing of large observation datasets 
 
-## Documentation
+## Required dependencies
+- [Boost](https://www.boost.org/) >= 1.59
+- [GNU Scientific Library](https://www.gnu.org/software/gsl/)
 
-For more information on how to use Titanlib, check out the wiki at https://github.com/metno/titanlib/wiki.
+On Ubuntu Bionic, these can be installed like this:
+```bash
+sudo apt-get update
+sudo apt-get install libboost-all-dev
+sudo apt-get install libgsl-dev libblas-dev
+sudo apt-get install libproj-dev
+sudo apt-get install cmake
+```
 
-## Installation
+## Installing the python bindings from pip
 
-Here are installation instructions for Ubuntu Bionic. First, install the pre-requisites:
+The easiest is to install the latest release of the package using pip. Provided you have installed the dependencies listed above, you can install the most recent release of the python package as follows:
+```bash
+pip3 install titanlib --user
+```
+
+To check that the installation worked, run the following in python3:
+```python
+import titanlib
+print(titanlib.version())
+```
+
+# Installing the R bindings
+
+Additionally, you need the following for python and R installation:
 
 ```
-sudo apt install swig doxygen r-base-core libboost-dev libproj-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
+sudo apt install swig r-base-core
 ```
 
-Next, configure the installation cmake. Create a build directory and perform the
-installation there:
+## Full installation from source
 
-```
+1. Either download the source code from the [latest release](https://github.com/metno/titanlib/releases), unzip
+   the file and navigate into the extracted folder; or clone the repo from github.
+
+2. Set up cmake installation
+
+```bash
 mkdir build
 cd build
-cmake ../
+cmake ..
 ```
 
-To compile the library and bindings, run
+3. Install the C++ library
 
 ```bash
-make all
 sudo make install
 ```
+This will install the library in `/usr/local/lib/libtitanlib.so`.
 
-To install the bindings, run
+4. Install the python bindings
+
 ```bash
 make install-python-user
+```
+
+This installs the python bindings in
+`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings system-wide, use `sudo make install-ppython` instead.
+
+5. Install the R bindings
+
+```bash
 make build-r
 ```
 
-This will install the library in `/usr/local/lib/libtitanlib.so`, the python bindings in
-`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings
-system-wide, use `sudo make install-python`.  Currently, the R package is not installed
-centrally, but instead is placed in `SWIG/R/titanlib.R`.
+Currently, the R package is not installed centrally, but instead is placed in `extras/SWIG/R/titanlib.R` in the build directory.
 
 ## Python example
 
