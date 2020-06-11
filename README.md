@@ -7,7 +7,8 @@ checks and is suitable for use with dense observation networks, such as citizen 
 written in C++ and has bindings for python and R. The library consists of a set of functions that perform
 tests on data.
 
-Titanlib is currently under development.
+Titanlib is currently under active development and the current version is a prototype for testing. Feedback
+is welcome, either by using the issue tracker in Github, or by contacting Thomas Nipen (thomasn@met.no).
 
 ![Example of titanlib](extras/image.jpg)
 
@@ -93,9 +94,16 @@ Currently, the R package is not installed centrally, but instead is placed in `e
 
 ## Python example
 
+Here is an example using the buddy check, which has the following function signature:
+```python
+buddy_check(lats, lons, elevs, values, radius, num_min, threshold, max_elev_diff, elev_gradient, min_std, num_iterations)
+```
+
+The test reveals that the last observation (-111) is likely faulty:
+
 ```python
 import titanlib
-status, flags = titanlib.sct([60,61],[10,11],[0,100],[-4,2],100,300,100,100,100,100,[2,2],[2,2],[2,2])
+flags = titanlib.buddy_check([60,60.1,60.2],[10,10,10],[0,0,0],[0, 1, -111], [50000],[2],2,200,0,1,2)
 print(flags)
 ```
 
@@ -105,14 +113,18 @@ Run the following code in R from the build directory, or if you want to run from
 put in the proper paths for rtitanlib and titanlib.R
 
 ```
-dyn.load(paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep=""))
-source("SWIG/R/titanlib.R")
+dyn.load(paste("extras/SWIG/R/titanlib", .Platform$dynlib.ext, sep=""))
+source("extras/SWIG/R/titanlib.R")
 cacheMetaData(1)
 
-sct(c(60,61), c(10,11), c(0,100), c(-4,2),100,300,100,100,100,100,c(2,2),c(2,2),c(2,2))
+sct(c(60,60.1,60.2), c(10,10,10), c(0,0,0), c(0,1,-111),50000,2,2,100,0,1,2)
 ```
 
 ## Copyright and license
 
 Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
 Public License (LGPL). See LICENSE file.
+
+## Contact
+
+E-mail: Thomas Nipen (thomasn@met.no)
