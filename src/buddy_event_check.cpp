@@ -71,7 +71,7 @@ ivec titanlib::buddy_event_check(const vec& lats,
                 int n_buddies = 0;
                 vec list_buddies;
                 // based on tree do have enough neighbours? 
-                if(neighbour_indices.size() > buddies_min[b_i]) {
+                if(neighbour_indices.size() >= buddies_min[b_i]) {
                     // loop over everything that was near enough
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {

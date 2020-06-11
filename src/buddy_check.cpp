@@ -71,7 +71,7 @@ ivec titanlib::buddy_check(const vec& lats,
                 int n_buddies = 0;
                 vec list_buddies;
                 // based on tree do have enough neighbours? 
-                if(neighbour_indices.size() > num_min[b_i]) {
+                if(neighbour_indices.size() >= num_min[b_i]) {
                     // loop over everything that was near enough
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
@@ -126,7 +126,9 @@ ivec titanlib::buddy_check(const vec& lats,
                     if(std < min_std) {
                         std = min_std;
                     }
-                    float pog = fabs(values[i] - mean)/std;
+                    float std_adjusted = sqrt(variance + variance / n_buddies);
+                    std::cout << n_buddies << " " << std << " " << std_adjusted << std::endl;
+                    float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
                         flags[i] = 1;
                     }
