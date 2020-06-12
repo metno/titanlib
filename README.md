@@ -53,19 +53,19 @@ print(titanlib.version())
 1. Either download the source code from the [latest release](https://github.com/metno/titanlib/releases), unzip
    the file and navigate into the extracted folder; or clone the repo from github.
 
-2. Set up cmake installation
+2. Install extra requirements
+
+These are only required when installing from source
+```
+sudo apt install swig cmake
+```
+
+3. Set up cmake installation
 
 ```bash
 mkdir build
 cd build
 cmake ..
-```
-
-3. Install extra requirements
-
-These are only required when installing from source
-```
-sudo apt install swig r-base-core cmake
 ```
 
 4. Install the C++ library
