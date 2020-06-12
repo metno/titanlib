@@ -113,7 +113,7 @@ ivec titanlib::buddy_event_check(const vec& lats,
                 }
                 if(n_buddies >= buddies_min[b_i]) {
                     // compute the average and standard deviation of the values
-                    boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>> acc;
+                    boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc;
                     int count = 0;
                     int count_below = 0;
                     for(int k = 0; k < list_buddies.size(); k++) {
