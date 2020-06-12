@@ -34,6 +34,8 @@ module = Extension('_titanlib',
         sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
         libraries=["gsl", "gslcblas", "proj"],
         library_dirs=["/usr/lib/x86_64-linux-gnu/"],
+        extra_compile_args="${CMAKE_CXX_FLAGS}".split(),
+        extra_link_args="${CMAKE_CXX_FLAGS}".split(),
         include_dirs=['./include']
 )
 
