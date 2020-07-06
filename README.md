@@ -1,6 +1,6 @@
 # Titanlib 
-
-![C/C++ CI](https://github.com/metno/titanlib/workflows/C/C++%20CI/badge.svg)
+[!["Latest release"](https://img.shields.io/github/v/release/metno/titanlib.svg)](https://github.com/metno/titanlib/releases)
+[![C/C++ CI](https://github.com/metno/titanlib/workflows/C/C++%20CI/badge.svg)](https://github.com/metno/titanlib/actions)
 
 Titanlib is a library of automatic quality control routines for weather observations. It emphases spatial
 checks and is suitable for use with dense observation networks, such as citizen weather observations. It is
