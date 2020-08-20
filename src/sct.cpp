@@ -83,6 +83,7 @@ ivec titanlib::sct(const vec& lats,
   | + analysis residuals (s_box-vector)= observations - analysis 
   | + analysis increments (s_box-vector)= analysis - background
   | + probability of gross error (pog, s_box-vector)
+  | + coefficient of representativeness (corep, s_box-vector)
   o
 
 */
@@ -220,7 +221,7 @@ ivec titanlib::sct(const vec& lats,
 
             // Definitions
             boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ainc(s_box), ares(s_box), cvres(s_box);
-            boost::numeric::ublas::vector<float> sig2o_temp(s_box);
+            boost::numeric::ublas::vector<float> rep_temp(s_box);
             double sig2o = 0;
 
             // Matrix multiplications
@@ -255,8 +256,8 @@ ivec titanlib::sct(const vec& lats,
                 Zinv(i) = 1/Sinv(i,i); 
                 ares(i) = d(i)-ainc(i); 
                 cvres(i) = Zinv(i) * Sinv_d(i); 
-                sig2o_temp(i) = d(i)*ares(i);  
-                sig2o += sig2o_temp(i);       
+                rep_temp(i) = d(i)*ares(i);  
+                sig2o += rep_temp(i);       
                 // Welford's online algorithm for mean and variance 
                 float dist = distances[i];
                 if(dist <= inner_radius) {
@@ -284,6 +285,7 @@ ivec titanlib::sct(const vec& lats,
             }
 
             /* pog = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22)
+               rep = innovation * analysis residuals / sig2o, LUS10 Eq.(32) numerator
                i-th observation is flagged if ( a) i-th pog is larger than a pre-set threshold) AND
                ( b) i-th ppog is an "outlier" compared to the statistics of ppog in the inner circle)
                condition b) helps to avoid flagging representativeness errors as gross errors,
@@ -300,7 +302,9 @@ ivec titanlib::sct(const vec& lats,
                 if(dist <= inner_radius) {
                     float pog = ppog(i) / sig2o;
                     float ppog_snd = std::pow( ( ppog(i) - ppog_mean), 2) / (ppog_var + ppog_mean_var);
+                    float corep = rep_temp(i) / sig2o;
                     prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
+                    rep[index] = std::max(corep, rep[index]);
                     if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_snd>25 ) {
                         flags[index] = 1;
                         thrown_out++;
