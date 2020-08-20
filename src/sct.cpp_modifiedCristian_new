@@ -219,7 +219,7 @@ ivec titanlib::sct(const vec& lats,
             }
 
             // Definitions
-            boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ainc(s_box), ares(s_box), cvres(s_box);
+            boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ainc(s_box), ares(s_box) cvres(s_box);
             boost::numeric::ublas::vector<float> sig2o_temp(s_box);
             double sig2o = 0;
 
@@ -240,12 +240,9 @@ ivec titanlib::sct(const vec& lats,
             //    analysis residuals = observations - analysis (= innovation - analysis increment)
             // cv-analysis residuals = observations - cv-analysis, LUS10 Eq.(A13)
             // observ error variance = mean( analysis residuals * innovation), LUS10 Eq.(32)
-            //                  ppog = quantity proportional to pog
-            boost::numeric::ublas::vector<float> ppog(s_box);
+            boost::numeric::ublas::vector<float> ppog_mean(s_box), ppog_var(s_box), ppog_n(s_box), ppog(s_box)
             int ccount = 0;
             double M2 = 0;
-            double ppog_mean = 0;      // ppog mean
-            double ppog_var = 0;       // ppog sample variance
             for(int i=0; i<s_box; i++) {
                 double acc = 0;
                 for(int j=0; j<s_box; j++) {
@@ -257,7 +254,8 @@ ivec titanlib::sct(const vec& lats,
                 cvres(i) = Zinv(i) * Sinv_d(i); 
                 sig2o_temp(i) = d(i)*ares(i);  
                 sig2o += sig2o_temp(i);       
-                // Welford's online algorithm for mean and variance 
+                // 
+                int index = neighbour_indices[i];
                 float dist = distances[i];
                 if(dist <= inner_radius) {
                    ccount++;
@@ -268,40 +266,25 @@ ivec titanlib::sct(const vec& lats,
                    M2 += delta * delta2;
                 }
             }
-            // finalize variance
-            if(ccount >= 2) {
+            if(ccount>=2) {
               ppog_var = M2 / (ccount-1);
-            } else {
-              // one observation in the inner circle, better skip SCT because of possibly large representativeness error?
-              continue;
-            }
-            // ppog variance of mean
-            double ppog_mean_var = ppog_var / ccount;
+            } 
 
             sig2o = sig2o/s_box;
-            if(sig2o < 0.01) { // too small sig2o values are not allowed (shoudl this be a parameter passed to SCT?)
+            if(sig2o < 0.01) { // too small sig2o values are not allowed
                 sig2o = 0.01;
             }
 
-            /* pog = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22)
-               i-th observation is flagged if ( a) i-th pog is larger than a pre-set threshold) AND
-               ( b) i-th ppog is an "outlier" compared to the statistics of ppog in the inner circle)
-               condition b) helps to avoid flagging representativeness errors as gross errors,
-               at least in those regions where many observations are avaialable
-               Outlier = values more than 5 standard deviations from the mean (Lanzante. IJC, 1996)
-                then, squared-normalized deviations (snd) is:
-                 snd = (deviation from the mean)^2 / (spread + uncertainty in the mean) > 25
-                 or, snd = (ppog - ppog_mean)**2   / (ppog_var + ppog_mean_var)         > 25
-               */
-            ccount = 0;
+            // pog = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22) 
+            int ccount = 0;
             for(int i = 0; i < s_box; i++) {
                 int index = neighbour_indices[i];
                 float dist = distances[i];
                 if(dist <= inner_radius) {
                     float pog = ppog(i) / sig2o;
-                    float ppog_snd = std::pow( ( ppog(i) - ppog_mean), 2) / (ppog_var + ppog_mean_var);
+                    float ppog_normdev = std::pow( ( ppog(i) - ppog_mean), 2) / ppog_var
                     prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
-                    if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_snd>25 ) {
+                    if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_normdev>5 ) {
                         flags[index] = 1;
                         thrown_out++;
                     }

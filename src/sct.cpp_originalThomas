@@ -46,46 +46,7 @@ ivec titanlib::sct(const vec& lats,
         const vec& eps2,
         vec& prob_gross_error,
         vec& rep) {
-/*
- Spatial Consistency Test. Flag observations that are (likely) affected by
-  gross measurement errors (or large representativeness errors) based on 
-  neighbouring observations.
 
- Reference: Lussana, C., Uboldi, F. and Salvati, M.R. (2010), A spatial 
-             consistency test for surface observations from mesoscale 
-             meteorological networks. Q.J.R. Meteorol. Soc., 
-             136: 1075-1088. doi:10.1002/qj.622
- (Reference Abbreviation: LUS10)
-
- -- Notes and Definitions --
-
-  o Loop over s observations (observation index is "curr")
-  | + select the subset of s_box closest observations to the curr-th
-  |    then perform SCT considering only this subset
-  | + observations (s_box-vector): 
-  |    (observed_)values = true_values + observation_errors
-  |    NOTE: true_values are unknown, useful for theory
-  | + background (s_box-vector):
-  |    vp = true_value + background_errors
-  |    ("vp" stands for vertical profile, because we used sct mostly for temperature)
-  | + observation_errors (s_box-vector): 
-  |   random variable that follows a multivariate normal (MVN) distribution with:
-  |     R = s_box x s_box covariance matrix, R = sig2o * identity_matrix 
-  |     mean (s_box-vector) = 0 (for all s elements)
-  | + background_errors (s_box-vector):
-  |   random variable that follows a MVN distribution with:
-  |     S= s_box x s_box covariance matrix, S = exponential 
-  |     mean (s_box-vector) = 0
-  |
-  |
-  | A few more definitions:
-  | + innovation (s_box-vector)= observations - background = values - vp
-  | + analysis residuals (s_box-vector)= observations - analysis 
-  | + analysis increments (s_box-vector)= analysis - background
-  | + probability of gross error (pog, s_box-vector)
-  o
-
-*/
     const int s = values.size();
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
         throw std::runtime_error("Dimension mismatch");
@@ -161,10 +122,7 @@ ivec titanlib::sct(const vec& lats,
                     vp[l] = meanT;
                 }
             }
-           
-            /* Compute Dh. 
-             The location-dependent horizontal de-correlation lenght scale 
-             used for the background error correlation matrix */
+
             boost::numeric::ublas::matrix<float> disth(s, s);
             boost::numeric::ublas::matrix<float> distz(s, s);
             boost::numeric::ublas::vector<float> Dh(s);
@@ -188,8 +146,7 @@ ivec titanlib::sct(const vec& lats,
             if(Dh_mean < min_horizontal_scale) {
                 Dh_mean = min_horizontal_scale;
             }
-            
-            // Compute S + eps2*I and store it in S 
+
             boost::numeric::ublas::matrix<float> S(s_box,s_box);
             boost::numeric::ublas::matrix<float> Sinv(s_box,s_box);
             for(int i=0; i < s_box; i++) {
@@ -201,107 +158,76 @@ ivec titanlib::sct(const vec& lats,
                     S(i,j) = value;
                 }
             }
-            
-            // Compute innovations (= observations - background)
+
             boost::numeric::ublas::vector<float> d(s_box);
             for(int i=0; i < s_box; i++) {
-                d(i) = values_box[i] - vp[i]; 
+                d(i) = values_box[i] - vp[i]; // difference between actual temp and temperature from vertical profile
             }
 
             /* ---------------------------------------------------
                Beginning of real SCT
                ------------------------------------------------------*/
-            // Compute ( S + eps2 * I )^(-1) ans store it in Sinv
             bool b = invert_matrix(S, Sinv);
             if(b != true) {
                 // TODO: flag differently or give an error???
                 continue;
             }
 
-            // Definitions
-            boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ainc(s_box), ares(s_box), cvres(s_box);
-            boost::numeric::ublas::vector<float> sig2o_temp(s_box);
-            double sig2o = 0;
-
-            // Matrix multiplications
-            for(int i=0; i<s_box; i++) {
-                // Recover the actual S from S + eps2*I (unweight the diagonal)
+            // Unweight the diagonal
+            for(int i=0; i < s_box; i++) {
                 S(i,i) -= eps2_box[i];
-                // Sinv_d = ( S + eps2 * I )^(-1) * innovation
+            }
+
+            boost::numeric::ublas::vector<float> Zinv(s_box), Sinv_d(s_box), ares_temp(s_box), ares(s_box);
+            for(int i=0; i<s_box; i++) {
                 double acc = 0;
                 for(int j=0; j<s_box; j++) {
                     acc += Sinv(i,j)*d(j);
                 }
                 Sinv_d(i) = acc;
             }
-           
-            //    analysis increment = analysis - background = S * ( S + eps2 * I )^(-1) * innovation
-            //                  Zinv = inverse of the elements on the diagonal of ( S + eps2 * I )^(-1)
-            //    analysis residuals = observations - analysis (= innovation - analysis increment)
-            // cv-analysis residuals = observations - cv-analysis, LUS10 Eq.(A13)
-            // observ error variance = mean( analysis residuals * innovation), LUS10 Eq.(32)
-            //                  ppog = quantity proportional to pog
-            boost::numeric::ublas::vector<float> ppog(s_box);
-            int ccount = 0;
-            double M2 = 0;
-            double ppog_mean = 0;      // ppog mean
-            double ppog_var = 0;       // ppog sample variance
             for(int i=0; i<s_box; i++) {
                 double acc = 0;
                 for(int j=0; j<s_box; j++) {
                     acc += S(i,j)*Sinv_d(j);
                 }
-                ainc(i) = acc;
-                Zinv(i) = 1/Sinv(i,i); 
-                ares(i) = d(i)-ainc(i); 
-                cvres(i) = Zinv(i) * Sinv_d(i); 
-                sig2o_temp(i) = d(i)*ares(i);  
-                sig2o += sig2o_temp(i);       
-                // Welford's online algorithm for mean and variance 
-                float dist = distances[i];
-                if(dist <= inner_radius) {
-                   ccount++;
-                   ppog(i) = cvres(i) * ares(i);
-                   float delta = ppog(i) - ppog_mean;
-                   ppog_mean += delta / ccount;
-                   float delta2 = ppog(i) - ppog_mean;
-                   M2 += delta * delta2;
-                }
+                ares_temp(i) = acc;
             }
-            // finalize variance
-            if(ccount >= 2) {
-              ppog_var = M2 / (ccount-1);
-            } else {
-              // one observation in the inner circle, better skip SCT because of possibly large representativeness error?
-              continue;
+            for(int i=0; i<s_box; i++) {
+                Zinv(i) = (1/Sinv(i,i)); //Zinv<-1/diag(SRinv)
+                ares(i) = ares_temp(i)-d(i); // ares<-crossprod(S,SRinv.d)-d[sel]
             }
-            // ppog variance of mean
-            double ppog_mean_var = ppog_var / ccount;
+
+            boost::numeric::ublas::vector<float> cvres(s_box);
+            for(int i=0; i<s_box; i++) {
+                cvres(i) = -1*Zinv(i) * Sinv_d(i);
+            }
+
+            double sig2o = 0;
+            boost::numeric::ublas::vector<float> sig2o_temp(s_box), negAres_temp(s_box);
+            for(int i=0; i<s_box; i++) {
+                negAres_temp(i)=-1*ares(i);
+                sig2o_temp(i) = d(i)*negAres_temp(i);
+                sig2o += sig2o_temp(i);
+            }
 
             sig2o = sig2o/s_box;
-            if(sig2o < 0.01) { // too small sig2o values are not allowed (shoudl this be a parameter passed to SCT?)
+            if(sig2o < 0.01) {
                 sig2o = 0.01;
             }
 
-            /* pog = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22)
-               i-th observation is flagged if ( a) i-th pog is larger than a pre-set threshold) AND
-               ( b) i-th ppog is an "outlier" compared to the statistics of ppog in the inner circle)
-               condition b) helps to avoid flagging representativeness errors as gross errors,
-               at least in those regions where many observations are avaialable
-               Outlier = values more than 5 standard deviations from the mean (Lanzante. IJC, 1996)
-                then, squared-normalized deviations (snd) is:
-                 snd = (deviation from the mean)^2 / (spread + uncertainty in the mean) > 25
-                 or, snd = (ppog - ppog_mean)**2   / (ppog_var + ppog_mean_var)         > 25
-               */
-            ccount = 0;
+            // boost::numeric::ublas::vector<float> pog(s_box);
+            // for(int i=0; i<s_box; i++) {
+            //     pog(i) = cvres(i)*ares(i) / sig2o;
+            // }
+            int ccount = 0;
             for(int i = 0; i < s_box; i++) {
                 int index = neighbour_indices[i];
                 float dist = distances[i];
                 if(dist <= inner_radius) {
-                    float pog = ppog(i) / sig2o;
-                    float ppog_snd = std::pow( ( ppog(i) - ppog_mean), 2) / (ppog_var + ppog_mean_var);
+                    float pog = cvres(i) * ares(i) / sig2o;
                     prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
-                    if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_snd>25 ) {
+                    if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
                         flags[index] = 1;
                         thrown_out++;
                     }
@@ -310,7 +236,7 @@ ivec titanlib::sct(const vec& lats,
                 }
             }
             count_oi++;
-        }  // end loop over observations
+        }
         if(thrown_out == 0) {
             if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
@@ -319,7 +245,7 @@ ivec titanlib::sct(const vec& lats,
         std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
         double e_time0 = titanlib::util::clock();
         std::cout << e_time0 - s_time0 << std::endl;
-    } // end of SCT iterations
+    }
 
     return flags;
 }
