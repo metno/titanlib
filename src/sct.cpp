@@ -29,6 +29,8 @@ ivec titanlib::sct(const vec& lats,
         const vec& lons,
         const vec& elevs,
         const vec& values,
+        const vec& background_values,
+        std::string background_elab_type,
         // determine if we have too many or too few observations
         // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
         int num_min,
@@ -40,11 +42,17 @@ ivec titanlib::sct(const vec& lats,
         int num_min_prof,
         float min_elev_diff,
         float min_horizontal_scale,
+        float max_horizontal_scale,
         float vertical_scale,
         const vec& pos,
         const vec& neg,
         const vec& eps2,
         vec& prob_gross_error,
+        vec& an_inc,
+        vec& an_res,
+        vec& cv_res,
+        vec& innov,
+        vec& chi,
         vec& rep) {
 /*
  Spatial Consistency Test. Flag observations that are (likely) affected by
@@ -88,7 +96,7 @@ ivec titanlib::sct(const vec& lats,
 
 */
     const int s = values.size();
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
+    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s || background_values.size() != s)
         throw std::runtime_error("Dimension mismatch");
     if(num_min < 2)
         throw std::invalid_argument("num_min must be > 1");
@@ -106,12 +114,26 @@ ivec titanlib::sct(const vec& lats,
         throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
+    if(background_elab_type != "vertical_profile" && background_elab_type != "mean_outer_circle" && background_elab_type != "external")
+        throw std::invalid_argument("background_elab_type must be one of vertical_profile, mean_outer_circle or external");
+    if(background_elab_type == "vertical_profile" && num_min_prof<0)
+        throw std::invalid_argument("num_min_prof must be >=0");
 
-    ivec flags(s, 0);
+    ivec flags(s, -9999.);
     prob_gross_error.clear();
-    prob_gross_error.resize(s, 0);
+    prob_gross_error.resize(s, -9999.);
     rep.clear();
-    rep.resize(s, 0);
+    rep.resize(s, -9999.);
+    an_inc.clear();
+    an_inc.resize(s, -9999.);
+    an_res.clear();
+    an_res.resize(s, -9999.);
+    cv_res.clear();
+    cv_res.resize(s, -9999.);
+    innov.clear();
+    innov.resize(s, -9999.);
+    chi.clear();
+    chi.resize(s, -9999.);
 
     titanlib::KDTree tree(lats, lons);
 
@@ -123,20 +145,35 @@ ivec titanlib::sct(const vec& lats,
         ivec checked(s, 0);  // Keep track of which observations have been checked
         int count_oi = 0;
         for(int curr=0; curr < s; curr++) {
+            std::cout << "===> curr " << curr << "===============" << std::endl;
             // break out if station already flagged
-            if(flags[curr] != 0) {
+            if(flags[curr] == 1) {
                 checked[curr] = 1;
+                std::cout << "..checked1 " << curr << std::endl;
                 continue;
             }
             if(checked[curr] > 0) {
+                std::cout << "..checked2 " << curr << std::endl;
                 continue;
             }
-            // get all neighbours that are close enough
+            // no neighbours within the inner circle = distinction between representativeness error and gross error not reliable
             vec distances;
-            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
+            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], inner_radius, 2, true, distances);
+            neighbour_indices = remove_flagged(neighbour_indices, flags);
+            if(neighbour_indices.size() < 2) {
+                flags[curr] = 11;
+                checked[curr] = 1;
+                std::cout << "@@isolated (inner) " << curr << std::endl;
+                // flag as isolated? 
+                continue; // go to next station, skip this one
+            }
+            // get all neighbours that are close enough
+            neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
             neighbour_indices = remove_flagged(neighbour_indices, flags);
             if(neighbour_indices.size() < num_min) {
+                flags[curr] = 12;
                 checked[curr] = 1;
+                std::cout << "@@isolated (outer) " << curr << std::endl;
                 // flag as isolated? 
                 continue; // go to next station, skip this one
             }
@@ -148,27 +185,31 @@ ivec titanlib::sct(const vec& lats,
             vec values_box = titanlib::util::subset(values, neighbour_indices);
             vec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
             int s_box = neighbour_indices.size();
+            std::cout << "s_box " << s_box << std::endl;
             // the thing to flag is at "curr", ano not included in the box
 
             // Compute the background
-            vec vp;
-            if(num_min_prof >= 0) {
-                vp = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, min_elev_diff);
-            }
-            else {
-                double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
-                vp.resize(s, -999);
-                for(int l = 0; l < s; l++) {
-                    vp[l] = meanT;
+            vec bvalues_box;
+            if( background_elab_type == "vertical_profile") {
+                bvalues_box = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, min_elev_diff);
+                std::cout << "bvalues_box1 " << std::endl;
+            } else if( background_elab_type == "mean_outer_circle"){
+                double mean_val = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
+                bvalues_box.resize(s_box, -999);
+                for(int i = 0; i < s_box; i++) {
+                    bvalues_box[i] = mean_val;
                 }
-            }
+                std::cout << "bvalues_box2 " << std::endl;
+            } else if( background_elab_type == "external"){
+                bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
+            } 
            
             /* Compute Dh. 
              The location-dependent horizontal de-correlation lenght scale 
              used for the background error correlation matrix */
-            boost::numeric::ublas::matrix<float> disth(s, s);
-            boost::numeric::ublas::matrix<float> distz(s, s);
-            boost::numeric::ublas::vector<float> Dh(s);
+            boost::numeric::ublas::matrix<float> disth(s_box, s_box);
+            boost::numeric::ublas::matrix<float> distz(s_box, s_box);
+            boost::numeric::ublas::vector<float> Dh(s_box);
 
             for(int i=0; i < s_box; i++) {
                 vec Dh_vector(s_box);
@@ -189,6 +230,10 @@ ivec titanlib::sct(const vec& lats,
             if(Dh_mean < min_horizontal_scale) {
                 Dh_mean = min_horizontal_scale;
             }
+            if(Dh_mean > max_horizontal_scale) {
+                Dh_mean = max_horizontal_scale;
+            }
+            std::cout << "Dh_mean " << Dh_mean << std::endl;
             
             // Compute S + eps2*I and store it in S 
             boost::numeric::ublas::matrix<float> S(s_box,s_box);
@@ -196,7 +241,7 @@ ivec titanlib::sct(const vec& lats,
             for(int i=0; i < s_box; i++) {
                 for(int j=0; j < s_box; j++) {
                     double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / vertical_scale), 2));
-                    if(i==j) { // weight the diagonal?? (0.5 default)
+                    if(i==j) { // weight the diagonal, this also ensure an invertible matrix
                         value = value + eps2_box[i];
                     }
                     S(i,j) = value;
@@ -206,7 +251,7 @@ ivec titanlib::sct(const vec& lats,
             // Compute innovations (= observations - background)
             boost::numeric::ublas::vector<float> d(s_box);
             for(int i=0; i < s_box; i++) {
-                d(i) = values_box[i] - vp[i]; 
+                d(i) = values_box[i] - bvalues_box[i]; 
             }
 
             /* ---------------------------------------------------
@@ -216,6 +261,9 @@ ivec titanlib::sct(const vec& lats,
             bool b = invert_matrix(S, Sinv);
             if(b != true) {
                 // TODO: flag differently or give an error???
+                // NOTE: should never happen, since S + eps2*I is made of columns that are all linearly independent
+                //       (this is also why is convenient to use this formulation)
+                std::cout << "ooo Problem in matrix inversion ooo " << curr << std::endl;
                 continue;
             }
 
@@ -274,6 +322,7 @@ ivec titanlib::sct(const vec& lats,
               ppog_var = M2 / (ccount-1);
             } else {
               // one observation in the inner circle, better skip SCT because of possibly large representativeness error?
+              std::cout << "xxx only one obs within inner circle xxx " << std::endl;
               continue;
             }
             // ppog variance of mean
@@ -283,6 +332,7 @@ ivec titanlib::sct(const vec& lats,
             if(sig2o < 0.01) { // too small sig2o values are not allowed (shoudl this be a parameter passed to SCT?)
                 sig2o = 0.01;
             }
+            std::cout << "sig2o " << sig2o << std::endl;
 
             /* pog = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22)
                rep = innovation * analysis residuals / sig2o, LUS10 Eq.(32) numerator
@@ -300,14 +350,33 @@ ivec titanlib::sct(const vec& lats,
                 int index = neighbour_indices[i];
                 float dist = distances[i];
                 if(dist <= inner_radius) {
+                    std::cout << "index " << index << std::endl;
                     float pog = ppog(i) / sig2o;
                     float ppog_snd = std::pow( ( ppog(i) - ppog_mean), 2) / (ppog_var + ppog_mean_var);
                     float corep = rep_temp(i) / sig2o;
-                    prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
-                    rep[index] = std::max(corep, rep[index]);
-                    if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_snd>25 ) {
+                    if(((cvres(i) > 0 && pog > pos[index]) || (cvres(i) <= 0 && pog > neg[index])) && ppog_snd>4 ) {
+                        prob_gross_error[index] = pog;
+                        chi[index] = ppog_snd;
+                        rep[index] = corep;
+                        innov[index] = d(i);
+                        an_res[index] = ares(i);
+                        an_inc[index] = ainc(i);
+                        cv_res[index] = cvres(i);
                         flags[index] = 1;
+                        std::cout << std::setprecision(3) << "~~~ index flags innov ares ainc cvres pog chi rep: " << index << " " << flags[index] << " " << innov[index] << " " << an_res[index] << " " << an_inc[index] << " " << cv_res[index] << " " << prob_gross_error[index] << " " << chi[index] << " " << rep[index] << " " << std::endl;
                         thrown_out++;
+                    } else {
+                        if(pog>prob_gross_error[index]) {
+                            prob_gross_error[index] = pog;
+                            chi[index] = ppog_snd;
+                            rep[index] = corep;
+                            innov[index] = d(i);
+                            an_res[index] = ares(i);
+                            an_inc[index] = ainc(i);
+                            cv_res[index] = cvres(i);
+                            flags[index] = 0;
+                            std::cout << std::setprecision(3) << "--- index flags innov ares ainc cvres pog chi rep: " << index << " " << flags[index] << " " << innov[index] << " " << an_res[index] << " " << an_inc[index] << " " << cv_res[index] << " " << prob_gross_error[index] << " " << chi[index] << " " << rep[index] << " " << std::endl;
+                        }
                     }
                     checked[index] = 1;
                     ccount++;
@@ -525,7 +594,7 @@ ivec remove_flagged(ivec indices, ivec flags) {
     ivec removed;
     removed.reserve(indices.size());
     for(int i=0; i<indices.size(); i++) {
-        if(flags[indices[i]] == 0 ) {
+        if(flags[indices[i]] != 1 ) {
             removed.push_back(indices[i]);
         }
     }

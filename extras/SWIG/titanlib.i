@@ -411,6 +411,11 @@ namespace std {
 %apply std::vector<float>& OUTPUT { std::vector<float>& y_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& z_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& distances };
+%apply std::vector<float>& OUTPUT { std::vector<float>& an_inc };
+%apply std::vector<float>& OUTPUT { std::vector<float>& an_res };
+%apply std::vector<float>& OUTPUT { std::vector<float>& cv_res };
+%apply std::vector<float>& OUTPUT { std::vector<float>& innov };
+%apply std::vector<float>& OUTPUT { std::vector<float>& chi };
 %{
 #include "titanlib.h"
 %}

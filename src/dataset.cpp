@@ -29,23 +29,34 @@ void titanlib::Dataset::range_check_climatology(int unixtime, const vec& pos, co
         flags = titanlib::range_check_climatology(lats, lons, elevs, values, unixtime, pos, neg);
     }
 }
-void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations,
+void titanlib::Dataset::sct( int num_min, 
+            int num_max, 
+            float inner_radius, 
+            float outer_radius, 
+            int num_iterations,
             int num_min_prof,
             float min_elev_diff,
             float min_horizontal_scale,
+            float max_horizontal_scale,
             float vertical_scale,
             const vec& t2pos,
             const vec& t2neg,
             const vec& eps2,
-            vec& prob_gross_error, vec& rep, const ivec& indices) {
+            const vec& background_values,
+            std::string background_elab_type,
+            vec& prob_gross_error, 
+            vec& an_inc,
+            vec& an_res,
+            vec& cv_res,
+            vec& innov,
+            vec& chi,
+            vec& rep, 
+            const ivec& indices) {
     ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, rep);
+        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), subset(background_values, indices), background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , max_horizontal_scale, vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, an_inc, an_res, cv_res, innov, chi, rep);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
-    }
-    else {
-        flags = titanlib::sct(lats, lons, elevs, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, t2pos, t2neg, eps2, prob_gross_error, rep);
     }
 }
 

@@ -122,7 +122,7 @@ ivec titanlib::buddy_event_check(const vec& lats,
                             count_below++;
                         count++;
                     }
-                    float mean = boost::accumulators::mean(acc);
+//                    float mean = boost::accumulators::mean(acc);
                     float fraction = float(count_below) / count;
                     bool curr_event = values[i] < event_threshold;
 

@@ -28,16 +28,24 @@ namespace titanlib {
     std::string version();
 
     /** Spatial Consistency Test
+     *  @param background_elab_type one of: vertical_profile, mean_outer_circle, external
+     *  @param background_values external background value (not used if background_elab_type!=external)
      *  @param num_min_prof Minimum number of observations to compute vertical profile
      *  @param inner_radius Radius for flagging [m]
      *  @param outer_radius Radius for computing OI and background [m]
      *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
      *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     *  @param min_horizontal_scale Maximum horizontal decorrelation length [m]
      *  @param vertical_scale Vertical decorrelation length [m]
      *  @param pos Positive deviation allowed
      *  @param neg Negative deviation allowed
-     *  @param eps2
-     *  @param prob_gross_error Probability of gross error for each observation
+     *  @param eps2 ratio between observation and background error variances
+     *  @param prob_gross_error Probability of gross error (POG) for each observation
+     *  @param an_inc analysis incremeent = analysis - background (for largest POG)
+     *  @param an_res analysis incremeent = observation - analysis (for largest POG)
+     *  @param cv_res analysis incremeent = observation - cross-val analysis (for largest POG)
+     *  @param innov innovation = observation - background (for largest POG)
+     *  @param chi prop to POG temptative distinction between (acceptable) representativeness error and gross error (for largest POG)
      *  @param rep Coefficient of representativity
      *  @return flags
      */
@@ -45,6 +53,8 @@ namespace titanlib {
             const vec& lons,
             const vec& elevs,
             const vec& values,
+            const vec& background_values,
+            std::string background_elab_type,
             int num_min,
             int num_max,
             float inner_radius,
@@ -53,11 +63,17 @@ namespace titanlib {
             int num_min_prof,
             float min_elev_diff,
             float min_horizontal_scale,
+            float max_horizontal_scale,
             float vertical_scale,
             const vec& pos,
             const vec& neg,
             const vec& eps2,
             vec& prob_gross_error,
+            vec& an_inc,
+            vec& an_res,
+            vec& cv_res,
+            vec& innov,
+            vec& chi,
             vec& rep);
 
     /** Range check. Checks observation is within the ranges given
@@ -203,7 +219,7 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& sct, vec& rep, const ivec& indices=ivec());
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, const vec& background_values, std::string background_elab_type, vec& prob_gross_error, vec& an_inc, vec& an_res, vec& cv_res, vec& innov, vec& chi, vec& rep, const ivec& indices=ivec());
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);
@@ -279,22 +295,5 @@ namespace titanlib {
 
     };
 
-    /** Old version of the spatial consistency test (for testing purposes only) */
-    ivec sct_old(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
-            const vec& values,
-            int nmin,
-            int nmax,
-            int num_min_prof,
-            float min_elev_diff,
-            float min_horizontal_scale,
-            float dz,
-            const vec& pos,
-            const vec& neg,
-            const vec& eps2,
-            vec& prob_gross_error,
-            vec& rep,
-            ivec& boxids);
 }
 #endif
