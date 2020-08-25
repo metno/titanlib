@@ -49,20 +49,20 @@ class SctTest(unittest.TestCase):
     def test_time(self):
         s_time = time.time()
 
-        N = 3000
-        lats = np.random.randn(N) * 1;
-        lons = np.random.randn(N) * 1;
-        elevs = np.random.rand(N) * 100;
-        values = np.random.randn(N) * 6;
-        obs_to_check = np.ones(N);
-        background_values = np.random.randn(N) * 6;
-        background_elab_type = "vertical_profile";
-        tpos_score = np.ones(N) * 4;
-        tneg_score = np.ones(N) * 4;
-        t_sod = np.ones(N) * 2;
-        eps2 = np.ones(N) * 0.5;
+        P = 3000
+        lats1 = np.random.randn(P) * 1;
+        lons1 = np.random.randn(P) * 1;
+        elevs1 = np.random.rand(P) * 100;
+        values1 = np.random.randn(P) * 6;
+        obs_to_check1 = np.ones(P) * 1;
+        background_values1 = np.random.randn(P) * 6;
+        background_elab_type1 = "vertical_profile";
+        tpos_score1 = np.ones(P) * 4;
+        tneg_score1 = np.ones(P) * 4;
+        t_sod1 = np.ones(P) * 2;
+        eps21 = np.ones(P) * 0.5;
         
-        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, 5, 100, 4000, 10000, 2, 30, 100, 1000, 10000, 3, 100, eps2, tpos_score, tneg_score, t_sod)
+        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats1, lons1, elevs1, values1, obs_to_check1, background_values1, background_elab_type1, 5, 100, 4000, 10000, 2, 30, 100, 1000, 10000, 3, 100, eps21, tpos_score1, tneg_score1, t_sod1)
 
         print("%.1fs" % (time.time() - s_time))
 
