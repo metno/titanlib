@@ -130,6 +130,25 @@ float titanlib::util::compute_quantile(double quantile, const vec& array) {
     return exact_q;
 }
 
+float titanlib::util::findKclosest(int k, const vec& array) {
+    int n = array.size();
+    if(n == 0) {
+        throw std::runtime_error("Cannot compute quantile on empty array");
+    }
+    vec array_copy(n);
+    // make a copy of the vector
+    for(int i = 0; i < n; i++)
+        array_copy[i] = array[i];
+    std::sort(array_copy.begin(), array_copy.end());
+    if(k > n) {
+      k = n-1;
+    } else {
+      k = k-1;
+    }
+    float value = array_copy[k];
+    return value;
+}
+
 vec titanlib::util::subset(const vec& input, const ivec& indices) {
     vec output(indices.size());
     int size = indices.size();

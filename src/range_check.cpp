@@ -106,7 +106,7 @@ double mean_temp(float lat, int unixtime) {
     boost::gregorian::date epoch(1970,1,1);
     boost::gregorian::date_duration diff(unixtime/86400);
     boost::gregorian::date newDate = epoch + diff;
-    int date = newDate.year() * 10000 + newDate.month() * 100 + newDate.day();
+//    int date = newDate.year() * 10000 + newDate.month() * 100 + newDate.day();
     //std::cout << date << "\n";
     int m = newDate.month();
     //std::cout << "month: " << m << "\n";

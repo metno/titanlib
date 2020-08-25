@@ -27,32 +27,48 @@ namespace titanlib {
      */
     std::string version();
 
-    /** Spatial Consistency Test
-     *  @param background_elab_type one of: vertical_profile, mean_outer_circle, external
+    /** Spatial Consistency Test (SCT)
+     *  @param lats latitudes 
+     *  @param lons longitudes 
+     *  @param elevs elevations (m amsl)
+     *  @param values observed values to check (and/or to use)
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @param background_values external background value (not used if background_elab_type!=external)
+     *  @param background_elab_type one of: vertical_profile, mean_outer_circle, external
+     *  @param num_min Minimum number of observations inside the outer circle to compute SCT
+     *  @param num_max Maximum number of observations inside the outer circle used
      *  @param num_min_prof Minimum number of observations to compute vertical profile
      *  @param inner_radius Radius for flagging [m]
      *  @param outer_radius Radius for computing OI and background [m]
+     *  @param num_iterations Number of SCT iterations
      *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
      *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
-     *  @param min_horizontal_scale Maximum horizontal decorrelation length [m]
+     *  @param max_horizontal_scale Maximum horizontal decorrelation length [m]
+     *  @param kth_closest_obs_horizontal_scale Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
      *  @param vertical_scale Vertical decorrelation length [m]
-     *  @param pos Positive deviation allowed
-     *  @param neg Negative deviation allowed
      *  @param eps2 ratio between observation and background error variances
-     *  @param prob_gross_error Probability of gross error (POG) for each observation
-     *  @param an_inc analysis incremeent = analysis - background (for largest POG)
-     *  @param an_res analysis incremeent = observation - analysis (for largest POG)
-     *  @param cv_res analysis incremeent = observation - cross-val analysis (for largest POG)
-     *  @param innov innovation = observation - background (for largest POG)
-     *  @param chi prop to POG temptative distinction between (acceptable) representativeness error and gross error (for largest POG)
+     *  @param tpos_score SCT-score threshold. Positive deviation allowed
+     *  @param tneg_score SCT-score threshold. Negative deviation allowed
+     *  @param t_sod Spatial Outlier Detection (SOD) score threshold
+     *  @param score SCT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @param rep Coefficient of representativity
+     *  @param sod Spatial Outlier Detection (SOD) score
+     *  @param num_inner Number of observation inside the inner cirlce (for the largest score)
+     *  @param horizontal_scale Horizontal decorrelation length [m] (for the largest score)
+     *  @param an_inc Analysis increment = analysis - background (for the largest score)
+     *  @param an_res Analysis residuals = observation - analysis (for the largest score)
+     *  @param cv_res Cross-validation analysis increment = observation - cross-val analysis (for largest score)
+     *  @param innov Innovation = observation - background (for largest score)
+     *  @param idi Integral data influence (IDI)
+     *  @param idiv Cross-validation integral data influence
+     *  @param sig2o Observation error variance
      *  @return flags
      */
     ivec sct(const vec& lats,
             const vec& lons,
             const vec& elevs,
             const vec& values,
+            const ivec& obs_to_check,
             const vec& background_values,
             std::string background_elab_type,
             int num_min,
@@ -64,17 +80,24 @@ namespace titanlib {
             float min_elev_diff,
             float min_horizontal_scale,
             float max_horizontal_scale,
+            int kth_closest_obs_horizontal_scale,
             float vertical_scale,
-            const vec& pos,
-            const vec& neg,
             const vec& eps2,
-            vec& prob_gross_error,
+            const vec& tpos_score,
+            const vec& tneg_score,
+            const vec& t_sod,
+            vec& score,
+            vec& rep,
+            vec& sod,
+            vec& num_inner,
+            vec& horizontal_scale,
             vec& an_inc,
             vec& an_res,
             vec& cv_res,
             vec& innov,
-            vec& chi,
-            vec& rep);
+            vec& idi,
+            vec& idiv,
+            vec& sig2o);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
@@ -200,6 +223,7 @@ namespace titanlib {
         float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
 
         float compute_quantile(double quantile, const vec& array);
+        float findKclosest(int k, const vec& array); 
         vec subset(const vec& input, const ivec& indices);
 
         /** Required for SWIG only */
@@ -219,7 +243,7 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, const vec& background_values, std::string background_elab_type, vec& prob_gross_error, vec& an_inc, vec& an_res, vec& cv_res, vec& innov, vec& chi, vec& rep, const ivec& indices=ivec());
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const vec& eps2, const vec& tpos_score, const vec& tneg_score, const vec& t_sod, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& score, vec& rep, vec& sod, vec& num_inner, vec& horizontal_scale, vec& an_inc, vec& an_res, vec& cv_res, vec& innov, vec& idi, vec& idiv, vec& sig2o, const ivec& indices=ivec()); 
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);

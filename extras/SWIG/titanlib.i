@@ -404,18 +404,23 @@ namespace std {
 #endif
 
 %apply std::vector<int>& OUTPUT { std::vector<int>& flags };
-%apply std::vector<float>& OUTPUT { std::vector<float>& prob_gross_error };
 %apply std::vector<float>& OUTPUT { std::vector<float>& rep };
 %apply std::vector<int>& OUTPUT { std::vector<int>& boxids };
 %apply std::vector<float>& OUTPUT { std::vector<float>& x_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& y_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& z_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& distances };
+%apply std::vector<float>& OUTPUT { std::vector<float>& score };
+%apply std::vector<float>& OUTPUT { std::vector<float>& sod };
+%apply std::vector<float>& OUTPUT { std::vector<float>& num_inner };
+%apply std::vector<float>& OUTPUT { std::vector<float>& horizontal_scale };
 %apply std::vector<float>& OUTPUT { std::vector<float>& an_inc };
 %apply std::vector<float>& OUTPUT { std::vector<float>& an_res };
 %apply std::vector<float>& OUTPUT { std::vector<float>& cv_res };
 %apply std::vector<float>& OUTPUT { std::vector<float>& innov };
-%apply std::vector<float>& OUTPUT { std::vector<float>& chi };
+%apply std::vector<float>& OUTPUT { std::vector<float>& idi };
+%apply std::vector<float>& OUTPUT { std::vector<float>& idiv };
+%apply std::vector<float>& OUTPUT { std::vector<float>& sig2o };
 %{
 #include "titanlib.h"
 %}
