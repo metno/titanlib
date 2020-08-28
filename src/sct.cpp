@@ -529,14 +529,14 @@ ivec titanlib::sct(const vec& lats,
             }
             count_oi++; // one more OI
         }  // end loop over observations
+        std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
+        double e_time0 = titanlib::util::clock();
+        std::cout << e_time0 - s_time0 << std::endl;
         if(thrown_out == 0) {
             if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
-        std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
-        double e_time0 = titanlib::util::clock();
-        std::cout << e_time0 - s_time0 << std::endl;
     } // end of SCT iterations
 
     return flags;
