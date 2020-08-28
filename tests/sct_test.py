@@ -23,8 +23,8 @@ background_elab_type = "vertical_profile"
 N = len(lats)
 num_min = 3
 num_max = 10
-inner_radius = 10000
-outer_radius = 10000
+inner_radius = 50000
+outer_radius = 50000
 num_iterations = 1
 num_min_prof = 0
 min_elev_diff = 100
@@ -72,7 +72,7 @@ class SctTest(unittest.TestCase):
         debug1 = False;
 
         
-        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats1, lons1, elevs1, values1, obs_to_check1, background_values1, background_elab_type1, 5, 100, 4000, 50000, 2, 30, 100, 1000, 10000, 3, 100, value_min1, value_max1, sig2o_min1, eps21, sig2o_max1, tpos_score1, tneg_score1, t_sod1, debug1)
+        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats1, lons1, elevs1, values1, obs_to_check1, background_values1, background_elab_type1, 5, 100, 4000, 50000, 2, 30, 100, 1000, 10000, 3, 100, value_min1, value_max1, sig2o_min1, sig2o_max1, eps21, tpos_score1, tneg_score1, t_sod1, debug1)
 
         print("%.1fs" % (time.time() - s_time))
 
