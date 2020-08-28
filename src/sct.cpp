@@ -108,7 +108,7 @@ ivec titanlib::sct(const vec& lats,
   condition b) outlier if sod>threshold. Helps to avoid flagging REs as GEs, at least in those regions where enough observations are avaialable
 
  Returned values:
-  flags. -9999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min inside outer)
+  flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min inside outer)
 
 */
     const int p = values.size();
@@ -148,7 +148,7 @@ ivec titanlib::sct(const vec& lats,
         throw std::runtime_error("Background vector dimension mismatch");
 
     // initializations
-    float na = -9999.; // code for "Not Available". Any type of missing data
+    float na = -999.; // code for "Not Available". Any type of missing data
     ivec flags(p, na);
     score.clear();
     score.resize(p, na);
@@ -289,14 +289,7 @@ ivec titanlib::sct(const vec& lats,
                             rep[index] = 0;
                             sod[index] = 0;
                             num_inner[index] = p_inner;
-                            horizontal_scale[index] = na;
-                            an_inc[index] = na;
-                            an_res[index] = na;
-                            cv_res[index] = na;
                             innov[index] = d(i);
-                            idi[index] = na;
-                            idiv[index] = na;
-                            sig2o[index] = na;
                             flags[index] = 0;
                             if(debug) {
                                 int j = index;
@@ -557,14 +550,24 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     double a = 5.0;
 
     double meanT = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
+
+    // Special case when all observations have the same elevation
+    if ( std::min_element(elevs.begin(),elevs.end()) == std::max_element(elevs.begin(),elevs.end())) {
+        vec vp(elevs.size());
+        for(int i=0; i<elevs.size(); i++) {
+            vp[i] = meanT;
+        }
+        return vp;
+    }
     double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
     double exact_p90 = titanlib::util::compute_quantile(0.90, elevs);
-
+    
     // optimize inputs for VP (using Nelder-Mead Simplex algorithm)
     const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
     gsl_multimin_fminimizer *s = NULL;
     gsl_vector *ss;
     gsl_multimin_function vp_optim;
+
 
     int iter = 0;
     int status;
@@ -587,6 +590,7 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
 
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_elev_diff;
+
 
     gsl_vector* input;
     if(use_basic) {
