@@ -10,7 +10,7 @@ import time
 lats = [60, 60, 60, 60, 60]
 lons = [10, 10.005, 10.01, 10.015, 10.02]
 elevs = [0, 0, 0, 0, 0]
-values = [0, 0, 0, 0, -100]
+values = [0, 1, 10, -10, -100]
 obs_to_check = [1, 1, 1, 1, 1]
 background_values = [0, 0, 0, 0, 0]
 background_elab_type = "vertical_profile"

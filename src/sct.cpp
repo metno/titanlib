@@ -246,7 +246,7 @@ ivec titanlib::sct(const vec& lats,
             vec values_box = titanlib::util::subset(values, neighbour_indices);
             vec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
             int p_outer = neighbour_indices.size();
-            if(debug) std::cout << "p_outer " << p_outer << std::endl;
+            if(debug) std::cout << "p_outer p_inner " << p_outer << " " << p_inner << " " << std::endl;
 
             // Compute the background, if needed
             vec bvalues_box;
@@ -261,6 +261,7 @@ ivec titanlib::sct(const vec& lats,
             } else if( background_elab_type == "external"){
                 bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
             } 
+            if(debug) std::cout << "background ok" << std::endl;
             
             // Compute innovations (= observations - background)
             boost::numeric::ublas::vector<float> d(p_outer);
