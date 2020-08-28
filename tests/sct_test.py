@@ -39,7 +39,7 @@ debug = True
 class SctTest(unittest.TestCase):
     def test_simple(self):
 
-        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats, lons, elevs0, values0, obs_to_check, background_values, background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, sig2o_min, sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
+        flags, sct, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, sig2o_min, sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
         np.testing.assert_array_equal(flags, [0, 0, 0, 0, 1])
 
     def test_time(self):
