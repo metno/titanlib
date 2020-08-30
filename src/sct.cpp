@@ -17,7 +17,9 @@
 
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
-ivec remove_flagged(ivec indices, ivec flags);
+//ivec remove_flagged(ivec indices, ivec flags);
+ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated);
+vec remove_flagged_float(vec array, ivec flags);
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
@@ -214,30 +216,38 @@ ivec titanlib::sct(const vec& lats,
             }
 
             // break out if station already flagged
-            if( flags[curr] == 1 || flags[curr] == 0) {
+            if( flags[curr] >= 0) {
                 if(debug) std::cout << "..checked " << curr << std::endl;
                 continue;
             }
 
             // if no neighbours inside the inner circle, then distinction between RE and GE not reliable
-            vec distances;
-            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], inner_radius, 2, true, distances);
-            neighbour_indices = remove_flagged(neighbour_indices, flags);
-            if(neighbour_indices.size() < 2) {
+            vec distances_inner;
+            vec distances_inner_tmp;
+            ivec neighbour_indices_inner = tree.get_neighbours_with_distance(lats[curr], lons[curr], inner_radius, num_max, true, distances_inner_tmp);
+            neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags, distances_inner_tmp, distances_inner);
+            if(neighbour_indices_inner.size() < 2) {
                 flags[curr] = 11;
                 if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
                 continue;
             }
+            int p_inner = neighbour_indices_inner.size();
  
             // get all neighbours that are close enough (inside outer circle)
-            neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
-            neighbour_indices = remove_flagged(neighbour_indices, flags);
+            vec distances;
+            vec distances_tmp;
+            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances_tmp);
+            if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
+            if(debug) std::cout << "distances " << distances.size() << std::endl;
+            neighbour_indices = remove_flagged(neighbour_indices, flags, distances_tmp, distances);
             if(neighbour_indices.size() < num_min) {
                 flags[curr] = 12;
                 if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
                 continue; 
             }
-            int p_inner = neighbour_indices.size();
+//            distances = remove_flagged_float(distances, flags);
+            if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
+            if(debug) std::cout << "distances " << distances.size() << std::endl;
 
             // call SCT with this box(=outer circle) 
             vec lons_box = titanlib::util::subset(lons, neighbour_indices);
@@ -280,6 +290,7 @@ ivec titanlib::sct(const vec& lats,
                NOTE: when innovations are all exectly =0, then the routine crashes
              */
             if (small_innov) {
+                std::cout << " small_innov " << std::endl;
                 for(int i = 0; i < p_outer; i++) {
                     int index = neighbour_indices[i];
                     if ( flags[index] == na) {
@@ -358,6 +369,7 @@ ivec titanlib::sct(const vec& lats,
                 // NOTE: should never happen, since S + eps2*I is made of columns that are all linearly independent
                 //       (this is also why is convenient to use this formulation)
                 if(debug) std::cout << "ooo Problem in matrix inversion ooo " << curr << std::endl;
+                flags[curr] = 100;
                 continue;
             }
 
@@ -473,6 +485,20 @@ ivec titanlib::sct(const vec& lats,
                         } else {
                             update[i] = 1;
                             if(debug) std::cout << std::setprecision(3) << "step1 - flag=0? - index scorebox sodbox corep distance " << index << " " << scorebox(i) << " " << sodbox(i) << " " << corep(i) << " " << dist << std::endl;
+                            if ( scorebox(i) > score[index]) {
+                                score[index] = scorebox(i);
+                                rep[index] = corep(i);
+                                sod[index] = sodbox(i);
+                                num_inner[index] = p_inner;
+                                horizontal_scale[index] = Dhbox_mean;
+                                an_inc[index] = ainc(i);
+                                an_res[index] = ares(i);
+                                cv_res[index] = cvres(i);
+                                innov[index] = d(i);
+                                idi[index] = idibox(i);
+                                idiv[index] = idivbox(i);
+                                sig2o[index] = sig2obox;
+                            }
                         }
                         count_updates++;
                     }
@@ -498,7 +524,7 @@ ivec titanlib::sct(const vec& lats,
                             idi[index] = idibox(i);
                             idiv[index] = idivbox(i);
                             sig2o[index] = sig2obox;
-                            flags[index] = 0;
+                            if ( iteration > 0) flags[index] = 0;
                             if(debug) {
                                 int j = index;
                                 std::cout << std::setprecision(3) << "    step2 - flag=0 - index innov ares ainc cvres idi idiv: " << j << " " << innov[j] << " " << an_res[j] << " " << an_inc[j] << " " << cv_res[j] << " " << idi[j] << " " << idiv[j] << " "  << std::endl;
@@ -536,6 +562,7 @@ ivec titanlib::sct(const vec& lats,
             if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
+
         }
     } // end of SCT iterations
 
@@ -746,12 +773,24 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
 }
 
 
-ivec remove_flagged(ivec indices, ivec flags) {
+ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated) {
     ivec removed;
     removed.reserve(indices.size());
     for(int i=0; i<indices.size(); i++) {
         if(flags[indices[i]] != 1 ) {
             removed.push_back(indices[i]);
+            dist_updated.push_back(dist[i]);
+        }
+    }
+    return removed;
+}
+
+vec remove_flagged_float(vec array, ivec flags) {
+    vec removed;
+    removed.reserve(array.size());
+    for(int i=0; i<array.size(); i++) {
+        if(flags[array[i]] != 1 ) {
+            removed.push_back(array[i]);
         }
     }
     return removed;
