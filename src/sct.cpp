@@ -18,12 +18,18 @@
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 //ivec remove_flagged(ivec indices, ivec flags);
-ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated);
-vec remove_flagged_float(vec array, ivec flags);
+ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated, int keep);
+
+bool oi_adhoc( const vec& lats, const vec& lons, const vec& elevs, const vec& values, const boost::numeric::ublas::vector<float>& d, float min_horizontal_scale, float max_horizontal_scale, int kth_close, float vertical_scale, float sig2o_min, float sig2o_max, const vec& eps2, bool debug, const float& na, double& Dh_mean, double& sig2o, double& sig2o_mean_var, double& score_mean, double& score_var, double& score_mean_var, boost::numeric::ublas::vector<float>& ainc, boost::numeric::ublas::vector<float>& ares, boost::numeric::ublas::vector<float>& cvres, boost::numeric::ublas::vector<float>& idi, boost::numeric::ublas::vector<float>& idiv, boost::numeric::ublas::vector<float>& score_numerator, boost::numeric::ublas::vector<float>& rep_numerator);
+
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
+
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
+
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
+
 double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
+
 vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
 
 // start SCT //
@@ -151,31 +157,35 @@ ivec titanlib::sct(const vec& lats,
 
     // initializations
     float na = -999.; // code for "Not Available". Any type of missing data
-    ivec flags(p, na);
+    ivec flags( p, na);
+    vec perc_flag0( p, na);
+    bool set_zeros = false;
+    float innov_small = sqrt( sig2o_min);
+ 
     score.clear();
-    score.resize(p, na);
+    score.resize( p, na);
     sod.clear();
-    sod.resize(p, na);
+    sod.resize( p, na);
     num_inner.clear();
-    num_inner.resize(p, na);
+    num_inner.resize( p, na);
     horizontal_scale.clear();
-    horizontal_scale.resize(p, na);
+    horizontal_scale.resize( p, na);
     an_inc.clear();
-    an_inc.resize(p, na);
+    an_inc.resize( p, na);
     an_res.clear();
-    an_res.resize(p, na);
+    an_res.resize( p, na);
     cv_res.clear();
-    cv_res.resize(p, na);
+    cv_res.resize( p, na);
     innov.clear();
-    innov.resize(p, na);
+    innov.resize( p, na);
     idi.clear();
-    idi.resize(p, na);
+    idi.resize( p, na);
     idiv.clear();
-    idiv.resize(p, na);
+    idiv.resize( p, na);
     sig2o.clear();
-    sig2o.resize(p, na);
+    sig2o.resize( p, na);
     rep.clear();
-    rep.resize(p, na);
+    rep.resize( p, na);
 
 
     // preliminary range check
@@ -186,7 +196,9 @@ ivec titanlib::sct(const vec& lats,
           thrown_out++;
         }
     }
-    std::cout << "Range check is removing " << thrown_out << " observations " << std::endl;
+    if(debug) std::cout << "=============================================== " << p << std::endl;
+    if(debug) std::cout << "Number of observations to test is " << p << std::endl;
+    if(debug) std::cout << "Range check is removing " << thrown_out << " observations " << std::endl;
 
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != p;
@@ -196,6 +208,9 @@ ivec titanlib::sct(const vec& lats,
 
     // SCT iterations
     for(int iteration = 0; iteration < num_iterations; iteration++) {
+
+        if(debug) std::cout << " +++++ Iteration " << iteration << " ++++++++++++++++" << std::endl;
+
         double s_time0 = titanlib::util::clock();
         
         // reset this number each loop (this is for breaking if we don't throw anything new out)
@@ -207,7 +222,7 @@ ivec titanlib::sct(const vec& lats,
         // loop over observations
         for(int curr=0; curr < p; curr++) {
 
-            if(debug) std::cout << "===> curr " << curr << "===============" << std::endl;
+            if(debug) std::cout << "===> curr " << curr << " ===============" << std::endl;
 
             // observation not to be checked
             if(!check_all && obs_to_check[curr] != 1) {
@@ -225,7 +240,7 @@ ivec titanlib::sct(const vec& lats,
             vec distances_inner;
             vec distances_inner_tmp;
             ivec neighbour_indices_inner = tree.get_neighbours_with_distance(lats[curr], lons[curr], inner_radius, num_max, true, distances_inner_tmp);
-            neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags, distances_inner_tmp, distances_inner);
+            neighbour_indices_inner = remove_flagged( neighbour_indices_inner, flags, distances_inner_tmp, distances_inner, curr);
             if(neighbour_indices_inner.size() < 2) {
                 flags[curr] = 11;
                 if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
@@ -238,14 +253,13 @@ ivec titanlib::sct(const vec& lats,
             vec distances_tmp;
             ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances_tmp);
             if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
-            if(debug) std::cout << "distances " << distances.size() << std::endl;
-            neighbour_indices = remove_flagged(neighbour_indices, flags, distances_tmp, distances);
+            if(debug) std::cout << "distances " << distances_tmp.size() << std::endl;
+            neighbour_indices = remove_flagged( neighbour_indices, flags, distances_tmp, distances, curr);
             if(neighbour_indices.size() < num_min) {
                 flags[curr] = 12;
                 if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
                 continue; 
             }
-//            distances = remove_flagged_float(distances, flags);
             if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
             if(debug) std::cout << "distances " << distances.size() << std::endl;
 
@@ -261,13 +275,16 @@ ivec titanlib::sct(const vec& lats,
             // Compute the background, if needed
             vec bvalues_box;
             if( background_elab_type == "vertical_profile") {
-                bvalues_box = compute_vertical_profile(elevs_box, elevs_box, values_box, num_min_prof, min_elev_diff);
+                std::vector<float> elevs_box1(elevs_box.begin(), elevs_box.end() - 1);
+                std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+                bvalues_box = compute_vertical_profile(elevs_box1, elevs_box, values_box1, num_min_prof, min_elev_diff);
             } else if( background_elab_type == "mean_outer_circle"){
-                double mean_val = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
-                bvalues_box.resize(p_outer, na);
-                for(int i = 0; i < p_outer; i++) {
-                    bvalues_box[i] = mean_val;
-                }
+                std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+                double mean_val = std::accumulate(values_box1.begin(), values_box1.end(), 0.0) / values_box.size();
+                bvalues_box.resize(p_outer, mean_val);
+//                for(int i = 0; i < p_outer; i++) {
+//                    bvalues_box[i] = mean_val;
+//                }
             } else if( background_elab_type == "external"){
                 bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
             } 
@@ -282,7 +299,7 @@ ivec titanlib::sct(const vec& lats,
                 if(bvalues_box[i] > value_max) bvalues_box[i] = value_max;
                 // innovations
                 d(i) = values_box[i] - bvalues_box[i];
-                if ( d(i) > sig2o_min) small_innov = false;
+                if ( fabs( d(i)) > innov_small) small_innov = false;
             }
             
             /* if observations and background are almost identical, then take a shortcut
@@ -311,146 +328,23 @@ ivec titanlib::sct(const vec& lats,
                 }
                 continue; // jump to the next observation
             }
- 
-            /* Compute Dh. 
-             The location-dependent horizontal de-correlation lenght scale 
-             used for the background error correlation matrix */
-            boost::numeric::ublas::matrix<float> disth(p_outer, p_outer);
-            boost::numeric::ublas::matrix<float> distz(p_outer, p_outer);
-            boost::numeric::ublas::vector<float> Dhbox(p_outer);
 
+            double Dhbox_mean;
+            double sig2obox;
+            double sig2obox_mean_var;
+            double scorebox_mean; 
+            double scorebox_var; 
+            double scorebox_mean_var; 
+            boost::numeric::ublas::vector<float> ainc(p_outer), ares(p_outer), cvres(p_outer), rep_temp(p_outer), idibox(p_outer), idivbox(p_outer), scorebox_numerator(p_outer);
+            bool res = oi_adhoc( lats_box, lons_box, elevs_box, values_box, d, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, sig2o_min, sig2o_max, eps2_box, debug, na, Dhbox_mean, sig2obox, sig2obox_mean_var, scorebox_mean, scorebox_var, scorebox_mean_var, ainc, ares, cvres, idibox, idivbox, scorebox_numerator, rep_temp);
             for(int i=0; i < p_outer; i++) {
-                vec Dhbox_vector(p_outer);
-                for(int j=0; j < p_outer; j++) {
-                    disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
-                    distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
-                    if(i != j) {
-                        if(i < j)
-                            Dhbox_vector[j - 1] = disth(i, j);
-                        else if(i > j)
-                            Dhbox_vector[j] = disth(i, j);
-                    }
-                }
-                // Dhbox(i) = titanlib::util::compute_quantile(0.10, Dhbox_vector);  // quantile
-                Dhbox(i) = titanlib::util::findKclosest( kth_closest_obs_horizontal_scale, Dhbox_vector); // k-th closest observations
+                std::cout << std::setprecision(3) << " oi - index innov ares ainc cvres idi idiv: " << neighbour_indices[i] << " " << d[i] << " " << ares[i] << " " << ainc[i] << " " << cvres[i] << " " << idibox[i] << " " << idivbox[i] << " "  << std::endl;
             }
-
-            double Dhbox_mean = std::accumulate(std::begin(Dhbox), std::end(Dhbox), 0.0) / Dhbox.size();
-            if(Dhbox_mean < min_horizontal_scale) {
-                if(debug) std::cout << "Dhbox_mean (<min_horizontal_scale) " << Dhbox_mean << std::endl;
-                Dhbox_mean = min_horizontal_scale;
-            }
-            if(Dhbox_mean > max_horizontal_scale) {
-                if(debug) std::cout << "Dhbox_mean (>max_horizontal_scale) " << Dhbox_mean << std::endl;
-                Dhbox_mean = max_horizontal_scale;
-            }
-            if(debug) std::cout << "Dhbox_mean " << Dhbox_mean << std::endl;
-            
-            // Compute S + eps2*I and store it in S 
-            boost::numeric::ublas::matrix<float> S(p_outer,p_outer);
-            boost::numeric::ublas::matrix<float> Sinv(p_outer,p_outer);
-            for(int i=0; i < p_outer; i++) {
-                for(int j=0; j < p_outer; j++) {
-                    double value = std::exp(-.5 * std::pow((disth(i, j) / Dhbox_mean), 2) - .5 * std::pow((distz(i, j) / vertical_scale), 2));
-                    if(i==j) { // weight the diagonal, this also ensure an invertible matrix
-                        value = value + eps2_box[i];
-                    }
-                    S(i,j) = value;
-                }
-            }
-            
-            /* ---------------------------------------------------
-               Beginning of real SCT
-               ------------------------------------------------------*/
-            // Compute ( S + eps2 * I )^(-1) ans store it in Sinv
-            bool b = invert_matrix(S, Sinv);
-            if(b != true) {
-                // TODO: flag differently or give an error???
-                // NOTE: should never happen, since S + eps2*I is made of columns that are all linearly independent
-                //       (this is also why is convenient to use this formulation)
-                if(debug) std::cout << "ooo Problem in matrix inversion ooo " << curr << std::endl;
+            if ( !res) {
                 flags[curr] = 100;
                 continue;
             }
-
-            // Definitions
-            boost::numeric::ublas::vector<float> Zinv(p_outer), Sinv_d(p_outer), Sinv_1(p_outer), ainc(p_outer), ares(p_outer), cvres(p_outer), rep_temp(p_outer), idibox(p_outer), idivbox(p_outer);
-
-            // Matrix multiplications
-            for(int i=0; i<p_outer; i++) {
-                // Recover the actual S from S + eps2*I (unweight the diagonal)
-                S(i,i) -= eps2_box[i];
-                // Sinv_d = ( S + eps2 * I )^(-1) * innovation
-                // Sinv_1 = row sums of ( S + eps2 * I )^(-1) (used for IDI)
-                double acc = 0;
-                double acc1 = 0;
-                for(int j=0; j<p_outer; j++) {
-                    acc += Sinv(i,j)*d(j);
-                    acc1 += Sinv(i,j);
-                }
-                Sinv_d(i) = acc;
-                Sinv_1(i) = acc1;
-            }
-           
-            //    analysis increment = analysis - background = S * ( S + eps2 * I )^(-1) * innovation
-            //                  Zinv = inverse of the elements on the diagonal of ( S + eps2 * I )^(-1)
-            //    analysis residuals = observations - analysis (= innovation - analysis increment)
-            // cv-analysis residuals = observations - cv-analysis, LUS10 Eq.(A13)
-            // observ error variance = mean( analysis residuals * innovation), LUS10 Eq.(32)
-            //                   sod = spatial outlier detection score
-            boost::numeric::ublas::vector<float> scorebox_numerator(p_outer);
-            double M2a = 0;
-            double M2b = 0;
-            double scorebox_mean = 0;      // scorebox mean
-            double sig2obox = 0;           // sig2obox mean
-            for(int i=0; i<p_outer; i++) {
-                double acc = 0;
-                double acc1 = 0;
-                for(int j=0; j<p_outer; j++) {
-                    acc += S(i,j)*Sinv_d(j);
-                    acc1 += S(i,j)*Sinv_1(j);
-                }
-                idibox(i) = acc1;
-                ainc(i) = acc;
-                Zinv(i) = 1 / Sinv(i,i); 
-                ares(i) = d(i) - ainc(i);
-                cvres(i) = Zinv(i) * Sinv_d(i); 
-                idivbox(i) = 1 - Zinv(i) * Sinv_1(i); 
-                // (Welford's online algorithm for mean and variance)
-                // estimation of average score inside outer circle
-                scorebox_numerator(i) = cvres(i) * ares(i);
-                float delta = scorebox_numerator(i) - scorebox_mean;
-                scorebox_mean += delta / (i+1);
-                float delta2 = scorebox_numerator(i) - scorebox_mean;
-                M2a += delta * delta2;
-                // estimation of sig2o (observation error variance) 
-                rep_temp(i) = fabs( d(i) * ares(i)); // I've added fabs(...) 
-                delta = rep_temp(i) - sig2obox;
-                sig2obox += delta / (i+1);
-                delta2 = rep_temp(i) - sig2obox;
-                M2b += delta * delta2;
-            }
-
-            // finalize estimation of sig2o sample variance
-            double sig2obox_var  = M2b / (p_outer-1); 
-            // sig2o variance of mean (see e.g. Taylor "an Intro to error analysis..." 1982, p. 102)
-            double sig2obox_mean_var = sig2obox_var / p_outer;
-            // one should have an idea of the range of allowed values for sig2o
-            if(sig2obox < sig2o_min) sig2obox = sig2o_min;
-            if(sig2obox > sig2o_max) {
-              sig2obox = sig2o_max;
-              sig2obox_mean_var = 0; // high enough uncertainty is included in sig2o_max
-            }
-            if(debug) std::cout << std::setprecision(3) << "sig2obox (var) " << sig2obox << " " << sig2obox_mean_var << " " << std::endl;
- 
-            // finalize scorebox_mean
-            scorebox_mean = scorebox_mean / sig2obox;
-            // scorebox sample variance
-            double scorebox_var  = M2a / (p_outer-1) * 1/(sig2obox*sig2obox);
-            // scorebox variance of mean (see e.g. Taylor "an Intro to error analysis..." 1982, p. 102)
-            double scorebox_mean_var = scorebox_var / p_outer;
-            if(debug) std::cout << std::setprecision(3) << "scorebox_mean (var) " << scorebox_mean << " " << scorebox_mean_var << " " << std::endl;
-
+            
             /* score = cv-analysis residuals * analysis residuals / sig2o, LUS10 Eq.(22)
                rep = innovation * analysis residuals / sig2o, LUS10 Eq.(32) numerator
                i-th observation is flagged if i-th score is a) larger than a pre-set threshold AND b) an outlier compared to the statistics of score inside the inner circle
@@ -466,10 +360,12 @@ ivec titanlib::sct(const vec& lats,
             int i_scorebox_max = -1;
             float scorebox_max = -1;
             int count_updates = 0;
+            int count_flag0 = 0;
             ivec update(p_outer, 0);  // Keep track of which observations need an update on the flags
             boost::numeric::ublas::vector<float> scorebox(p_outer), sodbox(p_outer), corep(p_outer);
             for(int i = 0; i < p_outer; i++) {
                 int index = neighbour_indices[i];
+                if ( flags[index] == 0) count_flag0++;
                 if ( flags[index] == na) {
                     float dist = distances[i];
                     if(dist <= inner_radius) {
@@ -504,7 +400,8 @@ ivec titanlib::sct(const vec& lats,
                     }
                 }
             }
-            
+            float perc_flag0_curr = count_flag0 / p_outer;
+           
             // step 2. update the flags
             if( count_updates > 0) {
                 // if all observations are good ones ...
@@ -545,6 +442,7 @@ ivec titanlib::sct(const vec& lats,
                     idi[index_scorebox_max] = idibox(i_scorebox_max);
                     idiv[index_scorebox_max] = idivbox(i_scorebox_max);
                     sig2o[index_scorebox_max] = sig2obox;
+                    perc_flag0[index_scorebox_max] = perc_flag0_curr;
                     flags[index_scorebox_max] = 1;
                     thrown_out++;
                     if(debug) {
@@ -559,13 +457,194 @@ ivec titanlib::sct(const vec& lats,
         double e_time0 = titanlib::util::clock();
         std::cout << e_time0 - s_time0 << std::endl;
         if(thrown_out == 0) {
+            if ( iteration == 0) set_zeros = true;
             if(iteration + 1 < num_iterations)
                 std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
-
         }
     } // end of SCT iterations
+//    return flags;
+    //
+    if ( set_zeros) {
+        for(int curr=0; curr < p; curr++) {
+          if ( flags[curr] == na && score[curr] > na) flags[curr] = 0;
+        }
+    }
+    // definitive check on the bad observations
+    double s_time0 = titanlib::util::clock();
+    int rethrown_out = 0; 
+    int saved = 0; 
+    int count_oi = 0;
+    // loop over observations
+    for(int curr=0; curr < p; curr++) {
 
+        if(debug) std::cout << "---> curr " << curr << "---------------" << std::endl;
+        
+        if((values[curr] < value_min) || (values[curr] > value_max)) {
+            if(debug) std::cout << "..range check " << curr << std::endl;
+            rethrown_out++; 
+            continue;
+        }
+
+        // observation not to be checked
+        if(!check_all && obs_to_check[curr] != 1) {
+            if(debug) std::cout << "..not to check " << curr << std::endl;
+            continue;
+        }
+
+        // break out if station already flagged
+        if( flags[curr] != 1 || ( flags[curr] == 1 && perc_flag0[curr] > 0.5)) {
+            if(debug) std::cout << "..checked from before" << curr << std::endl;
+            continue;
+        }
+
+        // if no neighbours inside the inner circle, then distinction between RE and GE not reliable
+        vec distances_inner;
+        vec distances_inner_tmp;
+        ivec neighbour_indices_inner = tree.get_neighbours_with_distance(lats[curr], lons[curr], inner_radius, num_max, true, distances_inner_tmp);
+        neighbour_indices_inner = remove_flagged(neighbour_indices_inner, flags, distances_inner_tmp, distances_inner, curr);
+        if(neighbour_indices_inner.size() < 2) {
+            flags[curr] = 11;
+            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
+            continue;
+        }
+        int p_inner = neighbour_indices_inner.size();
+
+        // get all neighbours that are close enough (inside outer circle)
+        vec distances;
+        vec distances_tmp;
+        ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances_tmp);
+        if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
+        if(debug) std::cout << "distances " << distances.size() << std::endl;
+        neighbour_indices = remove_flagged(neighbour_indices, flags, distances_tmp, distances, curr);
+        if(neighbour_indices.size() < num_min) {
+            flags[curr] = 12;
+            if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
+            continue; 
+        }
+//            distances = remove_flagged_float(distances, flags);
+        if(debug) std::cout << "neighbour_indices " << neighbour_indices.size() << std::endl;
+        if(debug) std::cout << "distances " << distances.size() << std::endl;
+
+        // call SCT with this box(=outer circle) 
+        vec lons_box = titanlib::util::subset(lons, neighbour_indices);
+        vec elevs_box = titanlib::util::subset(elevs, neighbour_indices);
+        vec lats_box = titanlib::util::subset(lats, neighbour_indices);
+        vec values_box = titanlib::util::subset(values, neighbour_indices);
+        vec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
+        int p_outer = neighbour_indices.size();
+        int i_curr = p_outer - 1;
+        if(debug) std::cout << "p_outer p_inner " << p_outer << " " << p_inner << " " << std::endl;
+        if(debug) {
+            int index = neighbour_indices[i_curr];
+            std::cout << "i_curr index " << i_curr << " " << index << std::endl;
+        }
+
+        // Compute the background, if needed
+        vec bvalues_box;
+        if( background_elab_type == "vertical_profile") {
+            std::vector<float> elevs_box1(elevs_box.begin(), elevs_box.end() - 1);
+            std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+            for(int i=0; i<values_box.size(); i++) {
+                std::cout << "i elevs_box values_box " <<  i << "" << elevs_box[i] << " " << values_box[i] << std::endl;
+            }
+            for(int i=0; i<values_box1.size(); i++) {
+                std::cout << "i elevs_box1 values_box1 " <<  i << "" << elevs_box1[i] << " " << values_box1[i] << std::endl;
+            }
+            bvalues_box = compute_vertical_profile(elevs_box1, elevs_box, values_box1, num_min_prof, min_elev_diff);
+        } else if( background_elab_type == "mean_outer_circle"){
+            std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+            double mean_val = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
+            bvalues_box.resize(p_outer, mean_val);
+        } else if( background_elab_type == "external"){
+            bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
+        } 
+        if(debug) std::cout << "background ok" << std::endl;
+        if(debug) std::cout << std::setprecision(3) << "obs backg " << values_box[i_curr] << " " << bvalues_box[i_curr] <<  " " << std::endl;
+        
+        // Compute innovations (= observations - background)
+        boost::numeric::ublas::vector<float> d(p_outer);
+        bool small_innov = true;
+        for(int i=0; i<p_outer; i++) {
+            // check the background is in a range of acceptable values
+            if(bvalues_box[i] < value_min) bvalues_box[i] = value_min;
+            if(bvalues_box[i] > value_max) bvalues_box[i] = value_max;
+            // innovations
+            d(i) = values_box[i] - bvalues_box[i];
+            if ( fabs( d(i)) > innov_small) small_innov = false;
+            if(debug) std::cout << std::setprecision(3) << " elevs obs backg " << elevs_box[i] << " " << values_box[i] << " " << bvalues_box[i] <<  " " << std::endl;
+        }
+        
+        /* if observations and background are almost identical, then take a shortcut
+           flag = 0 for all observations in the inner circle
+           NOTE: when innovations are all exectly =0, then the routine crashes
+         */
+        if (small_innov) {
+            std::cout << " small_innov " << std::endl;
+            score[curr] = 0;
+            rep[curr] = 0;
+            sod[curr] = 0;
+            num_inner[curr] = p_inner;
+            innov[curr] = d(i_curr);
+            flags[curr] = 0;
+            if(debug) {
+                int j = curr;
+                std::cout << std::setprecision(3) << " small_innov - flag=0 - index innov ares ainc cvres idi idiv: " << j << " " << innov[j] << " " << an_res[j] << " " << an_inc[j] << " " << cv_res[j] << " " << idi[j] << " " << idiv[j] << " "  << std::endl;
+            }
+            continue; // jump to the next observation
+        }
+        //
+        double Dhbox_mean;
+        double sig2obox;
+        double sig2obox_mean_var;
+        double scorebox_mean; 
+        double scorebox_var; 
+        double scorebox_mean_var; 
+        boost::numeric::ublas::vector<float> ainc(p_outer), ares(p_outer), cvres(p_outer), rep_temp(p_outer), idibox(p_outer), idivbox(p_outer), scorebox_numerator(p_outer);
+        bool res = oi_adhoc( lats_box, lons_box, elevs_box, values_box, d, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, sig2o_min, sig2o_max, eps2_box, debug, na, Dhbox_mean, sig2obox, sig2obox_mean_var, scorebox_mean, scorebox_var, scorebox_mean_var, ainc, ares, cvres, idibox, idivbox, scorebox_numerator, rep_temp);
+        if ( !res) {
+            flags[curr] = 100;
+            continue;
+        }
+ 
+        // update flags inside the inner circle
+        double scorebox = scorebox_numerator(i_curr) / ( sig2obox + sig2obox_mean_var);
+        double sodbox = std::pow( ( scorebox_numerator(i_curr) - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
+        double corep = rep_temp(i_curr) / sig2obox;
+        score[curr] = scorebox;
+        rep[curr] = corep;
+        sod[curr] = sodbox;
+        num_inner[curr] = p_inner;
+        horizontal_scale[curr] = Dhbox_mean;
+        an_inc[curr] = ainc(i_curr);
+        an_res[curr] = ares(i_curr);
+        cv_res[curr] = cvres(i_curr);
+        innov[curr] = d(i_curr);
+        idi[curr] = idibox(i_curr);
+        idiv[curr] = idivbox(i_curr);
+        sig2o[curr] = sig2obox;
+        if( ( ( cvres(i_curr) > 0 && scorebox > tpos_score[curr]) || ( cvres(i_curr) <= 0 && scorebox > tneg_score[curr])) && sodbox > t_sod[curr] ) {
+            flags[curr] = 1;
+            rethrown_out++;
+            if(debug) {
+                int j = curr;
+                std::cout << std::setprecision(3) << " flag=1 - index innov ares ainc cvres idi idiv: " << j << " " << innov[j] << " " << an_res[j] << " " << an_inc[j] << " " << cv_res[j] << " " << idi[j] << " " << idiv[j] << " "  << std::endl;
+            }
+        } else {
+            flags[curr] = 0;
+            saved++;
+            if(debug) {
+                int j = curr;
+                std::cout << std::setprecision(3) << " flag=0 - index innov ares ainc cvres idi idiv: " << j << " " << innov[j] << " " << an_res[j] << " " << an_inc[j] << " " << cv_res[j] << " " << idi[j] << " " << idiv[j] << " "  << std::endl;
+            }
+        }
+        count_oi++; // one more OI
+    }  // end loop over observations
+    std::cout << "Final decision. Thrown out " << rethrown_out << " Saved " << saved << " Number of OI " << count_oi << std::endl;
+    double e_time0 = titanlib::util::clock();
+    std::cout << e_time0 - s_time0 << std::endl;
+
+    //
     return flags;
 }
 // end SCT //
@@ -580,10 +659,7 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
 
     // Special case when all observations have the same elevation
     if ( std::min_element(elevs.begin(),elevs.end()) == std::max_element(elevs.begin(),elevs.end())) {
-        vec vp(elevs.size());
-        for(int i=0; i<elevs.size(); i++) {
-            vp[i] = meanT;
-        }
+        vec vp( oelevs.size(), meanT);
         return vp;
     }
     double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
@@ -618,6 +694,48 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_elev_diff;
 
+    // Theil-Sen (Median-slope) Regression (Wilks (2019), p. 284)
+    int n = elevs.size();
+    int no = oelevs.size();
+    int nm = n * (n - 1) / 2;
+    std::vector<float> q(n), m(nm);
+    double m_median;
+    if ( use_basic) {
+        m_median = gamma;
+    } else {
+        int k = 0;
+        for(int i=0; i<(n-1); i++) {
+            for(int j=(i+1); j<n; j++) {
+                float dz = fabs( delevs[i] - delevs[j]);
+                if ( dz < 1 ) {
+                    m[k] = 0;
+                } else {
+                    m[k] = ( dvalues[i] - dvalues[j]) / ( delevs[i] - delevs[j]);
+                }
+                k++;
+            }
+        }
+        m_median = titanlib::util::compute_quantile( 0.5, m);
+    }
+    for(int i=0; i<n; i++) {
+        q[i] = dvalues[i] - m_median * delevs[i];
+    }
+    double q_median = titanlib::util::compute_quantile( 0.5, q);
+    vec vp(no);
+    std::cout << "vp - m q " << m_median  << " " << q_median << std::endl;
+    for(int i=0; i<no; i++) {
+      vp[i] = q_median + m_median * doelevs[i];
+      std::cout << "vp - i doelevs vp " << i << " " << doelevs[i]  << " " << vp[i] << std::endl;
+    } 
+    return vp;
+
+//    // Check if terrain is too flat
+//    double z05 = titanlib::util::compute_quantile(0.05, elevs);
+//    double z95 = titanlib::util::compute_quantile(0.95, elevs);
+//
+//    // should we use the basic or more complicated vertical profile?
+//    bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_elev_diff;
+//
 
     gsl_vector* input;
     if(use_basic) {
@@ -657,15 +775,16 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     while (status == GSL_CONTINUE && iter < 100);
 
     // then actually calculate the vertical profile using the minima
-    vec vp;
+//    vec vp;
     if(use_basic) {
         vp = basic_vertical_profile(nod, dpoelevs, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1));
-        // std::cout << "meanT=" << gsl_vector_get(s->x, 0) << " gamma=" << gsl_vector_get(s->x, 1) << std::endl;
+        std::cout << "vp - meanT=" << gsl_vector_get(s->x, 0) << " gamma=" << gsl_vector_get(s->x, 1) << std::endl;
     }
     else {
         // then actually calculate the vertical profile using the minima
         vp = vertical_profile(nod, dpoelevs,  gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1),
                 gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), gsl_vector_get(s->x, 4));
+        std::cout << "vp - t0 " << gsl_vector_get(s->x, 0) << " gamma=" << gsl_vector_get(s->x, 1) << " a=" << gsl_vector_get(s->x, 2) << " h0=" << gsl_vector_get(s->x, 3) << " h1i=" << gsl_vector_get(s->x, 4) << std::endl;
     }
 
     gsl_vector_free(input);
@@ -739,13 +858,13 @@ vec vertical_profile(const int n, const double *elevs, const double t0, const do
         bool z_ge_h1 = elevs[i] >= h1; // z.ge.h1<-which(z>=h1)
         bool z_in = (elevs[i]>h0 && elevs[i]<h1); // z.in<-which(z>h0 & z<h1)
         if(z_le_h0) {
-            t_out[i] = t0-gamma*elevs[i]-a;
+            t_out[i] = t0+gamma*elevs[i]-a;
         }
         if(z_ge_h1) {
-            t_out[i] = t0-gamma*elevs[i];
+            t_out[i] = t0+gamma*elevs[i];
         }
         if(z_in) {
-            t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
+            t_out[i] = t0+gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
         }
     }
     return t_out;
@@ -773,25 +892,161 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
 }
 
 
-ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated) {
+ivec remove_flagged(ivec indices, ivec flags, vec dist, vec &dist_updated, int keep) {
     ivec removed;
     removed.reserve(indices.size());
+    int j = -1;
     for(int i=0; i<indices.size(); i++) {
-        if(flags[indices[i]] != 1 ) {
+        if(flags[indices[i]] != 1 && indices[i] != keep) {
             removed.push_back(indices[i]);
             dist_updated.push_back(dist[i]);
+        } else if ( indices[i] == keep) {
+           j = i;
         }
+    }
+    if ( j >= 0) {
+        removed.push_back(indices[j]);
+        dist_updated.push_back(dist[j]);
     }
     return removed;
 }
 
-vec remove_flagged_float(vec array, ivec flags) {
-    vec removed;
-    removed.reserve(array.size());
-    for(int i=0; i<array.size(); i++) {
-        if(flags[array[i]] != 1 ) {
-            removed.push_back(array[i]);
+bool oi_adhoc( const vec& lats, const vec& lons, const vec& elevs, const vec& values, const boost::numeric::ublas::vector<float>& d, float min_horizontal_scale, float max_horizontal_scale, int kth_close, float vertical_scale, float sig2o_min, float sig2o_max, const vec& eps2, bool debug, const float& na, double& Dh_mean, double& sig2o, double& sig2o_mean_var, double& score_mean, double& score_var, double& score_mean_var, boost::numeric::ublas::vector<float>& ainc, boost::numeric::ublas::vector<float>& ares, boost::numeric::ublas::vector<float>& cvres, boost::numeric::ublas::vector<float>& idi, boost::numeric::ublas::vector<float>& idiv, boost::numeric::ublas::vector<float>& score_numerator, boost::numeric::ublas::vector<float>& rep_numerator) {
+    using namespace boost::numeric::ublas;
+    // init
+    const int p = values.size();
+    ainc.clear();
+    ainc.resize( p, na);
+    ares.clear();
+    ares.resize( p, na);
+    cvres.clear();
+    cvres.resize( p, na);
+    idi.clear();
+    idi.resize( p, na);
+    idiv.clear();
+    idiv.resize( p, na);
+    score_numerator.clear();
+    score_numerator.resize( p, na);
+    rep_numerator.clear();
+    rep_numerator.resize( p, na);
+
+    /* Compute Dh. 
+     The location-dependent horizontal de-correlation lenght scale 
+     used for the background error correlation matrix */
+    boost::numeric::ublas::matrix<float> disth(p, p);
+    boost::numeric::ublas::matrix<float> distz(p, p);
+    boost::numeric::ublas::vector<float> Dh(p);
+
+    for(int i=0; i < p; i++) {
+        vec Dh_vector(p);
+        for(int j=0; j < p; j++) {
+            disth(i, j) = titanlib::util::calc_distance( lats[i], lons[i], lats[j], lons[j]);
+            distz(i, j) = fabs( elevs[i] - elevs[j]);
+            if(i != j) {
+                if(i < j)
+                    Dh_vector[j - 1] = disth(i, j);
+                else if(i > j)
+                    Dh_vector[j] = disth(i, j);
+            }
+        }
+        Dh(i) = titanlib::util::findKclosest( kth_close, Dh_vector); // k-th closest observations
+    }
+
+    Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
+    if(Dh_mean < min_horizontal_scale) {
+        if(debug) std::cout << "Dh_mean (<min_horizontal_scale) " << Dh_mean << std::endl;
+        Dh_mean = min_horizontal_scale;
+    }
+    if(Dh_mean > max_horizontal_scale) {
+        if(debug) std::cout << "Dh_mean (>max_horizontal_scale) " << Dh_mean << std::endl;
+        Dh_mean = max_horizontal_scale;
+    }
+    if(debug) std::cout << "Dh_mean " << Dh_mean << std::endl;
+    
+    // Compute S + eps2*I and store it in S 
+    boost::numeric::ublas::matrix<float> S(p,p);
+    boost::numeric::ublas::matrix<float> Sinv(p,p);
+    for(int i=0; i < p; i++) {
+        for(int j=0; j < p; j++) {
+            double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / vertical_scale), 2));
+            if(i==j) { // weight the diagonal, this also ensure an invertible matrix
+                value = value + eps2[i];
+            }
+            S(i,j) = value;
         }
     }
-    return removed;
+    
+    // Compute ( S + eps2 * I )^(-1) ans store it in Sinv
+    bool b = invert_matrix(S, Sinv);
+    if( !b)  return(false);
+
+    // Definitions
+    boost::numeric::ublas::vector<float> Zinv(p), Sinv_d(p), Sinv_1(p);
+
+    // Matrix multiplications
+    for(int i=0; i<p; i++) {
+        S(i,i) -= eps2[i];
+        double acc = 0;
+        double acc1 = 0;
+        for(int j=0; j<p; j++) {
+            acc += Sinv(i,j)*d(j);
+            acc1 += Sinv(i,j);
+        }
+        Sinv_d(i) = acc;
+        Sinv_1(i) = acc1;
+    }
+   
+    double M2a = 0;
+    double M2b = 0;
+    score_mean = 0;      // score mean
+    sig2o = 0;           // sig2o mean
+    for(int i=0; i<p; i++) {
+        double acc = 0;
+        double acc1 = 0;
+        for(int j=0; j<p; j++) {
+            acc += S(i,j)*Sinv_d(j);
+            acc1 += S(i,j)*Sinv_1(j);
+        }
+        idi(i) = acc1;
+        ainc(i) = acc;
+        Zinv(i) = 1 / Sinv(i,i); 
+        ares(i) = d(i) - ainc(i);
+        cvres(i) = Zinv(i) * Sinv_d(i); 
+        idiv(i) = 1 - Zinv(i) * Sinv_1(i); 
+        // (Welford's online algorithm for mean and variance)
+        // estimation of average score inside outer circle
+        score_numerator(i) = cvres(i) * ares(i);
+        float delta = score_numerator(i) - score_mean;
+        score_mean += delta / (i+1);
+        float delta2 = score_numerator(i) - score_mean;
+        M2a += delta * delta2;
+        // estimation of sig2o (observation error variance) 
+        rep_numerator(i) = fabs( d(i) * ares(i)); // I've added fabs(...) 
+        delta = rep_numerator(i) - sig2o;
+        sig2o += delta / (i+1);
+        delta2 = rep_numerator(i) - sig2o;
+        M2b += delta * delta2;
+    }
+
+    // finalize estimation of sig2o sample variance
+    double sig2o_var  = M2b / (p-1); 
+    // sig2o variance of mean (see e.g. Taylor "an Intro to error analysis..." 1982, p. 102)
+    sig2o_mean_var = sig2o_var / p;
+    // one should have an idea of the range of allowed values for sig2o
+    if(sig2o < sig2o_min) sig2o = sig2o_min;
+    if(sig2o > sig2o_max) {
+      sig2o = sig2o_max;
+      sig2o_mean_var = 0; // high enough uncertainty is included in sig2o_max
+    }
+    if(debug) std::cout << std::setprecision(3) << "sig2o (var) " << sig2o << " " << sig2o_mean_var << " " << std::endl;
+ 
+    // finalize score_mean
+    score_mean = score_mean / sig2o;
+    // score sample variance
+    score_var  = M2a / (p-1) * 1/(sig2o*sig2o);
+    // score variance of mean (see e.g. Taylor "an Intro to error analysis..." 1982, p. 102)
+    score_mean_var = score_var / p;
+    if(debug) std::cout << std::setprecision(3) << "score_mean (var) " << score_mean << " " << score_mean_var << " " << std::endl;
+    // normal exit
+    return true;
 }
