@@ -11,7 +11,7 @@
     #include <omp.h>
 #endif
 
-#define TITANLIB_VERSION "0.2.0b1"
+#define TITANLIB_VERSION "0.2.0b3"
 #define __version__ TITANLIB_VERSION
 
 typedef std::vector<int> ivec;
@@ -146,6 +146,9 @@ namespace titanlib {
             int num_min,
             float radius,
             float vertical_radius);
+
+    /** Method by McCarthy 1973 */
+    vec lag_reduction_filter(const vec& times, const vec& values, float a=0.5, float b=0.5, float k1=0.25, float k2=0.25, int n=10);
 
     /** Set the number of OpenMP threads to use. Overwrides OMP_NUM_THREAD env variable. */
     void set_omp_threads(int num);
