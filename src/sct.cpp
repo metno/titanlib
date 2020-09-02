@@ -321,7 +321,7 @@ ivec titanlib::sct(const vec& lats,
                 // innovations
                 innov_box(i) = values_box[i] - bvalues_box[i];
                 if ( fabs( innov_box(i)) > innov_small[index]) small_innov = false;
-                if(debug) std::cout << std::setprecision(3) << " backg - index elev obs backg " << neighbour_indices[i] << " " << elevs_box[i] << " " << values_box[i] << bvalues_box[i] << std::endl;
+                if(debug) std::cout << std::setprecision(3) << " backg - index elev obs backg " << neighbour_indices[i] << " " << elevs_box[i] << " " << values_box[i] << " " << bvalues_box[i] << std::endl;
             }
             
             /* if observations and background are almost identical, then take a shortcut
@@ -609,7 +609,7 @@ ivec titanlib::sct(const vec& lats,
             // innovations
             innov_box(i) = values_box[i] - bvalues_box[i];
             if ( fabs( innov_box(i)) > innov_small[index]) small_innov = false;
-            if(debug) std::cout << std::setprecision(3) << " backg - index elev obs backg " << neighbour_indices[i] << " " << elevs_box[i] << " " << values_box[i] << bvalues_box[i] << std::endl;
+            if(debug) std::cout << std::setprecision(3) << " backg - index elev obs backg " << neighbour_indices[i] << " " << elevs_box[i] << " " << values_box[i] << " " << bvalues_box[i] << std::endl;
         }
         
         /* if observations and background are almost identical, then take a shortcut
