@@ -34,7 +34,7 @@ namespace titanlib {
      *  @param values observed values to check (and/or to use)
      *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @param background_values external background value (not used if background_elab_type!=external)
-     *  @param background_elab_type one of: vertical_profile, mean_outer_circle, external
+     *  @param background_elab_type one of: vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, external
      *  @param num_min Minimum number of observations inside the outer circle to compute SCT
      *  @param num_max Maximum number of observations inside the outer circle used
      *  @param num_min_prof Minimum number of observations to compute vertical profile
