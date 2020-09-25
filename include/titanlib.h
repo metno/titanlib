@@ -281,23 +281,5 @@ namespace titanlib {
             boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> > mTree;
 
     };
-
-    /** Old version of the spatial consistency test (for testing purposes only) */
-    ivec sct_old(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
-            const vec& values,
-            int nmin,
-            int nmax,
-            int num_min_prof,
-            float min_elev_diff,
-            float min_horizontal_scale,
-            float dz,
-            const vec& pos,
-            const vec& neg,
-            const vec& eps2,
-            vec& prob_gross_error,
-            vec& rep,
-            ivec& boxids);
 }
 #endif
