@@ -194,10 +194,3 @@ Points titanlib::subset(const Points& input, const ivec& indices) {
     }
     return Points(lats, lons, elevs, lafs);
 }
-
-float* titanlib::test_array(float* v, int n) {
-    int count = 0;
-    for(int i = 0; i < n; i++)
-        count++;
-    return v;
- }

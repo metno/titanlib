@@ -229,6 +229,7 @@ namespace titanlib {
     float* test_array(float* v, int n);
     /**@}*/
 
+    void test_not_implemented_exception();
     // ivec nearest_neighbours(const vec& lats, const vec& lons, float radius, float lat, float lon);
 
     // bool prioritize(const vec& values, const ivec& priority, float distance, ivec& flags);
@@ -419,6 +420,11 @@ namespace titanlib {
                     orig_array[indices[i]] = array[i];
                 }
             }
+    };
+    class not_implemented_exception: public std::logic_error
+    {
+        public:
+            not_implemented_exception() : std::logic_error("Function not yet implemented") { };
     };
 
 }

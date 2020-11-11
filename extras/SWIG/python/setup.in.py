@@ -8,8 +8,6 @@ from distutils.sysconfig import get_python_lib
 from distutils.command.build import build as build_orig
 from distutils.core import Extension
 import itertools
-from distutils.command.install import INSTALL_SCHEMES
-
 
 __version__ = '${PROJECT_VERSION}'
 
@@ -105,7 +103,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy>=1.7', 'scipy', 'six', 'future'],
+    install_requires=['numpy>=1.7'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -125,14 +123,7 @@ setup(
     #package_data={
     #    'sample': ['package_data.dat'],
     #},
-    #ext_modules=[Extension('_titanlib', ['${titanlib_SOURCE_DIR}/titanlib.cpp',
-    #    '${titanlib_SOURCE_DIR}/titanlib_wrap_python.cpp'],
-    #    swig_opts=['-I./', '-c++'],
-    #    include_dirs=['./'])],
     py_modules=['titanlib'],
-    #package_data={'titanlib': ['_titanlib.so']},
-    #include_package_data=True,
-
 
     cmdclass={'install': CompiledLibInstall},
     # cmdclass={'build': build},

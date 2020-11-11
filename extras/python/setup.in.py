@@ -8,6 +8,7 @@ from setuptools import setup, Extension
 import glob
 import itertools
 import os
+import numpy
 
 __version__ = '${PROJECT_VERSION}'
 
@@ -32,11 +33,11 @@ class CustomInstall(install):
 
 module = Extension('_titanlib',
         sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
-        libraries=["gsl", "gslcblas", "proj"],
+        libraries=["gsl", "gslcblas"],
+        extra_compile_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}".split(),
+        extra_link_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}".split(),
         library_dirs=["/usr/lib/x86_64-linux-gnu/"],
-        extra_compile_args="${CMAKE_CXX_FLAGS}".split(),
-        extra_link_args="${CMAKE_CXX_FLAGS}".split(),
-        include_dirs=['./include']
+        include_dirs=['./include', 'boost_1_74_0', numpy.get_include()]
 )
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -101,7 +102,7 @@ setup (
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy>=1.7', 'scipy', 'six', 'future'],
+    install_requires=['numpy>=1.7'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
