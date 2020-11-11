@@ -598,10 +598,13 @@ namespace std {
 %np_vector_typemaps(double, NPY_DOUBLE)
 #endif
 
-%apply std::vector<std::vector<float> >& OUTPUT { std::vector<std::vector<float> >& output };
-%apply std::vector<std::vector<int> >& OUTPUT { std::vector<std::vector<int> >& count };
-%apply std::vector<std::vector<int> >& OUTPUT { std::vector<std::vector<int> >& y_coord };
-%apply std::vector<std::vector<int> >& OUTPUT { std::vector<std::vector<int> >& x_coord };
+%apply std::vector<int>& OUTPUT { std::vector<int>& flags };
+%apply std::vector<float>& OUTPUT { std::vector<float>& prob_gross_error };
+%apply std::vector<float>& OUTPUT { std::vector<float>& rep };
+%apply std::vector<int>& OUTPUT { std::vector<int>& boxids };
+%apply std::vector<float>& OUTPUT { std::vector<float>& x_coords };
+%apply std::vector<float>& OUTPUT { std::vector<float>& y_coords };
+%apply std::vector<float>& OUTPUT { std::vector<float>& z_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& distances };
 %apply std::vector<std::vector<float> >& OUTPUT { std::vector<std::vector<float> >& distances };
 %apply int& OUTPUT { int& X1_out };

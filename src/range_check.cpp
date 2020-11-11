@@ -43,9 +43,7 @@ ivec titanlib::range_check(const vec& values,
 
 }
 
-ivec titanlib::range_check_climatology(const vec& lats,
-        const vec& lons,
-        const vec& elevs,
+ivec titanlib::range_check_climatology(const Points& points,
         const vec& values,
         int unixtime,
         const vec& pos,
@@ -53,7 +51,11 @@ ivec titanlib::range_check_climatology(const vec& lats,
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
-    const int s = lats.size();
+    const int s = points.size();
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
+
     if( lons.size() != s || elevs.size() != s || values.size() != s ) {
         throw std::runtime_error("Dimension mismatch");
     }
@@ -73,7 +75,7 @@ ivec titanlib::range_check_climatology(const vec& lats,
         double t = mean_temp(lats[i], unixtime);
         std::cout << "mean t: " << t << "\n";
         double mean_pos = t + pos[pos_i];
-        double mean_neg = t + neg[neg_i];  
+        double mean_neg = t + neg[neg_i];
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
         if(values[i] < mean_neg || values[i] > mean_pos) {

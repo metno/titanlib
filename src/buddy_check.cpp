@@ -10,9 +10,7 @@
 
 using namespace titanlib;
 
-ivec titanlib::buddy_check(const vec& lats,
-        const vec& lons,
-        const vec& elevs,
+ivec titanlib::buddy_check(const Points& points,
         const vec& values,
         const vec& radius,
         const ivec& num_min,
@@ -24,18 +22,18 @@ ivec titanlib::buddy_check(const vec& lats,
         const ivec& obs_to_check) {
 
     bool debug = false;
-    const int s = values.size();
+    const int s = points.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
-        throw std::invalid_argument("Lats, lons, elevs, values dimension mismatch");
+    if(values.size() != s) {
+        throw std::invalid_argument("Points and values dimension mismatch");
     }
-    else if( radius.size() != s && radius.size() != 1 ) {
+    else if(radius.size() != s && radius.size() != 1) {
         throw std::invalid_argument("Radius has an invalid length");
     }
-    if( (num_min.size() != s && num_min.size() != 1)) {
+    if((num_min.size() != s && num_min.size() != 1)) {
         throw std::invalid_argument("'num_min' has an invalid length");
     }
-    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
+    if((obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0)) {
         throw std::invalid_argument("'obs_to_check' has an invalid length");
     }
 
@@ -45,8 +43,10 @@ ivec titanlib::buddy_check(const vec& lats,
             throw std::runtime_error("Buddies_min must be > 0");
     }
 
-    // create the KD tree to be used later
-    titanlib::KDTree tree(lats, lons);
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
+
     // resize the flags and set them to 0
     ivec flags(s, 0);
     // if obs_to_check is empty then check all
@@ -68,7 +68,7 @@ ivec titanlib::buddy_check(const vec& lats,
                 }
 
                 // get all neighbours that are close enough
-                ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], false);
+                ivec neighbour_indices = points.get_neighbours(lats[i], lons[i], radius[d_i], false);
 
                 int n_buddies = 0;
                 vec list_buddies;

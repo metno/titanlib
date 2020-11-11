@@ -93,18 +93,13 @@ namespace titanlib {
             const vec& min,
             const vec& max);
 
-    ivec range_check_climatology(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
+    ivec range_check_climatology(const Points& points,
             const vec& values,
             int unixtime,
             const vec& pos,
             const vec& neg);
 
     /** Buddy check. Compares a station to all its neighbours within a certain distance
-     *  @param lats vector of latitudes [deg]
-     *  @param lons vector of longitudes [deg]
-     *  @param elevs vector of elevations [m]
      *  @param values vector of observation values
      *  @param radius search radius [m]
      *  @param num_min the minimum number of buddies a station can have
@@ -116,9 +111,7 @@ namespace titanlib {
      *  @param obs_to_check the observations that will be checked (since can pass in observations that will not be checked)
      *  @param flags vector of return flags
      */
-    ivec buddy_check(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
+    ivec buddy_check(const Points& points,
             const vec& values,
             const vec& radius,
             const ivec& num_min,
@@ -129,9 +122,7 @@ namespace titanlib {
             int num_iterations,
             const ivec& obs_to_check = ivec());
 
-    ivec buddy_event_check(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
+    ivec buddy_event_check(const Points& points,
             const vec& values,
             const vec& radius,
             const ivec& num_min,
@@ -143,8 +134,6 @@ namespace titanlib {
             const ivec& obs_to_check = ivec());
 
     /** Isolation check. Checks that a station is not located alone
-     *  @param lats vector of latitudes [deg]
-     *  @param lons vector of longitudes [deg]
      *  @param num_min required number of observations
      *  @param radius search radius [m]
      *  @param vertical_radius Vertical search radius [m]

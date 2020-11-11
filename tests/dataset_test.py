@@ -18,8 +18,9 @@ class DatasetTest(unittest.TestCase):
         lats = np.random.randn(N) * 10000;
         lons = np.random.randn(N) * 10000;
         elevs = np.random.rand(N) * 100;
+        points = titanlib.Points(lats, lons, elevs)
         values = np.random.randn(N) * 6;
-        dataset = titanlib.Dataset(lats, lons, elevs, values);
+        dataset = titanlib.Dataset(points, values);
         dataset.range_check([-100], [-100], [0, 1, 2])
         dataset.range_check([-100], [-100], [1, 2, 4])
         self.assertListEqual([i for i in dataset.flags], [1, 1, 1, 0, 1])
