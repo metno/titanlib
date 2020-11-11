@@ -14,12 +14,11 @@
 #define TITANLIB_VERSION "0.2.0b3"
 #define __version__ TITANLIB_VERSION
 
-/** Titanlib
-*/
 namespace titanlib {
     /** **************************************
      * @name Short-hand notation for vectors of different dimensions sizes
      * ***************************************/ /**@{*/
+    // Preferred vector types
     typedef std::vector<int> ivec;
     typedef std::vector<float> vec;
     typedef std::vector<double> dvec;
@@ -30,7 +29,6 @@ namespace titanlib {
      * @name Constants
      * Functions that assimilate observations onto a gridded background
      * ***************************************/ /**@{*/
-    /**@}*/
     /** Missing value indicator */
     static const float MV = NAN;
     /** Missing value indicator in gridpp command-line tool */
@@ -185,53 +183,51 @@ namespace titanlib {
     /** Sets the number of OpenMP threads to 1 if OMP_NUM_THREADS undefined */
     void initialize_omp();
 
-    namespace util {
-        /** ****************************************
-         * @name Utilities
-         * Helper functions
-         * *****************************************/ /**@{*/
-        /**
-         * @return The current UTC time (in seconds since 1970-01-01 00:00:00Z)
-         */
-        double clock();
+    /** ****************************************
+     * @name Utilities
+     * Helper functions
+     * *****************************************/ /**@{*/
+    /**
+     * @return The current UTC time (in seconds since 1970-01-01 00:00:00Z)
+     */
+    double clock();
 
-        /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
-         *  @param lats vector of latitudes [deg]
-         *  @param lons vector of longitudes [deg]
-         *  @param x_coords vector of x-coordinates [m]
-         *  @param y_coords vector of y-coordinates [m]
-         *  @param z_coords vector of z-coordinates [m]
-         */
-        bool convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords);
+    /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
+     *  @param lats vector of latitudes [deg]
+     *  @param lons vector of longitudes [deg]
+     *  @param x_coords vector of x-coordinates [m]
+     *  @param y_coords vector of y-coordinates [m]
+     *  @param z_coords vector of z-coordinates [m]
+     */
+    bool convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords);
 
-        /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
-         *  @param lat latitude [deg]
-         *  @param lon longitude [deg]
-         *  @param x_coord x-coordinate [m]
-         *  @param y_coord y-coordinate [m]
-         *  @param z_coord z-coordinate [m]
-         */
-        bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
+    /** Same as above, but convert a single lat/lon to 3D cartesian coordinates
+     *  @param lat latitude [deg]
+     *  @param lon longitude [deg]
+     *  @param x_coord x-coordinate [m]
+     *  @param y_coord y-coordinate [m]
+     *  @param z_coord z-coordinate [m]
+     */
+    bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
-        void convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords);
-        vec interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons);
-        float deg2rad(float deg);
-        float calc_distance(float lat1, float lon1, float lat2, float lon2);
-        float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
+    void convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords);
+    vec interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons);
+    float deg2rad(float deg);
+    float calc_distance(float lat1, float lon1, float lat2, float lon2);
+    float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
 
-        float compute_quantile(double quantile, const vec& array);
-        vec subset(const vec& input, const ivec& indices);
-        Points subset(const Points& input, const ivec& indices);
-        /**@}*/
+    float compute_quantile(double quantile, const vec& array);
+    vec subset(const vec& input, const ivec& indices);
+    Points subset(const Points& input, const ivec& indices);
+    /**@}*/
 
-        /** ****************************************
-         * @name SWIG testing functions
-         * Functions for testing the SWIG interface. Not useful for any other purpose.
-         * *****************************************/ /**@{*/
-        /** Required for SWIG only */
-        float* test_array(float* v, int n);
-        /**@}*/
-    }
+    /** ****************************************
+     * @name SWIG testing functions
+     * Functions for testing the SWIG interface. Not useful for any other purpose.
+     * *****************************************/ /**@{*/
+    /** Required for SWIG only */
+    float* test_array(float* v, int n);
+    /**@}*/
 
     // ivec nearest_neighbours(const vec& lats, const vec& lons, float radius, float lat, float lon);
 

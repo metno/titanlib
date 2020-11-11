@@ -43,7 +43,7 @@ void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float 
             vec& prob_gross_error, vec& rep, const ivec& indices) {
     ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(titanlib::util::subset(points, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, rep);
+        ivec iflags = titanlib::sct(titanlib::subset(points, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, rep);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
     }

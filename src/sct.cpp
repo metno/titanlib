@@ -86,7 +86,7 @@ ivec titanlib::sct(const Points& points,
     titanlib::KDTree tree(lats, lons);
 
     for(int iteration = 0; iteration < num_iterations; iteration++) {
-        double s_time0 = titanlib::util::clock();
+        double s_time0 = titanlib::clock();
 
         int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
 
@@ -132,11 +132,11 @@ ivec titanlib::sct(const Points& points,
             }
 
             // call SCT with this box 
-            vec lons_box = titanlib::util::subset(lons, neighbour_indices);
-            vec elevs_box = titanlib::util::subset(elevs, neighbour_indices);
-            vec lats_box = titanlib::util::subset(lats, neighbour_indices);
-            vec values_box = titanlib::util::subset(values, neighbour_indices);
-            vec eps2_box = titanlib::util::subset(eps2, neighbour_indices);
+            vec lons_box = titanlib::subset(lons, neighbour_indices);
+            vec elevs_box = titanlib::subset(elevs, neighbour_indices);
+            vec lats_box = titanlib::subset(lats, neighbour_indices);
+            vec values_box = titanlib::subset(values, neighbour_indices);
+            vec eps2_box = titanlib::subset(eps2, neighbour_indices);
             int s_box = neighbour_indices.size();
             // the thing to flag is at "curr", ano not included in the box
 
@@ -160,7 +160,7 @@ ivec titanlib::sct(const Points& points,
             for(int i=0; i < s_box; i++) {
                 vec Dh_vector(s_box);
                 for(int j=0; j < s_box; j++) {
-                    disth(i, j) = titanlib::util::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
+                    disth(i, j) = titanlib::calc_distance(lats_box[i], lons_box[i], lats_box[j], lons_box[j]);
                     distz(i, j) = fabs(elevs_box[i] - elevs_box[j]);
                     if(i != j) {
                         if(i < j)
@@ -169,7 +169,7 @@ ivec titanlib::sct(const Points& points,
                             Dh_vector[j] = disth(i, j);
                     }
                 }
-                Dh(i) = titanlib::util::compute_quantile(0.10, Dh_vector);
+                Dh(i) = titanlib::compute_quantile(0.10, Dh_vector);
             }
 
             double Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
@@ -273,7 +273,7 @@ ivec titanlib::sct(const Points& points,
             break;
         }
         std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
-        double e_time0 = titanlib::util::clock();
+        double e_time0 = titanlib::clock();
         std::cout << e_time0 - s_time0 << std::endl;
     }
 
@@ -288,8 +288,8 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     double a = 5.0;
 
     double meanT = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
-    double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
-    double exact_p90 = titanlib::util::compute_quantile(0.90, elevs);
+    double exact_p10 = titanlib::compute_quantile(0.10, elevs);
+    double exact_p90 = titanlib::compute_quantile(0.90, elevs);
 
     // optimize inputs for VP (using Nelder-Mead Simplex algorithm)
     const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
@@ -313,8 +313,8 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     double * data[3] = {&nd, dpelevs, dpvalues};
 
     // Check if terrain is too flat
-    double z05 = titanlib::util::compute_quantile(0.05, elevs);
-    double z95 = titanlib::util::compute_quantile(0.95, elevs);
+    double z05 = titanlib::compute_quantile(0.05, elevs);
+    double z95 = titanlib::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_elev_diff;

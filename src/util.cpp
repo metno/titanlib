@@ -2,10 +2,43 @@
 #include "titanlib.h"
 #include <proj_api.h>
 #include <math.h>
+#include "titanlib.h"
 
 using namespace titanlib;
 
-bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
+std::string titanlib::version() {
+    return __version__;
+}
+
+void titanlib::initialize_omp() {
+#ifdef _OPENMP
+    int num_threads = 1;
+    const char* num_threads_char = std::getenv("OMP_NUM_THREADS");
+    if(num_threads_char != NULL) {
+        std::istringstream(std::string(num_threads_char)) >> num_threads;
+        if(num_threads <= 0)
+            num_threads = 1;
+    }
+    titanlib::set_omp_threads(num_threads);
+#endif
+}
+
+void titanlib::set_omp_threads(int num) {
+#ifdef _OPENMP
+    // omp_set_dynamic(0);
+    omp_set_num_threads(num);
+#endif
+}
+
+double titanlib::clock() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    double sec = (t.tv_sec);
+    double msec= (t.tv_usec);
+    return sec + msec/1e6;
+}
+
+bool titanlib::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
     int N = lats.size();
     x_coords.resize(N);
     y_coords.resize(N);
@@ -17,7 +50,7 @@ bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& 
     return true;
 }
 
-bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord) {
+bool titanlib::convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord) {
 
     float earth_radius = 6.37e6;
     double lonr = M_PI / 180 * lon;
@@ -28,7 +61,8 @@ bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, f
     z_coord = std::sin(latr) * earth_radius;
     return true;
 }
-void titanlib::util::convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords) {
+
+void titanlib::convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords) {
     int N = lats.size();
     x_coords.resize(N);
     y_coords.resize(N);
@@ -46,7 +80,8 @@ void titanlib::util::convert_to_proj(const vec& lats, const vec& lons, std::stri
     pj_free(Pproj);
     pj_free(Plonglat);
 }
-float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lon2) {
+
+float titanlib::calc_distance(float lat1, float lon1, float lat2, float lon2) {
     if(!(fabs(lat1) <= 90 && fabs(lat2) <= 90 && fabs(lon1) <= 360 && fabs(lon2) <= 360)) {
         // std::cout << " Cannot calculate distance, invalid lat/lon: (" << lat1 << "," << lon1 << ") (" << lat2 << "," << lon2 << ")";
         // std::cout << '\n';
@@ -66,13 +101,16 @@ float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lo
     double dist = acos(ratio)*radiusEarth;
     return (float) dist;
 }
-float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, float y1, float z1) {
+
+float titanlib::calc_distance(float x0, float y0, float z0, float x1, float y1, float z1) {
     return sqrt((x0 - x1)*(x0 - x1) + (y0 - y1)*(y0 - y1) + (z0 - z1)*(z0 - z1));
 }
-float titanlib::util::deg2rad(float deg) {
+
+float titanlib::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
-vec titanlib::util::interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons) {
+
+vec titanlib::interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons) {
     assert(input_lats.size() > 0);
     assert(input_lats[0].size() > 0);
     vec output_values(output_lats.size(), 0);
@@ -99,7 +137,7 @@ vec titanlib::util::interpolate_to_points(const vec2& input_lats, const vec2& in
     return output_values;
 }
 
-float titanlib::util::compute_quantile(double quantile, const vec& array) {
+float titanlib::compute_quantile(double quantile, const vec& array) {
     int n = array.size();
     if(n == 0) {
         throw std::runtime_error("Cannot compute quantile on empty array");
@@ -132,7 +170,7 @@ float titanlib::util::compute_quantile(double quantile, const vec& array) {
     return exact_q;
 }
 
-vec titanlib::util::subset(const vec& input, const ivec& indices) {
+vec titanlib::subset(const vec& input, const ivec& indices) {
     vec output(indices.size());
     int size = indices.size();
     for(int i=0; i < size; i++) {
@@ -143,7 +181,7 @@ vec titanlib::util::subset(const vec& input, const ivec& indices) {
     return output;
 }
 
-Points titanlib::util::subset(const Points& input, const ivec& indices) {
+Points titanlib::subset(const Points& input, const ivec& indices) {
     int size = indices.size();
     vec ilats = input.get_lats();
     vec ilons = input.get_lons();
@@ -164,7 +202,7 @@ Points titanlib::util::subset(const Points& input, const ivec& indices) {
     return Points(lats, lons, elevs, lafs);
 }
 
-float* titanlib::util::test_array(float* v, int n) {
+float* titanlib::test_array(float* v, int n) {
     int count = 0;
     for(int i = 0; i < n; i++)
         count++;
