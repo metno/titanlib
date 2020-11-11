@@ -71,5 +71,5 @@ void titanlib::Dataset::buddy_event_check(const vec& radius, const ivec& num_min
     }
 }
 void titanlib::Dataset::isolation_check(int num_min, float radius, float vertical_radius) {
-    flags = titanlib::isolation_check(lats, lons, elevs, num_min, radius, vertical_radius);
+    flags = titanlib::isolation_check(points, num_min, radius, vertical_radius);
 }

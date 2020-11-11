@@ -147,28 +147,13 @@ namespace titanlib {
      *  @param lons vector of longitudes [deg]
      *  @param num_min required number of observations
      *  @param radius search radius [m]
+     *  @param vertical_radius Vertical search radius [m]
      *  @param flags vector of return flags
      */
-    ivec isolation_check(const vec& lats,
-            const vec& lons,
-            int num_min,
-            float radius);
-
-    /** Isolation check with elevation. Checks that a station is not located alone
-     *  @param lats Vector of latitudes [deg]
-     *  @param lons Vector of longitudes [deg]
-     *  @param elevs Vector of elevations [m]
-     *  @param num_min Required number of observations
-     *  @param radius Search radius [m]
-     *  @param vertical_radius Vertical search radius [m]
-     *  @param flags Vector of return flags
-     */
-    ivec isolation_check(const vec& lats,
-            const vec& lons,
-            const vec& elevs,
+    ivec isolation_check(const Points& points,
             int num_min,
             float radius,
-            float vertical_radius);
+            float vertical_radius=MV);
 
     /** Method by McCarthy 1973 */
     vec lag_reduction_filter(const vec& times, const vec& values, float a=0.5, float b=0.5, float k1=0.25, float k2=0.25, int n=10);
