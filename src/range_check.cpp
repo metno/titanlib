@@ -6,6 +6,8 @@
 #include <exception>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 
+using namespace titanlib;
+
 double mean_temp(float lat, int unixtime);
 double interpolate(int i1, int i2, float lat, float latitudes[], double numbers[]);
 std::pair<int,int> find_between(float lat, float latitudes[], int len);

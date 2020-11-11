@@ -3,6 +3,8 @@
 #include <proj_api.h>
 #include <math.h>
 
+using namespace titanlib;
+
 bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
     int N = lats.size();
     x_coords.resize(N);
@@ -139,6 +141,27 @@ vec titanlib::util::subset(const vec& input, const ivec& indices) {
         output[i] = input[index];
     }
     return output;
+}
+
+Points titanlib::util::subset(const Points& input, const ivec& indices) {
+    int size = indices.size();
+    vec ilats = input.get_lats();
+    vec ilons = input.get_lons();
+    vec ielevs = input.get_elevs();
+    vec ilafs = input.get_lafs();
+    vec lats(size);
+    vec lons(size);
+    vec elevs(size);
+    vec lafs(size);
+    for(int i=0; i < size; i++) {
+        int index = indices[i];
+        assert(index < input.size());
+        lats[i] = ilats[index];
+        lons[i] = ilons[index];
+        elevs[i] = ielevs[index];
+        lafs[i] = ilafs[index];
+    }
+    return Points(lats, lons, elevs, lafs);
 }
 
 float* titanlib::util::test_array(float* v, int n) {

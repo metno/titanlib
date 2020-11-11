@@ -2,10 +2,13 @@
 #include <vector>
 #include "titanlib.h"
 
-titanlib::Dataset::Dataset(vec ilats, vec ilons, vec ielevs, vec ivalues) {
-    lats = ilats;
-    lons = ilons;
-    elevs = ielevs;
+using namespace titanlib;
+
+titanlib::Dataset::Dataset(Points points, vec ivalues) {
+    this->points = points;
+    lats = points.get_lats();
+    lons = points.get_lons();
+    elevs = points.get_elevs();
     values = ivalues;
     flags.resize(lats.size());
 }
@@ -40,12 +43,12 @@ void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float 
             vec& prob_gross_error, vec& rep, const ivec& indices) {
     ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, rep);
+        ivec iflags = titanlib::sct(titanlib::util::subset(points, indices), subset(values, indices), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, subset(t2pos, indices), subset(t2neg, indices), subset(eps2, indices), prob_gross_error, rep);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
     }
     else {
-        flags = titanlib::sct(lats, lons, elevs, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, t2pos, t2neg, eps2, prob_gross_error, rep);
+        flags = titanlib::sct(points, values, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, t2pos, t2neg, eps2, prob_gross_error, rep);
     }
 }
 

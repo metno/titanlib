@@ -1,5 +1,7 @@
 #include "titanlib.h"
 
+using namespace titanlib;
+
 vec titanlib::lag_reduction_filter(const vec& times, const vec& values, float a, float b, float k1, float k2, int n) {
     vec result(times.size());
     result[0] = values[0];

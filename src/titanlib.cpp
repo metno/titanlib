@@ -1,6 +1,8 @@
 #include "titanlib.h"
 #include <sys/time.h>
 
+using namespace titanlib;
+
 std::string titanlib::version() {
     return __version__;
 }

@@ -14,10 +14,18 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
+using namespace titanlib;
 
+namespace {
+    template<class T1, class T2> struct sort_pair_first {
+        bool operator()(const std::pair<T1,T2>&left, const std::pair<T1,T2>&right) {
+            return left.first < right.first;
+        };
+    };
+}
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
-ivec remove_flagged(ivec indices, ivec flags);
+void remove_flagged(ivec indices, vec distances, ivec flags);
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
@@ -25,9 +33,7 @@ double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
 
 // start SCT //
-ivec titanlib::sct(const vec& lats,
-        const vec& lons,
-        const vec& elevs,
+ivec titanlib::sct(const Points& points,
         const vec& values,
         // determine if we have too many or too few observations
         // (too many means we can reduce the distance, too few mean isolation problem and cannot flag?)
@@ -46,6 +52,10 @@ ivec titanlib::sct(const vec& lats,
         const vec& eps2,
         vec& prob_gross_error,
         vec& rep) {
+
+    const vec lats = points.get_lats();
+    const vec lons = points.get_lons();
+    const vec elevs = points.get_elevs();
 
     const int s = values.size();
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
@@ -91,10 +101,30 @@ ivec titanlib::sct(const vec& lats,
             if(checked[curr] > 0) {
                 continue;
             }
+
+
             // get all neighbours that are close enough
             vec distances;
-            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max, true, distances);
-            neighbour_indices = remove_flagged(neighbour_indices, flags);
+            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, false);
+            remove_flagged(neighbour_indices, distances, flags);
+
+            if(neighbour_indices.size() > num_max) {
+
+                int N = neighbour_indices.size();
+                std::vector<std::pair<float,int> > pairs(N);
+                for(int i = 0; i < neighbour_indices.size(); i++) {
+                    pairs[i] = std::pair<float, int>(distances[i], neighbour_indices[i]);
+                }
+                std::sort(pairs.begin(), pairs.end(), ::sort_pair_first<float,int>());
+                distances.clear();
+                neighbour_indices.clear();
+                distances.resize(num_max);
+                neighbour_indices.resize(num_max);
+                for(int i = 0; i < num_max; i++) {
+                    distances[i] = pairs[i].first;
+                    neighbour_indices[i] = pairs[i].second;
+                }
+            }
             if(neighbour_indices.size() < num_min) {
                 checked[curr] = 1;
                 // flag as isolated? 
@@ -443,13 +473,15 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
 }
 
 
-ivec remove_flagged(ivec indices, ivec flags) {
-    ivec removed;
-    removed.reserve(indices.size());
+void remove_flagged(ivec indices, vec distances, ivec flags) {
+    ivec indices_new;
+    vec distances_new;
+    indices_new.reserve(indices.size());
+    distances_new.reserve(indices.size());
     for(int i=0; i<indices.size(); i++) {
         if(flags[indices[i]] == 0 ) {
-            removed.push_back(indices[i]);
+            indices_new.push_back(indices[i]);
+            distances_new.push_back(distances[i]);
         }
     }
-    return removed;
 }

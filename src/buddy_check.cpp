@@ -8,6 +8,8 @@
 #include <exception>
 #include "titanlib.h"
 
+using namespace titanlib;
+
 ivec titanlib::buddy_check(const vec& lats,
         const vec& lons,
         const vec& elevs,
@@ -66,7 +68,7 @@ ivec titanlib::buddy_check(const vec& lats,
                 }
 
                 // get all neighbours that are close enough
-                ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
+                ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], false);
 
                 int n_buddies = 0;
                 vec list_buddies;
