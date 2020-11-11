@@ -228,7 +228,7 @@ bool titanlib::KDTree::within_radius::operator()(value const& v) const {
     float x1 = p.get<0>();
     float y1 = p.get<1>();
     float z1 = p.get<2>();
-    return titanlib::KDTree::calc_distance(x0, y0, z0, x1, y1, z1) < radius;
+    return titanlib::KDTree::calc_distance(x0, y0, z0, x1, y1, z1) <= radius;
 }
 titanlib::KDTree::is_not_equal::is_not_equal(point p)  {
     this->p = p;

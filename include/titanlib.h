@@ -144,6 +144,11 @@ namespace titanlib {
             float radius,
             float vertical_radius=MV);
 
+    /** Duplicate check. Checks Flags duplicate stations. Keeps the first one when duplicates.
+     *  @param radius Stations within this radius are considered duplicates [m]
+     */
+    ivec duplicate_check(const Points& points, float radius);
+
     /** Method by McCarthy 1973 */
     vec lag_reduction_filter(const vec& times, const vec& values, float a=0.5, float b=0.5, float k1=0.25, float k2=0.25, int n=10);
 
