@@ -36,8 +36,9 @@ class SctTest(unittest.TestCase):
     def test_simple(self):
         elevs0 = [0, 0, 0]
         values0 = [0, 1, 100]
+        points0 = titanlib.Points(lats, lons, elevs0)
 
-        flags, sct, rep = titanlib.sct(lats, lons, elevs0, values0, num_min, num_max, inner_radius,
+        flags, sct, rep = titanlib.sct(points0, values0, num_min, num_max, inner_radius,
                 outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
                 vertical_scale, pos, neg, eps2)
         np.testing.assert_array_equal(flags, [0, 0, 1])
@@ -49,11 +50,12 @@ class SctTest(unittest.TestCase):
         lats = np.random.randn(N) * 1;
         lons = np.random.randn(N) * 1;
         elevs = np.random.rand(N) * 100;
+        points = titanlib.Points(lats, lons, elevs)
         values = np.random.randn(N) * 6;
         pos = np.ones(N) * 4;
         neg = np.ones(N) * 4;
         eps2 = np.ones(N) * 0.5;
-        flags, sct, rep = titanlib.sct(lats, lons, elevs, values, 5, 100, 4000, 10000, 2, 30, 100, 1000, 100, pos, neg, eps2)
+        flags, sct, rep = titanlib.sct(points, values, 5, 100, 4000, 10000, 2, 30, 100, 1000, 100, pos, neg, eps2)
 
         print("%.1fs" % (time.time() - s_time))
 

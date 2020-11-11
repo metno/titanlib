@@ -53,9 +53,9 @@ ivec titanlib::sct(const Points& points,
         vec& prob_gross_error,
         vec& rep) {
 
-    const vec lats = points.get_lats();
-    const vec lons = points.get_lons();
-    const vec elevs = points.get_elevs();
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
 
     const int s = values.size();
     if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
@@ -105,7 +105,7 @@ ivec titanlib::sct(const Points& points,
 
             // get all neighbours that are close enough
             vec distances;
-            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, false);
+            ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
             remove_flagged(neighbour_indices, distances, flags);
 
             if(neighbour_indices.size() > num_max) {
