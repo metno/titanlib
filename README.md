@@ -32,7 +32,6 @@ On Ubuntu Bionic, these can be installed like this:
 sudo apt-get update
 sudo apt-get install libboost-all-dev
 sudo apt-get install libgsl-dev libblas-dev
-sudo apt-get install libproj-dev
 ```
 
 ## Installing the python bindings from pip

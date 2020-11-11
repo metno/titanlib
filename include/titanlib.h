@@ -191,6 +191,7 @@ namespace titanlib {
      * @return The current UTC time (in seconds since 1970-01-01 00:00:00Z)
      */
     double clock();
+    bool is_valid(float value);
 
     /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
      *  @param lats vector of latitudes [deg]
@@ -210,7 +211,6 @@ namespace titanlib {
      */
     bool convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord);
 
-    void convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords);
     vec interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons);
     float deg2rad(float deg);
     float calc_distance(float lat1, float lon1, float lat2, float lon2);

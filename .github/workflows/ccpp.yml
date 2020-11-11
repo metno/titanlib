@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
-      run: sudo apt update && sudo apt install swig doxygen r-base-core libboost-dev libproj-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
+      run: sudo apt update && sudo apt install swig doxygen r-base-core libboost-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build

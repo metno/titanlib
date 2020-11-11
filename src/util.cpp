@@ -1,11 +1,23 @@
+#include "titanlib.h"
 #include <cmath>
-#include "titanlib.h"
-#include <proj_api.h>
 #include <math.h>
-#include "titanlib.h"
+#include <assert.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <iomanip>
+#include <cstdio>
+#include <exception>
+#include <sys/time.h>
+
+#ifdef DEBUG
+extern "C" void __gcov_flush();
+#endif
 
 using namespace titanlib;
 
+bool titanlib::is_valid(float value) {
+    return !std::isnan(value) && !std::isinf(value) && value != titanlib::MV;
+}
 std::string titanlib::version() {
     return __version__;
 }
@@ -60,25 +72,6 @@ bool titanlib::convert_coordinates(float lat, float lon, float& x_coord, float& 
     y_coord = std::cos(latr) * std::sin(lonr) * earth_radius;
     z_coord = std::sin(latr) * earth_radius;
     return true;
-}
-
-void titanlib::convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords) {
-    int N = lats.size();
-    x_coords.resize(N);
-    y_coords.resize(N);
-
-    projPJ Pproj = pj_init_plus(proj4.c_str());
-    projPJ Plonglat = pj_init_plus("+proj=longlat +ellps=clrk66");
-
-    for(int i = 0; i < N; i++) {
-        double lat0 = deg2rad(lats[i]);
-        double lon0 = deg2rad(lons[i]);
-        pj_transform(Plonglat, Pproj, 1, 1, &lon0, &lat0, NULL);
-        x_coords[i] = lon0;
-        y_coords[i] = lat0;
-    }
-    pj_free(Pproj);
-    pj_free(Plonglat);
 }
 
 float titanlib::calc_distance(float lat1, float lon1, float lat2, float lon2) {
