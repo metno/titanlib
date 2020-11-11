@@ -28,13 +28,10 @@ add_library(titanlib SHARED ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
 find_package(Boost REQUIRED)
 find_package(GSL REQUIRED)
-find_package(PROJ4 REQUIRED)
 target_link_libraries(titanlib "${Boost_LIBRARIES}")
 target_link_libraries(titanlib "${GSL_LIBRARIES}")
-target_link_libraries(titanlib "${PROJ4_LIBRARY}")
 target_include_directories(titanlib PUBLIC "${Boost_INCLUDE_DIRS}")
 target_include_directories(titanlib PUBLIC "${GSL_INCLUDE_DIRS}")
-target_include_directories(titanlib PUBLIC "${PROJ4_INCLUDE_DIR}")
 install(TARGETS titanlib
     EXPORT CMakeSwigTargets
     PUBLIC_HEADER DESTINATION include
