@@ -123,7 +123,7 @@ ivec titanlib::sct(const vec& lats,
  The basic algorithm is repeated several times, each time learing from the previous iteration and testing only those observations that are left without a decision. Note that the first iteration is used only to identify bad observations, as a measure of precaution.
  The SCT-loop should end when 0 observations are flagged as "bad" ones.
 
- Finally, a round that test only bad observations using good observations is performed. A bad observation can be "saved" if pass the final round.
+ Finally, a round that test only bad observations using good observations is performed. A bad observation can be "saved" if it passes the final round.
 
  Returned values:
   flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min inside outer)
@@ -387,8 +387,8 @@ ivec titanlib::sct(const vec& lats,
                 if ( flags[index] == na) {
                     float dist = distances[i];
                     if(dist <= inner_radius) {
-                        scorebox(i) = scorebox_numerator(i) / ( sig2obox + sig2obox_mean_var);
-                        sodbox(i) = std::pow( ( scorebox_numerator(i) - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
+                        scorebox(i) = scorebox_numerator(i) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+                        sodbox(i) = std::pow( ( scorebox(i) - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
                         rep_box(i) = rep_box_numerator(i) / sig2obox;
                         // condition defining bad observations 
                         if( ((cv_res_box(i) > 0 && scorebox(i) > tpos_score[index]) || (cv_res_box(i) <= 0 && scorebox(i) > tneg_score[index])) && sodbox(i) > t_sod[index] && scorebox(i) > scorebox_max ) {
@@ -645,8 +645,8 @@ ivec titanlib::sct(const vec& lats,
 
  
         // update flags inside the inner circle
-        double scorebox = scorebox_numerator(i_curr) / ( sig2obox + sig2obox_mean_var);
-        double sodbox = std::pow( ( scorebox_numerator(i_curr) - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
+        double scorebox = scorebox_numerator(i_curr) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+        double sodbox = std::pow( ( scorebox - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
         double rep_box = rep_box_numerator(i_curr) / sig2obox;
         score[curr] = scorebox;
         rep[curr] = rep_box;
@@ -1086,9 +1086,10 @@ bool oi_adhoc( const vec& lats, const vec& lons, const vec& elevs, const vec& va
     if(debug) std::cout << std::setprecision(3) << "sig2o (var) " << sig2o << " " << sig2o_mean_var << " " << std::endl;
  
     // finalize score_mean
-    score_mean = score_mean / sig2o;
+    double sig2o_tilde = sig2o+std::sqrt(sig2o_mean_var);
+    score_mean = score_mean / sig2o_tilde;
     // score sample variance
-    score_var  = M2a / (p-1) * 1/(sig2o*sig2o);
+    score_var  = M2a / (p-1) * 1/(sig2o_tilde*sig2o_tilde);
     // score variance of mean (see e.g. Taylor "an Intro to error analysis..." 1982, p. 102)
     score_mean_var = score_var / p;
     if(debug) std::cout << std::setprecision(3) << "score_mean (var) " << score_mean << " " << score_mean_var << " " << std::endl;
