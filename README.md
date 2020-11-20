@@ -120,6 +120,8 @@ cacheMetaData(1)
 sct(c(60,60.1,60.2), c(10,10,10), c(0,0,0), c(0,1,-111),50000,2,2,100,0,1,2)
 ```
 
+See also the _Installation tips and tricks_ on the [[wiki|https://github.com/metno/titanlib/wiki/R-interface]] .
+
 ## Copyright and license
 
 Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
