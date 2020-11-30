@@ -339,6 +339,13 @@ ivec titanlib::sct(const vec& lats,
                             sod[index] = 0;
                             num_inner[index] = p_inner;
                             innov[index] = innov_box(i);
+                            horizontal_scale[index] = na;
+                            an_inc[index] = na;
+                            an_res[index] = na;
+                            cv_res[index] = na;
+                            idi[index] = na;
+                            idiv[index] = na;
+                            sig2o[index] = na;
                             flags[index] = 0;
                             if (debug) std::cout << " small_innov - index " << index << std::endl;
                         }
@@ -387,7 +394,8 @@ ivec titanlib::sct(const vec& lats,
                 if ( flags[index] == na) {
                     float dist = distances[i];
                     if(dist <= inner_radius) {
-                        scorebox(i) = scorebox_numerator(i) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+//                        scorebox(i) = scorebox_numerator(i) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+                        scorebox(i) = scorebox_numerator(i) / sig2obox;
                         sodbox(i) = std::pow( ( scorebox(i) - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
                         rep_box(i) = rep_box_numerator(i) / sig2obox;
                         // condition defining bad observations 
@@ -401,21 +409,21 @@ ivec titanlib::sct(const vec& lats,
                             // candidate for good observation
                             update[i] = 1;
                             if(debug) std::cout << std::setprecision(3) << " decision - step1 - flag=0? - index scorebox sodbox corep distance " << index << " " << scorebox(i) << " " << sodbox(i) << " " << rep_box(i) << " " << dist << std::endl;
-                            if ( scorebox(i) > score[index]) {
-                                // update diagnostics, note that we keep the "worst" scores
-                                score[index] = scorebox(i);
-                                rep[index] = rep_box(i);
-                                sod[index] = sodbox(i);
-                                num_inner[index] = p_inner;
-                                horizontal_scale[index] = Dhbox_mean;
-                                an_inc[index] = an_inc_box(i);
-                                an_res[index] = an_res_box(i);
-                                cv_res[index] = cv_res_box(i);
-                                innov[index] = innov_box(i);
-                                idi[index] = idi_box(i);
-                                idiv[index] = idiv_box(i);
-                                sig2o[index] = sig2obox;
-                            }
+//                            if ( scorebox(i) > score[index]) {
+//                                // update diagnostics, note that we keep the "worst" scores
+//                                score[index] = scorebox(i);
+//                                rep[index] = rep_box(i);
+//                                sod[index] = sodbox(i);
+//                                num_inner[index] = p_inner;
+//                                horizontal_scale[index] = Dhbox_mean;
+//                                an_inc[index] = an_inc_box(i);
+//                                an_res[index] = an_res_box(i);
+//                                cv_res[index] = cv_res_box(i);
+//                                innov[index] = innov_box(i);
+//                                idi[index] = idi_box(i);
+//                                idiv[index] = idiv_box(i);
+//                                sig2o[index] = sig2obox;
+//                            }
                         }
                         count_updates++;
                     }
@@ -622,6 +630,13 @@ ivec titanlib::sct(const vec& lats,
             sod[curr] = 0;
             num_inner[curr] = p_inner;
             innov[curr] = innov_box(i_curr);
+            horizontal_scale[curr] = na;
+            an_inc[curr] = na;
+            an_res[curr] = na;
+            cv_res[curr] = na;
+            idi[curr] = na;
+            idiv[curr] = na;
+            sig2o[curr] = na;
             flags[curr] = 0;
             saved++;
             if (debug) std::cout << " saved - small_innov - index " << curr << std::endl;
@@ -645,7 +660,8 @@ ivec titanlib::sct(const vec& lats,
 
  
         // update flags inside the inner circle
-        double scorebox = scorebox_numerator(i_curr) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+//        double scorebox = scorebox_numerator(i_curr) / ( sig2obox + std::sqrt(sig2obox_mean_var));
+        double scorebox = scorebox_numerator(i_curr) / sig2obox;
         double sodbox = std::pow( ( scorebox - scorebox_mean), 2) / (scorebox_var + scorebox_mean_var);
         double rep_box = rep_box_numerator(i_curr) / sig2obox;
         score[curr] = scorebox;
@@ -672,9 +688,36 @@ ivec titanlib::sct(const vec& lats,
         }
         count_oi++; // one more OI
     }  // end loop over observations
+
+
     std::cout << "Final decision. Thrown out " << rethrown_out << " Saved " << saved << " Number of OI " << count_oi << std::endl;
     double e_time0 = titanlib::util::clock();
     std::cout << e_time0 - s_time0 << "secs" << std::endl;
+    
+    //
+    if(debug) {
+        // loop over observations
+        for(int curr=0; curr < p; curr++) {
+            if( flags[curr] == 1) {
+                double aux = an_res[curr] * cv_res[curr] / sig2o[curr];
+//                if ( score[curr] < tpos_score[curr]) {
+                if ( aux < tpos_score[curr]) {
+                    std::cout << std::setprecision(3) << "@@BAD - curr an_res cv_res sig2o score aux: " << curr << " " << an_res[curr] << " " << cv_res[curr] << " " << sig2o[curr] << " " << score[curr] << " " << aux << std::endl; 
+                } else {
+                    std::cout << std::setprecision(3) << "  BAD - curr an_res cv_res sig2o score aux: " << curr << " " << an_res[curr] << " " << cv_res[curr] << " " << sig2o[curr] << " " << score[curr] << " " << aux << std::endl;
+                }
+            } else {
+                double aux = an_res[curr] * cv_res[curr] / sig2o[curr];
+//                if ( score[curr] < tpos_score[curr]) {
+                if ( aux < tpos_score[curr]) {
+                    std::cout << std::setprecision(3) << "   GOOD - curr an_res cv_res sig2o score aux: " << curr << " " << an_res[curr] << " " << cv_res[curr] << " " << sig2o[curr] << " " << score[curr] << " " << aux << std::endl;
+                } else {
+                    std::cout << std::setprecision(3) << " @@GOOD - curr an_res cv_res sig2o score aux: " << curr << " " << an_res[curr] << " " << cv_res[curr] << " " << sig2o[curr] << " " << score[curr] << " " << aux << std::endl;
+                }
+            }
+        }
+    }
+    //
     
     std::cout << ">> Total Time " << e_time0 - s_time << "secs" << std::endl;
 
