@@ -158,7 +158,7 @@ ivec titanlib::sct(const vec& lats,
         throw std::invalid_argument("sig2o_max must be > sig2o_min");
     if(sig2o_min < 0)
         throw std::invalid_argument("sig2o_min must be >= 0");
-    if(background_elab_type != "vertical_profile" && background_elab_type != "vertical_profile_Theil_Sen" && background_elab_type != "mean_outer_circle" && background_elab_type != "external")
+    if(background_elab_type != "vertical_profile" && background_elab_type != "vertical_profile_Theil_Sen" && background_elab_type != "mean_outer_circle" && background_elab_type != "external" && background_elab_type != "median_outer_circle")
         throw std::invalid_argument("background_elab_type must be one of vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle or external");
     if(background_elab_type == "vertical_profile" && num_min_prof<0)
         throw std::invalid_argument("num_min_prof must be >=0");
@@ -305,6 +305,10 @@ ivec titanlib::sct(const vec& lats,
                 std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
                 double mean_val = std::accumulate(values_box1.begin(), values_box1.end(), 0.0) / ( p_outer - 1);
                 bvalues_box.resize(p_outer, mean_val);
+            } else if( background_elab_type == "median_outer_circle"){
+                std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+                double median_val = titanlib::util::compute_quantile( 0.5, values_box1);
+                bvalues_box.resize(p_outer, median_val);
             } else if( background_elab_type == "external"){
                 bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
             } 
@@ -601,6 +605,10 @@ ivec titanlib::sct(const vec& lats,
             std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
             double mean_val = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
             bvalues_box.resize(p_outer, mean_val);
+        } else if( background_elab_type == "median_outer_circle"){
+            std::vector<float> values_box1(values_box.begin(), values_box.end() - 1);
+            double median_val = titanlib::util::compute_quantile( 0.5, values_box1);
+            bvalues_box.resize(p_outer, median_val);
         } else if( background_elab_type == "external"){
             bvalues_box = titanlib::util::subset(background_values, neighbour_indices);
         } 
