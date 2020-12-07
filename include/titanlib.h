@@ -89,8 +89,8 @@ namespace titanlib {
             float vertical_scale,
             float value_min,
             float value_max,
-            float sig2o_min,
-            float sig2o_max,
+            const vec& sig2o_min,
+            const vec& sig2o_max,
             const vec& eps2,
             const vec& tpos_score,
             const vec& tneg_score,
@@ -253,7 +253,7 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, float value_min, float value_max, float sig2o_min, float sig2o_max, const vec& eps2, const vec& tpos_score, const vec& tneg_score, const vec& t_sod, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& score, vec& rep, vec& sod, vec& num_inner, vec& horizontal_scale, vec& an_inc, vec& an_res, vec& cv_res, vec& innov, vec& idi, vec& idiv, vec& sig2o, const ivec& indices=ivec()); 
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, float value_min, float value_max, const vec& sig2o_min, const vec& sig2o_max, const vec& eps2, const vec& tpos_score, const vec& tneg_score, const vec& t_sod, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& score, vec& rep, vec& sod, vec& num_inner, vec& horizontal_scale, vec& an_inc, vec& an_res, vec& cv_res, vec& innov, vec& idi, vec& idiv, vec& sig2o, const ivec& indices=ivec()); 
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);

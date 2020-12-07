@@ -32,8 +32,8 @@ t_sod = np.ones(N) * 4
 eps2 = np.ones(N) * 0.5
 value_min = -50
 value_max = 50
-sig2o_min = 0.01
-sig2o_max = 20
+sig2o_min = np.ones(N) * 0.01
+sig2o_max = np.ones(N) * 20
 debug = True
 
 class SctTest(unittest.TestCase):
@@ -59,8 +59,8 @@ class SctTest(unittest.TestCase):
         eps21 = np.ones(P) * 0.5
         value_min1 = -50
         value_max1 = 50
-        sig2o_min1 = 0.01
-        sig2o_max1 = 20
+        sig2o_min1 = np.ones(N) * 0.01
+        sig2o_max1 = np.ones(N) * 20
         debug1 = False
 
         

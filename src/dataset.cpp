@@ -42,8 +42,8 @@ void titanlib::Dataset::sct( int num_min,
             float vertical_scale,
             float value_min,
             float value_max,
-            float sig2o_min,
-            float sig2o_max,
+            const vec& sig2o_min,
+            const vec& sig2o_max,
             const vec& eps2, 
             const vec& tpos_score, 
             const vec& tneg_score, 
@@ -67,7 +67,7 @@ void titanlib::Dataset::sct( int num_min,
             const ivec& indices) {
     ivec boxids;
     if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), subset(obs_to_check, indices), subset(background_values, indices), background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, sig2o_min, sig2o_max, subset(eps2, indices), subset(tpos_score, indices), subset(tneg_score, indices), subset(t_sod, indices), debug, score, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o);
+        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), subset(obs_to_check, indices), subset(background_values, indices), background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, subset(sig2o_min, indices), subset(sig2o_max, indices), subset(eps2, indices), subset(tpos_score, indices), subset(tneg_score, indices), subset(t_sod, indices), debug, score, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o);
         unsubset(iflags, flags, indices);
         // DO we have to deal with unsubsetting sct variable?
     } else {
