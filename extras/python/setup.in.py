@@ -31,10 +31,10 @@ class CustomInstall(install):
 
 
 module = Extension('_titanlib',
-        sources=glob.glob('src/api/*.cpp') + glob.glob('src/api/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
+        sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
         libraries=["gsl", "gslcblas", "armadillo"],
-        extra_compile_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}".split(),
-        extra_link_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}".split(),
+        extra_compile_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}".split(),
+        extra_link_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}".split(),
         library_dirs=["/usr/lib64"],
         include_dirs=['./include', numpy.get_include()]
 )
