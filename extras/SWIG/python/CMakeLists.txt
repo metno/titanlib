@@ -1,4 +1,5 @@
 find_package(PythonLibs REQUIRED)
+find_package(PythonInterp REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
 
 if(SWIG_VERSION GREATER_EQUAL 4)
