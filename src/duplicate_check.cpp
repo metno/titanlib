@@ -4,7 +4,7 @@
 
 using namespace titanlib;
 
-ivec titanlib::duplicate_check(const Points& points, float radius) {
+ivec titanlib::duplicate_check(const Points& points, float radius, float vertical_range) {
 
     const vec& lats = points.get_lats();
     const vec& lons = points.get_lons();
@@ -22,8 +22,20 @@ ivec titanlib::duplicate_check(const Points& points, float radius) {
         checked[i] = 1;
         keep.push_back(i);
         if(num > 1) {
-            for(int j = 0; j < num; j++) {
-                checked[indices[j]] = 1;
+            // Count how many are within the elevation range
+            // TODO: What should we do if we have a vertical_range, but the elevations are missing?
+            if(titanlib::is_valid(vertical_range) && titanlib::is_valid(elevs[i])) {
+                num = 0;
+                for(int j = 0; j < indices.size(); j++) {
+                    float curr_elev = elevs[indices[j]];
+                    if(titanlib::is_valid(curr_elev) && (fabs(elevs[i] - curr_elev) <= vertical_range))
+                        checked[indices[j]] = 1;
+                }
+            }
+            else {
+                for(int j = 0; j < num; j++) {
+                    checked[indices[j]] = 1;
+                }
             }
         }
     }

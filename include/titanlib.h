@@ -47,11 +47,10 @@ namespace titanlib {
 
     class Points;
 
-    /**
-     * @return Titanlib version
-     */
-    std::string version();
-
+    /** ****************************************
+     * @name Spatial checks
+     * Checks that consider the spatial properties of observations
+     * *****************************************/ /**@{*/
     /** Spatial Consistency Test
      *  @param num_min_prof Minimum number of observations to compute vertical profile
      *  @param inner_radius Radius for flagging [m]
@@ -146,9 +145,14 @@ namespace titanlib {
 
     /** Duplicate check. Checks Flags duplicate stations. Keeps the first one when duplicates.
      *  @param radius Stations within this radius are considered duplicates [m]
+     *  @param vertical_range Stations must also be within this vertical range to be considered duplicates [m]. Disable if MV.
      */
-    ivec duplicate_check(const Points& points, float radius);
+    ivec duplicate_check(const Points& points, float radius, float vertical_range=titanlib::MV);
 
+    /** ****************************************
+     * @name Timeserie methods
+     * Functions that operate on timeseries of observations
+     * *****************************************/ /**@{*/
     /** Method by McCarthy 1973 */
     vec lag_reduction_filter(const vec& times, const vec& values, float a=0.5, float b=0.5, float k1=0.25, float k2=0.25, int n=10);
 
@@ -166,6 +170,12 @@ namespace titanlib {
      * @name Utilities
      * Helper functions
      * *****************************************/ /**@{*/
+
+    /**
+     * @return Titanlib version
+     */
+    std::string version();
+
     /**
      * @return The current UTC time (in seconds since 1970-01-01 00:00:00Z)
      */
@@ -206,9 +216,9 @@ namespace titanlib {
      * *****************************************/ /**@{*/
     /** Required for SWIG only */
     float* test_array(float* v, int n);
-    /**@}*/
 
     void test_not_implemented_exception();
+    /**@}*/
     // ivec nearest_neighbours(const vec& lats, const vec& lons, float radius, float lat, float lon);
 
     // bool prioritize(const vec& values, const ivec& priority, float distance, ivec& flags);
@@ -372,6 +382,7 @@ namespace titanlib {
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);
+            void duplicate_check(float radius, float vertical_range=titanlib::MV);
 
             vec lats;
             vec lons;

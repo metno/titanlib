@@ -73,3 +73,6 @@ void titanlib::Dataset::buddy_event_check(const vec& radius, const ivec& num_min
 void titanlib::Dataset::isolation_check(int num_min, float radius, float vertical_radius) {
     flags = titanlib::isolation_check(points, num_min, radius, vertical_radius);
 }
+void titanlib::Dataset::duplicate_check(float radius, float vertical_range) {
+    flags = titanlib::duplicate_check(points, radius, vertical_range);
+}
