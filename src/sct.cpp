@@ -20,15 +20,15 @@
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 
-bool set_indices( const ivec& indices_global_to_outer_guess, const ivec& obs_to_test, const ivec& flags, const vec& dist_outer_guess, float inner_radius, int test_just_this, ivec& indices_global_to_outer, ivec& indices_global_to_test, ivec& indices_outer_to_inner, ivec& indices_outer_to_test, ivec& indices_inner_to_test);
+bool set_indices( const ivec& indices_global_outer_guess, const ivec& obs_test, const ivec& flags, const vec& dist_outer_guess, float inner_radius, int test_just_this, ivec& indices_global_outer, ivec& indices_global_test, ivec& indices_outer_inner, ivec& indices_outer_test, ivec& indices_inner_test);
 
 // SCT within the inner circle
 
-bool sct_atom( const vec& lats, const vec& lons, const vec& elevs, const vec& yo, const vec& yb, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_to_test, const ivec& indices_outer_to_inner, const ivec& indices_outer_to_test, const ivec& indices_inner_to_test, bool debug, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
+bool sct_core( const vec& lats, const vec& lons, const vec& elevs, const vec& yo, const vec& yb, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, float minp, float maxp, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
 
 // background (first-guess estimates) elaboration
 
-vec background( std::string background_elab_type, const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, const vec& external_background_values, const ivec& indices_global_to_outer, bool debug);
+vec background( std::string background_elab_type, const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, const vec& external_background_values, const ivec& indices_global_outer, bool debug);
 
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
 
@@ -76,34 +76,52 @@ ivec titanlib::sct( const vec& lats,
                     vec& scores) {
 /*
 
- -- Spatial Consistency Test --
+ -+-+ Spatial Consistency Test +-+-
 
- Description: 
-  Flag observations that are (likely) affected by gross measurement errors (GE) based on neighbouring observations. Observations are affected by GEs if their values are (a) [not related to the actual atmospheric state] OR (b) [affected by such large representativeness errors (REs) that they are difficult to reconstruct using the neighbouring observations].
+ + Description: 
+    Flag observations that are (likely) affected by gross measurement errors (GE) based on neighbouring observations. Observations are affected by GEs if their values are (a) [not related to the actual atmospheric state] OR (b) [affected by such large representativeness errors (REs) that they are difficult to reconstruct using the neighbouring observations].
   For simplicity, we will refer to observations affected by GE as bad observations, viceversa good observations are those not affected by GEs. 
 
- Reference: 
-  Lussana, C., Uboldi, F. and Salvati, M.R. (2010), A spatial consistency test for surface observations from mesoscale meteorological networks. Q.J.R. Meteorol. Soc., 136: 1075-1088. doi:10.1002/qj.622 (Reference Abbreviation: LUS10)
+ + Reference: 
+    Lussana, C., Uboldi, F. and Salvati, M.R. (2010), A spatial consistency test for surface observations from mesoscale meteorological networks. Q.J.R. Meteorol. Soc., 136: 1075-1088. doi:10.1002/qj.622 (Reference Abbreviation: LUS10)
  See also the wiki-pages https://github.com/metno/titanlib/wiki/Spatial-consistency-test
 
- Algorithm: 
-  The big problem of applying the SCT over the whole observational network is splitted into several small problems.
+ + Algorithm: 
+    The big task of applying the SCT over the whole observational network is splitted into several smaller tasks.
   The SCT is applied many times in sequence. 
   Each time, the SCT is applied over a small region centered on an observation location (i.e. the centroid observation).
-  The centroid observation allows us to define an inner circle and an outer circle that surround the centroid.
+  Based on the centroid, we define an inner circle and an outer circle.
   The outer circle is used to obtain a spatial trend of the observed variable over the region, the so-called background.
   There are many ways to compute such background values.
   The observations to test are those within the inner circle that have not been tested yet.
-  The quality of those observations is determined by comparing them against estimates calculated considering all observations within the outer circle.
-  See also the comments of the function "sct_atom" for more details.
+  The quality of those observations is determined by comparing them against estimates calculated considering all observations within the outer circle. Considering an observations, we use an estimate that depends on the observed value (analysis) and one that is indipendent of it (leave-one-out cross-validation analysis, or cv-analysis).
+  See also the comments of the function "sct_core" for more details.
   
   The application of the sequence of SCTs over the whole observational network is repeated several times, until no GEs are found within the observations tested. 
   In fact, the core of SCT is to test a single observation against an independent estimate that is obtained assuming all the neighbouring observations are good ones. As a consequence, a bad observation can influence the results of some tests on neighbouring observations before being rejected.
-  We apply special care to avoid "false positives", which are good observations flagged as bad ones.
-  For each SCT over a centroid, we tend to flag as bad only the observation showing the worst result.
+  We apply special care to avoid "false positives" (good flagged as bad).
+  For each SCT over a centroid, we flag as bad only the observation showing the worst result.
+  In addition, an extra-loop is done over the bad observations where only the good ones are considered. We may "save" bad observations.
   Analogously, to avoid "false negatives" (bad flagged as good), the last loop is done over the bad observations where only the good ones are considered. We may "save" bad observations during this last loop.
 
- Pseudo-code:
+  (*) Notes on prior information (see also comments in sct_core): the user is expected to provide three different range of values, that inform about the desired tolerance level of the SCT.
+    i.   The range of allowed/plausible values (value_minp,value_maxp). The range is valid for all observations. Outside this range the variale values do not make sense.
+    ii.  The range of admissible values (values_mina,values_maxa). A range for each observation. The observed value have to be within the corresponding range (e.g. observation=2, then OK if values_mina=0 & values_maxa=4; not OK if values_mina=10 & values_maxa=14). A cv-analysis outside this range warns us about possible problems with the observation.
+    iii. The range of valid values (values_minv,values_maxv). A range for each observation. The observed value have to be within the corresponding range. If the cv-analysis is within this range, then we assume the corresponding observation is a good one, regardless of the SCT score.
+  Examples:
+    Temperature: 3 observed values(degC)=( 10, 15, 5). (value_minp,value_maxp)=(-60,50). (values_mina,values_maxa) = observed values plus/minus 15 degC. (values_minv,values_maxv) = observed values plus/minus 1 degC.
+    Precipitation: 3 observed values(mm)=( 0, 50, 1). (value_minp,value_maxp)=(0,300). (values_mina,values_maxa) = observed values plus/minus either 10 mm or 50% of the value. (values_minv,values_maxv) = observed values plus/minus either 1 mm or 10% of the value.
+
+  (*) Notes on the data structures (see also comments in set_indices): we have defined a hierarchy of data structures
+    global -> outer -> inner -> test
+   global vectors are the input vectors. The other data structures refer to a specific iteration when a centroid observation has been identified. outer are the vectors of data on the outer circle, not yet flagged as bad. inner are the data on the inner circle, not yet flagged as bad. test data are the observations in the inner circle and still to test.
+   We use the same counter variables for the data structures: g -> global; i,j -> outer; l -> inner; m -> test
+   There are vectors of indices matching the different structures. 
+   For example, indices_outer_inner matches the outer and the inner vectors. indices_outer_inner is a vector of the dimension of the number of observations in the inner circle. The instruction i=indices_outer_inner[l] maps the l-th element of inner-type vectors as the i-th element of outer-type vectors.
+
+ (*) Notes on the thresholds. Different thresholds can be used for different observations. The thresholds vectors have the same dimensions of the observations vectors (global). For each observation, two thresholds (tpos,tneg) have to be set by the user. tpos is the threshold used when the observed value is higher than the cv-analysis, otherwise tneg is used. 
+
+ + Pseudo-code:
  
   Loop over the number of iterations prescribed
     Loop over the p observations (observation index is "curr"). 
@@ -119,9 +137,9 @@ ivec titanlib::sct( const vec& lats,
 
   Loop over the bad observations and use each of them as a centroid
   
- Returned values:
+ + Returned values:
 
-  scores. only for observations rejected by the SCT, z-score (See sct_atom)
+  scores. only for observations rejected by the SCT, z-score (See sct_core)
 
   flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
 
@@ -151,7 +169,11 @@ ivec titanlib::sct( const vec& lats,
         throw std::invalid_argument("outer_radius must be >= inner_radius");
     if(value_maxp <= value_minp)
         throw std::invalid_argument("value_maxp must be > value_minp");
-    if(background_elab_type != "vertical_profile" && background_elab_type != "vertical_profile_Theil_Sen" && background_elab_type != "mean_outer_circle" && background_elab_type != "external" && background_elab_type != "median_outer_circle")
+    if( background_elab_type != "vertical_profile" && 
+        background_elab_type != "vertical_profile_Theil_Sen" && 
+        background_elab_type != "mean_outer_circle" && 
+        background_elab_type != "median_outer_circle" &&
+        background_elab_type != "external")
         throw std::invalid_argument("background_elab_type must be one of vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, median_outer_circle or external");
     if(background_elab_type == "vertical_profile" && num_min_prof<0)
         throw std::invalid_argument("num_min_prof must be >=0");
@@ -161,7 +183,7 @@ ivec titanlib::sct( const vec& lats,
     // initializations
     float na = -999.; // code for "Not Available". Any type of missing data
     ivec flags( p, na);
-    ivec obs_to_test( p, 1);
+    ivec obs_test( p, 1);
 
     bool set_all_good = false;
     
@@ -170,7 +192,7 @@ ivec titanlib::sct( const vec& lats,
     
     if (obs_to_check.size() == p) {
         for(int g=0; g < p; g++) 
-          obs_to_test[g] = obs_to_check[g];
+          obs_test[g] = obs_to_check[g];
     }
 
     /* preliminary range check
@@ -189,6 +211,14 @@ ivec titanlib::sct( const vec& lats,
 
     // KDtree has to do with fast computation of distances
     titanlib::KDTree tree(lats, lons);
+
+    //
+    if(debug) {
+        std::cout << "g lats lons obs:" << std::endl;
+        for(int g=0; g < p; g++) {
+            std::cout << g << " " << lats[g] << " " << lons[g] << " " << values[g] << std::endl;
+        }
+    }
 
     // SCT iterations
     for(int iteration = 0; iteration < num_iterations; iteration++) {
@@ -211,7 +241,7 @@ ivec titanlib::sct( const vec& lats,
             // -~- Can the observation be used as a centroid for the definition of inner and outer circles?
 
             // jump to next if observation not to be checked or already checked 
-            if(obs_to_test[curr] != 1 || flags[curr] >= 0) {
+            if(obs_test[curr] != 1 || flags[curr] >= 0) {
                 if(debug) std::cout << "..observation not suitable as a centroid " << curr << std::endl;
                 continue;
             }
@@ -220,19 +250,23 @@ ivec titanlib::sct( const vec& lats,
 
             // get all neighbours that are close enough (inside outer circle)
             vec distances;
-            ivec indices_global_to_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+            ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+            if(debug) {
+                int p_dist = distances.size();
+                std::cout << "p_dist  " << p_dist << std::endl;
+            }
 
             // set all the indices linking the different levels
 
-            ivec indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test;
-            bool res = set_indices( indices_global_to_outer_guess, obs_to_test, flags, distances, inner_radius, -1, indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test);
-            
-            int p_outer = indices_global_to_outer.size();
-            int p_inner = indices_inner_to_test.size();
-            int p_test = indices_global_to_test.size();
+            ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
+            bool res = set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, -1, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
+
+            int p_outer = indices_global_outer.size();
+            int p_inner = indices_outer_inner.size();
+            int p_test = indices_global_test.size();
             if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << "" << p_test << std::endl;
-            
-            // -~- Decide if there are enough observations in the outer/inner circles
+
+            // -~- Check if there are enough observations in the outer/inner circles
 
             if(p_outer < num_min_outer) {
                 flags[curr] = 12;
@@ -246,23 +280,60 @@ ivec titanlib::sct( const vec& lats,
                 continue;
             }
             
-            // -~- Set vectors on the outer circle
+            // -~- Vectors on the outer circle
 
-            vec lons_outer   = titanlib::util::subset(lons, indices_global_to_outer);
-            vec elevs_outer  = titanlib::util::subset(elevs, indices_global_to_outer);
-            vec lats_outer   = titanlib::util::subset(lats, indices_global_to_outer);
-            vec values_outer = titanlib::util::subset(values, indices_global_to_outer);
-            vec eps2_outer   = titanlib::util::subset(eps2, indices_global_to_outer);
-            vec tpos_outer   = titanlib::util::subset(tpos, indices_global_to_outer);
-            vec tneg_outer   = titanlib::util::subset(tneg, indices_global_to_outer);
-            vec mina_outer   = titanlib::util::subset(values_mina, indices_global_to_outer);
-            vec minv_outer   = titanlib::util::subset(values_minv, indices_global_to_outer);
-            vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_to_outer);
-            vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_to_outer);
+            vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
+            vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
+            vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
+            vec values_outer = titanlib::util::subset(values, indices_global_outer);
+            vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
+            vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
+            vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
+            vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
+            vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
+            vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
+            vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
+            
+            // Debug for indices
+            if(debug) {
+                ivec flags_outer;
+                flags_outer.resize( p_outer, na);
+                for(int i=0; i < p_outer; i++) {
+                   int g = indices_global_outer[i];
+                   flags_outer[i] = flags[g];
+                }
+                std::cout << "curr lats lons obs:" << std::endl;
+                std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << values[curr] << std::endl;
+                std::cout << "indices_global_outer - i g lats lons obs:" << std::endl;
+                for(int i=0; i<p_outer; i++) {
+                    int g = indices_global_outer[i];
+                    std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << values[g] << " " << flags[g] << std::endl;
+                }
+                std::cout << "outer - i lats lons obs:" << std::endl;
+                for(int i=0; i<p_outer; i++) {
+                    std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                }
+                std::cout << "indices_outer_inner - l i lats lons obs:" << std::endl;
+                for(int l=0; l<p_inner; l++) {
+                    int i = indices_outer_inner[l];
+                    std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                }
+                std::cout << "indices_outer_test - l m lats lons obs:" << std::endl;
+                for(int m=0; m<p_test; m++) {
+                    int i = indices_outer_test[m];
+                    std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                }
+                std::cout << "indices_inner_test - l m lats lons obs:" << std::endl;
+                for(int m=0; m<p_test; m++) {
+                    int l = indices_inner_test[m];
+                    int i = indices_outer_inner[l];
+                    std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                }
+            }
 
 
             // -~- Compute the background 
-            vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_to_outer, debug);
+            vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
             if(debug) std::cout << "... background ok ..." << std::endl;
 
@@ -273,24 +344,24 @@ ivec titanlib::sct( const vec& lats,
 
             bool small_innov = true;
             for(int m=0; m<p_test; m++) {
-                int j = indices_outer_to_test[m];
+                int j = indices_outer_test[m];
                 if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) 
                     small_innov = false;
             }
 
             if (small_innov) {
                 for(int m=0; m<p_test; m++) {
-                    int g = indices_global_to_test[m];
+                    int g = indices_global_test[m];
                     flags[g] = 0;
                     if (debug) std::cout << " small_innov - index " << g << std::endl;
                 }
                 continue;
             }
  
-            // -~- SCT within the inner circle
-
+            // -~- SCT on a selection of observations to test in the inner circle
             bool set_flag0 = iteration > 0;
-            res = sct_atom( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test, debug, na, set_flag0, thrown_out, scores, flags);
+            res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, set_flag0, thrown_out, scores, flags);
+            // thrown_out is reset every new iteration
 
             // problems during the matrix inversion
             if ( !res) {
@@ -320,7 +391,7 @@ ivec titanlib::sct( const vec& lats,
     if ( set_all_good) {
         int count_zero = 0;
         for(int curr=0; curr < p; curr++) {
-          if ( flags[curr] == na && obs_to_test[curr] == 1) {
+          if ( flags[curr] == na && obs_test[curr] == 1) {
             flags[curr] = 0;
             count_zero++;
           }
@@ -346,7 +417,7 @@ ivec titanlib::sct( const vec& lats,
 
         // -~- Can the observation be used as a centroid for the definition of inner and outer circles?
 
-        if(obs_to_test[curr] != 1 || flags[curr] >= 0) {
+        if(obs_test[curr] != 1 || flags[curr] >= 0) {
             if(debug) std::cout << "..skip " << curr << std::endl;
             continue;
         }
@@ -355,19 +426,19 @@ ivec titanlib::sct( const vec& lats,
 
         // get all neighbours that are close enough (inside outer circle)
         vec distances;
-        ivec indices_global_to_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
 
         // set all the indices linking the different levels
         // note that the only observation to test is curr
-        ivec indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test;
-        bool res = set_indices( indices_global_to_outer_guess, obs_to_test, flags, distances, inner_radius, curr, indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test);
+        ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
+        bool res = set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
             
-        int p_outer = indices_global_to_outer.size();
-        int p_inner = indices_inner_to_test.size();
-        int p_test = indices_global_to_test.size();
+        int p_outer = indices_global_outer.size();
+        int p_inner = indices_outer_inner.size();
+        int p_test = indices_global_test.size();
         if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << "" << p_test << std::endl;
             
-        // -~- Decide if there are enough observations in the outer/inner circles
+        // -~- Check if there are enough observations in the outer/inner circles
 
         if(p_outer < num_min_outer) {
             flags[curr] = 12;
@@ -381,23 +452,23 @@ ivec titanlib::sct( const vec& lats,
             continue;
         }
             
-        // -~- Set vectors on the outer circle
+        // -~- Vectors on the outer circle
 
-        vec lons_outer   = titanlib::util::subset(lons, indices_global_to_outer);
-        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_to_outer);
-        vec lats_outer   = titanlib::util::subset(lats, indices_global_to_outer);
-        vec values_outer = titanlib::util::subset(values, indices_global_to_outer);
-        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_to_outer);
-        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_to_outer);
-        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_to_outer);
-        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_to_outer);
-        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_to_outer);
-        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_to_outer);
-        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_to_outer);
+        vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
+        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
+        vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
+        vec values_outer = titanlib::util::subset(values, indices_global_outer);
+        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
+        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
+        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
+        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
+        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
+        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
+        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
 
 
         // -~- Compute the background 
-        vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_to_outer, debug);
+        vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
         if(debug) std::cout << "... background ok ..." << std::endl;
 
@@ -406,17 +477,17 @@ ivec titanlib::sct( const vec& lats,
         /* if observations and background are almost identical (within the range of valid estimates),
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
-        int j = indices_outer_to_test[1];
+        int j = indices_outer_test[1];
         if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
-            int g = indices_global_to_test[1];
+            int g = indices_global_test[1];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
             continue;
         }
 
-        // -~- SCT within the inner circle
+        // -~- SCT on a selection of observations to test in the inner circle
 
-        res = sct_atom( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test, debug, na, true, thrown_out, scores, flags);
+        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -454,7 +525,7 @@ ivec titanlib::sct( const vec& lats,
         if(debug) std::cout << "===> curr " << curr << " ===============" << std::endl;
 
         // -~- Can the observation be used as a centroid for the definition of inner and outer circles?
-        if(obs_to_test[curr] != 1 || flags[curr] != 1 || values[curr] < value_minp || values[curr] > value_maxp) {
+        if(obs_test[curr] != 1 || flags[curr] != 1 || values[curr] < value_minp || values[curr] > value_maxp) {
             if(debug) std::cout << "..skip " << curr << std::endl;
             continue;
         }
@@ -463,16 +534,16 @@ ivec titanlib::sct( const vec& lats,
 
         // get all neighbours that are close enough (inside outer circle)
         vec distances;
-        ivec indices_global_to_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
 
         // set all the indices linking the different levels
 
-        ivec indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test;
-        bool res = set_indices( indices_global_to_outer_guess, obs_to_test, flags, distances, inner_radius, curr, indices_global_to_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test);
+        ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
+        bool res = set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
             
-        int p_outer = indices_global_to_outer.size();
-        int p_inner = indices_inner_to_test.size();
-        int p_test = indices_global_to_test.size();
+        int p_outer = indices_global_outer.size();
+        int p_inner = indices_outer_inner.size();
+        int p_test = indices_global_test.size();
         if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << "" << p_test << std::endl;
             
         // -~- Decide if there are enough observations in the outer/inner circles
@@ -491,21 +562,21 @@ ivec titanlib::sct( const vec& lats,
             
         // -~- Set vectors on the outer circle
 
-        vec lons_outer   = titanlib::util::subset(lons, indices_global_to_outer);
-        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_to_outer);
-        vec lats_outer   = titanlib::util::subset(lats, indices_global_to_outer);
-        vec values_outer = titanlib::util::subset(values, indices_global_to_outer);
-        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_to_outer);
-        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_to_outer);
-        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_to_outer);
-        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_to_outer);
-        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_to_outer);
-        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_to_outer);
-        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_to_outer);
+        vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
+        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
+        vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
+        vec values_outer = titanlib::util::subset(values, indices_global_outer);
+        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
+        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
+        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
+        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
+        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
+        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
+        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
 
 
         // -~- Compute the background 
-        vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_to_outer, debug);
+        vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
         if(debug) std::cout << "... background ok ..." << std::endl;
 
@@ -514,9 +585,9 @@ ivec titanlib::sct( const vec& lats,
         /* if observations and background are almost identical (within the range of valid estimates),
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
-        int j = indices_outer_to_test[1];
+        int j = indices_outer_test[1];
         if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
-            int g = indices_global_to_test[1];
+            int g = indices_global_test[1];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
             continue;
@@ -524,7 +595,7 @@ ivec titanlib::sct( const vec& lats,
 
         // -~- SCT within the inner circle
         // note that the only observation to test is curr
-        res = sct_atom( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_to_test, indices_outer_to_inner, indices_outer_to_test, indices_inner_to_test, debug, na, true, thrown_out, scores, flags);
+        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -598,7 +669,7 @@ vec background( std::string background_elab_type,
                 float value_minp,
                 float value_maxp,
                 const vec& external_background_values,
-                const ivec& indices_global_to_outer,
+                const ivec& indices_global_outer,
                 bool debug) {
     vec bvalues;
     int p = values.size();
@@ -618,7 +689,7 @@ vec background( std::string background_elab_type,
         float median_val = titanlib::util::compute_quantile( 0.5, values);
         bvalues.resize(p, median_val);
     } else if( background_elab_type == "external"){
-        bvalues = titanlib::util::subset(external_background_values, indices_global_to_outer);
+        bvalues = titanlib::util::subset(external_background_values, indices_global_outer);
     }
     // set the range 
     for(int i=0; i<p; i++) {
@@ -885,17 +956,17 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
 }
 
 //+ Set indices
-bool set_indices( const ivec& indices_global_to_outer_guess, 
-                  const ivec& obs_to_test,
+bool set_indices( const ivec& indices_global_outer_guess, 
+                  const ivec& obs_test,
                   const ivec& flags, 
                   const vec& dist_outer_guess, 
                   float inner_radius, 
                   int test_just_this,
-                  ivec& indices_global_to_outer, 
-                  ivec& indices_global_to_test, 
-                  ivec& indices_outer_to_inner, 
-                  ivec& indices_outer_to_test, 
-                  ivec& indices_inner_to_test) {
+                  ivec& indices_global_outer, 
+                  ivec& indices_global_test, 
+                  ivec& indices_outer_inner, 
+                  ivec& indices_outer_test, 
+                  ivec& indices_inner_test) {
 /*-----------------------------------------------------------------------------
  Set all the vectors of indices linking the vectors operating over the
  different regions that we have defined: global, outer circle, inner circle,
@@ -910,42 +981,43 @@ bool set_indices( const ivec& indices_global_to_outer_guess,
  3) test. In the inner circle AND flag!=0 AND the user want to test it 
 
 ----------------------------------------------------------------------------*/
-    int p_outer_guess = indices_global_to_outer_guess.size();
-    indices_global_to_outer.reserve(p_outer_guess);
-    indices_global_to_test.reserve(p_outer_guess);
-    indices_outer_to_inner.reserve(p_outer_guess);
-    indices_outer_to_test.reserve(p_outer_guess);
-    indices_inner_to_test.reserve(p_outer_guess);
+    int p_outer_guess = indices_global_outer_guess.size();
+    indices_global_outer.reserve(p_outer_guess);
+    indices_global_test.reserve(p_outer_guess);
+    indices_outer_inner.reserve(p_outer_guess);
+    indices_outer_test.reserve(p_outer_guess);
+    indices_inner_test.reserve(p_outer_guess);
     int i = -1; // counter for indices on outer
     int l = -1; // counter for indices on inner
     for(int count=0; count<p_outer_guess; count++) {
-        int g = indices_global_to_outer_guess[count];
+        int g = indices_global_outer_guess[count];
         if(flags[g] != 1 && g != test_just_this) {
-            indices_global_to_outer.push_back(g);
+            indices_global_outer.push_back(g);
             i++;
-            if(dist_outer_guess[g] <= inner_radius) {
-                indices_outer_to_inner.push_back(i);
+            if(dist_outer_guess[count] <= inner_radius) {
+                indices_outer_inner.push_back(i);
                 l++;
-                if (test_just_this < 0 && flags[g] != 0 && obs_to_test[g] == 1) {
-                    indices_global_to_test.push_back(g);
-                    indices_outer_to_test.push_back(i);
-                    indices_inner_to_test.push_back(l);
+                if (test_just_this < 0 && flags[g] != 0 && obs_test[g] == 1) {
+                    indices_global_test.push_back(g);
+                    indices_outer_test.push_back(i);
+                    indices_inner_test.push_back(l);
                 }
             }
         }
     }
     if ( test_just_this >= 0) {
-        // add global index to global_to_outer indices as its last element
-        indices_global_to_outer.push_back(test_just_this);
-        // add global index to global_to_test as its only element
-        indices_global_to_test.push_back(test_just_this);
-        // adjust outer_to_inner, last element of outer_to_inner points to last element of outer 
-        indices_outer_to_inner.push_back(indices_global_to_outer.size()-1);
-        // adjust outer_to_test, only element of test points to last element of outer 
-        indices_outer_to_test.push_back(indices_global_to_outer.size()-1);
-        // adjust inner_to_test, only element of test points to last element of inner 
-        indices_inner_to_test.push_back(indices_outer_to_inner.size()-1);
+        // add global index to global_outer indices as its last element
+        indices_global_outer.push_back(test_just_this);
+        // add global index to global_test as its only element
+        indices_global_test.push_back(test_just_this);
+        // adjust outer_inner, last element of outer_inner points to last element of outer 
+        indices_outer_inner.push_back(indices_global_outer.size()-1);
+        // adjust outer_test, only element of test points to last element of outer 
+        indices_outer_test.push_back(indices_global_outer.size()-1);
+        // adjust inner_test, only element of test points to last element of inner 
+        indices_inner_test.push_back(indices_outer_inner.size()-1);
     }
+    //
     return true;
 }
 
@@ -953,7 +1025,7 @@ bool set_indices( const ivec& indices_global_to_outer_guess,
 // SCT WITHIN THE INNER CIRCLE
 
 // Smallets SCT unit
-bool sct_atom( const vec& lats, 
+bool sct_core( const vec& lats, 
                const vec& lons, 
                const vec& elevs, 
                const vec& yo, 
@@ -963,16 +1035,18 @@ bool sct_atom( const vec& lats,
                int kth_close, 
                float Dz, 
                const vec& eps2, 
+               float minp,
+               float maxp,
                const vec& mina, 
                const vec& maxa, 
                const vec& minv, 
                const vec& maxv, 
                const vec& tpos, 
                const vec& tneg, 
-               const ivec& indices_global_to_test, 
-               const ivec& indices_outer_to_inner, 
-               const ivec& indices_outer_to_test, 
-               const ivec& indices_inner_to_test, 
+               const ivec& indices_global_test, 
+               const ivec& indices_outer_inner, 
+               const ivec& indices_outer_test, 
+               const ivec& indices_inner_test, 
                bool debug, 
                float na, 
                bool set_flag0, 
@@ -1016,6 +1090,9 @@ bool sct_atom( const vec& lats,
       cvanalysis is so close that it validates the corresponding observation
   - admissible values, range [mina,maxa] 
       if cvanalysis is outside this range, then the observation is bad 
+  Note that the statistics defining the spread used in the SCT is based on 
+  deviations between observations and estimates that lie within the range of 
+  admissible values only.
 
  Decision tree:
 
@@ -1049,8 +1126,8 @@ bool sct_atom( const vec& lats,
 
     // init
     int p_outer = yo.size();
-    int p_inner = indices_outer_to_inner.size();
-    int p_test = indices_global_to_test.size();
+    int p_inner = indices_outer_inner.size();
+    int p_test = indices_global_test.size();
 
     /* Compute Dh. 
      The location-dependent horizontal de-correlation lenght scale 
@@ -1078,6 +1155,7 @@ bool sct_atom( const vec& lats,
         }
         // find distance to the k-th closest observations
         Dh(i) = titanlib::util::findKclosest( kth_close, Dh_vector); 
+        if(debug) std::cout << "i Dh " << i << " " << Dh(i) << std::endl;
     }
 
     float Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
@@ -1095,10 +1173,12 @@ bool sct_atom( const vec& lats,
     boost::numeric::ublas::matrix<float> S(p_outer,p_outer);
     boost::numeric::ublas::matrix<float> Sinv(p_outer,p_outer);
     for(int i=0; i < p_outer; i++) {
-        for(int j=0; j < p_outer; j++) {
-            double value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
+        for(int j=i; j < p_outer; j++) {
+            float value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
             if(i==j) { // weight the diagonal, this also ensure an invertible matrix
                 value = value + eps2[i];
+            } else {
+                S(j,i) = value;
             }
             S(i,j) = value;
         }
@@ -1114,7 +1194,7 @@ bool sct_atom( const vec& lats,
     // Matrix multiplications ( S + eps2 * I )^(-1) * (yo - yb)
     for(int i=0; i<p_outer; i++) {
         S(i,i) -= eps2[i];
-        double acc = 0;
+        float acc = 0;
         for(int j=0; j<p_outer; j++) {
             acc += Sinv(i,j) * (yo[j] - yb[j]);
         }
@@ -1127,24 +1207,36 @@ bool sct_atom( const vec& lats,
     // 2. chi_stat, chi values used to extract summary stastics 
     //    observations in the inner circle AND yav has an admissible value   
     vec chi_stat;
+    vec chi_stat_alt;
     chi_stat.reserve(p_inner);
+    chi_stat_alt.reserve(p_inner);
     boost::numeric::ublas::vector<float> chi_inner(p_inner);
+    boost::numeric::ublas::vector<float> chi_inner_alt(p_inner);
     boost::numeric::ublas::vector<float> yav(p_inner);
+    if(debug) std::cout << "analysis - i l lon lat yo yb ya yav chi chi_alt" << std::endl;
     for(int l=0; l<p_inner; l++) {
-        int i = indices_outer_to_inner[l];
-        double ya = yb[i];
+        int i = indices_outer_inner[l];
+        float ya = yb[i];
         for(int j=0; j<p_outer; j++) 
             ya += S(i,j)*Sinv_d(j);
-        yav(l) = yo[l] - 1 / Sinv(i,i) * Sinv_d(i);
+        yav(l) = yo[i] - Sinv_d(i) / Sinv(i,i);
+        if(ya < minp) ya = minp;
+        if(ya > maxp) ya = maxp;
+        if(yav(l) < minp) yav(l) = minp;
+        if(yav(l) > maxp) yav(l) = maxp;
         chi_inner(l) = std::sqrt( (yo[i] - ya) * (yo[i] - yav(l))); 
-        if ( yav(l) >= mina[i] && yav(l) <= maxa[i]) 
+        chi_inner_alt(l) = std::sqrt( eps2[i] / ( 1 + eps2[i])) * ( maxv[i] - minv[i]);
+        if ( yav(l) >= mina[i] && yav(l) <= maxa[i]) { 
             chi_stat.push_back(chi_inner(l));
+            chi_stat_alt.push_back(chi_inner_alt(l));
+        }
+        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << yo[i] << " " << yb[i] << " " << ya << " " << yav(l) << " " << chi_inner(l) << " " << chi_inner_alt(l) << std::endl;
     }
     
-    // chi_stat is empty, set all flags to 1
+    // chi_stat is empty (yav all outside the range of admissible values), set all flags to 1
     if(chi_stat.size() == 0) {
         for(int m=0; m<p_test; m++) {
-            int g = indices_global_to_test[m];
+            int g = indices_global_test[m];
             flags[g] = 1;
             thrown_out++;
             if(debug) std::cout << std::setprecision(3) << "chi_stat empty - flag as bad " << g << std::endl;
@@ -1155,57 +1247,56 @@ bool sct_atom( const vec& lats,
     // chi summary statistics
     float mu = titanlib::util::compute_quantile( 0.5, chi_stat);
     float sigma = titanlib::util::compute_quantile( 0.75, chi_stat) - titanlib::util::compute_quantile( 0.25, chi_stat);
-    float sigma_mu = sigma / chi_stat.size();
+    float sigma_alt = titanlib::util::compute_quantile( 0.75, chi_stat_alt) - titanlib::util::compute_quantile( 0.25, chi_stat_alt);
+    if (sigma_alt > sigma) sigma = sigma_alt;
+ 
+    if(sigma == 0) {
+        if(debug) std::cout << "sigma = 0, not possible to perform the spatial check " << std::endl;
+        return true;       
+    }
+    float sigma_mu = sigma / std::sqrt( chi_stat.size());
+
+    if(debug) {
+        std::cout << " chi_stat, dim = " << chi_stat.size() << std::endl;
+        for(int l=0; l<chi_stat.size(); l++) 
+            std::cout << std::setprecision(6) << chi_stat[l] << std::endl;
+        std::cout << std::setprecision(6) << " mu sigma sigma_mu " << mu << " " << sigma << " " << sigma_mu << std::endl;
+    }
    
     // z = ( chi - mu ) / ( sigma + sigma_mu )
-    bool all_bad  = true;
-    float zmx = -1;
+    float zmx = -10000;
     int mmx = -1;
+    if(debug) std::cout << "z_test - i l lons lats yo yb yav chi z " << std::endl;
     for(int m=0; m<p_test; m++) {
-        int i = indices_outer_to_test[m];
-        int l = indices_inner_to_test[m];
+        int i = indices_outer_test[m];
+        int l = indices_inner_test[m];
         float z = (chi_inner(l) - mu) / (sigma + sigma_mu);
         if (z > zmx && (yav(l) < minv[i] || yav(l) > maxv[i])) {
           zmx = z;
           mmx = m;
         } 
-        if ( yav(l) >= mina[i] || yav(l) <= maxa[i]) all_bad = false;
+        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << yo[i] << " " << yb[i] << " " << yav(l) << " " << chi_inner(l) << " " << z << std::endl;
     }
 
     // Decision making 
-    bool all_good = false;
-    // if none of the cvanalyses is within the admissible values then flag ALL as bad
-    if (all_bad) {
+    int i = indices_outer_test[mmx];
+    int l = indices_inner_test[mmx];
+    // set the threshold
+    float thr = tneg[i];
+    if ( (yo[i] - yav(l)) >= 0) thr = tpos[i];
+    // if the largest z is larger than the threshold, then flag IT as bad ...
+    if ( zmx > thr) {
+        int g = indices_global_test[mmx];
+        scores[g] = zmx;
+        flags[g] = 1;
+        thrown_out++;
+        if(debug) std::cout << std::setprecision(6) << "SCT failed - flag as bad - index yo yav chi z " << g << " " << yo[i] << " " << yav(l) << " " << chi_inner(l) << " " << zmx << std::endl;
+    // ... BUT if the largest z is smaller than the threshold (and we are confindet in flagging), then flag ALL as good
+    } else if (set_flag0) {
         for(int m=0; m<p_test; m++) {
-            int g = indices_global_to_test[m];
-            flags[g] = 1;
-            thrown_out++;
-            if(debug) std::cout << std::setprecision(3) << "ALL cv out admissible vals - flag as bad " << g << std::endl;
-        }
-    // else if the largest z is larger than the threshold, then flag IT as bad ...
-    } else if (zmx >= 0) {
-        int i = indices_outer_to_test[mmx];
-        int l = indices_inner_to_test[mmx];
-        float thr = tneg[i];
-        if ( (yo[i] - yav(l)) >= 0) 
-            thr = tpos[i];
-        if ( zmx > thr) {
-            int g = indices_global_to_test[mmx];
-            scores[g] = zmx;
-            flags[g] = 1;
-            thrown_out++;
-            if(debug) std::cout << std::setprecision(3) << "SCT failed - flag as bad - index yo yav chi z " << g << " " << yo[i] << " " << yav(l) << " " << chi_inner(l) << zmx << std::endl;
-        // ... BUT if the largest z is smaller than the threshold, then flag ALL as good
-        } else {
-            all_good = true;
-        }
-    }
-    
-    // if ALL cvanalyses are close enough to the observations AND we are confident enough
-    if ( (zmx < 0 || all_good) && set_flag0) {
-        for(int m=0; m<p_test; m++) {
-            int g = indices_global_to_test[m];
+            int g = indices_global_test[m];
             flags[g] = 0;
+            if(debug) std::cout << "all set to good - g " << g << std::endl;
         }
     }
     
