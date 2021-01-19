@@ -478,7 +478,7 @@ ivec titanlib::sct( const vec& lats,
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
         int j = indices_outer_test[0];
-        if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
+        if(bvalues_outer[j] > minv_outer[j] && bvalues_outer[j] < maxv_outer[j]) { 
             int g = indices_global_test[0];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
@@ -629,7 +629,7 @@ ivec titanlib::sct( const vec& lats,
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
         int j = indices_outer_test[0];
-        if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
+        if(bvalues_outer[j] > minv_outer[j] && bvalues_outer[j] < maxv_outer[j]) { 
             int g = indices_global_test[0];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
