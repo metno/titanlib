@@ -436,7 +436,7 @@ ivec titanlib::sct( const vec& lats,
         int p_outer = indices_global_outer.size();
         int p_inner = indices_outer_inner.size();
         int p_test = indices_global_test.size();
-        if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << "" << p_test << std::endl;
+        if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << p_test << std::endl;
             
         // -~- Check if there are enough observations in the outer/inner circles
 
@@ -477,9 +477,9 @@ ivec titanlib::sct( const vec& lats,
         /* if observations and background are almost identical (within the range of valid estimates),
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
-        int j = indices_outer_test[1];
+        int j = indices_outer_test[0];
         if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
-            int g = indices_global_test[1];
+            int g = indices_global_test[0];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
             continue;
@@ -544,7 +544,7 @@ ivec titanlib::sct( const vec& lats,
         int p_outer = indices_global_outer.size();
         int p_inner = indices_outer_inner.size();
         int p_test = indices_global_test.size();
-        if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << "" << p_test << std::endl;
+        if(debug) std::cout << "p_outer inner test " << p_outer << " " << p_inner << " " << p_test << std::endl;
             
         // -~- Decide if there are enough observations in the outer/inner circles
 
@@ -574,10 +574,53 @@ ivec titanlib::sct( const vec& lats,
         vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
         vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
 
+        // Debug for indices
+        if(debug) {
+            ivec flags_outer;
+            flags_outer.resize( p_outer, na);
+            for(int i=0; i < p_outer; i++) {
+               int g = indices_global_outer[i];
+               flags_outer[i] = flags[g];
+            }
+            std::cout << "curr lats lons obs:" << std::endl;
+            std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << values[curr] << std::endl;
+            std::cout << "indices_global_outer - i g lats lons obs:" << std::endl;
+            for(int i=0; i<p_outer; i++) {
+                int g = indices_global_outer[i];
+                std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << values[g] << " " << flags[g] << std::endl;
+            }
+            std::cout << "outer - i lats lons obs:" << std::endl;
+            for(int i=0; i<p_outer; i++) {
+                std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+            }
+            std::cout << "indices_outer_inner - l i lats lons obs:" << std::endl;
+            for(int l=0; l<p_inner; l++) {
+                int i = indices_outer_inner[l];
+                std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+            }
+            std::cout << "indices_outer_test - l m lats lons obs:" << std::endl;
+            for(int m=0; m<p_test; m++) {
+                int i = indices_outer_test[m];
+                std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+            }
+            std::cout << "indices_inner_test - l m lats lons obs:" << std::endl;
+            for(int m=0; m<p_test; m++) {
+                int l = indices_inner_test[m];
+                int i = indices_outer_inner[l];
+                std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+            }
+        }
 
         // -~- Compute the background 
         vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
+        if(debug) { 
+            int j = indices_outer_test[0];
+            for(int i=0; i < p_outer; i++) {
+                std::cout << std::setprecision(6) << "values backg minv maxv " << values_outer[i] << " " << bvalues_outer[i] << " " << minv_outer[i] << " " << maxv_outer[i] << " " << std::endl; 
+            }
+            std::cout << "j " << j << std::endl; 
+        }
         if(debug) std::cout << "... background ok ..." << std::endl;
 
         // -~- If deviations between backgrounds and observations are small then flag = 0
@@ -585,9 +628,9 @@ ivec titanlib::sct( const vec& lats,
         /* if observations and background are almost identical (within the range of valid estimates),
            then take a shortcut and flag = 0 for all observations in the inner circle */
 
-        int j = indices_outer_test[1];
+        int j = indices_outer_test[0];
         if(bvalues_outer[j] < minv_outer[j] || bvalues_outer[j] > maxv_outer[j]) { 
-            int g = indices_global_test[1];
+            int g = indices_global_test[0];
             flags[g] = 0;
             if (debug) std::cout << " small_innov - index " << g << std::endl;
             continue;
