@@ -25,7 +25,7 @@ namespace {
 }
 // helpers
 bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
-void remove_flagged(ivec indices, vec distances, ivec flags);
+void remove_flagged(ivec& indices, vec& distances, ivec flags);
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
@@ -85,6 +85,14 @@ ivec titanlib::sct(const Points& points,
 
     titanlib::KDTree tree(lats, lons);
 
+    // Flag stations without elevation
+    for(int curr=0; curr < s; curr++) {
+        if(!titanlib::is_valid(elevs[curr])) {
+            flags[curr] = 1;
+        }
+    }
+
+
     for(int iteration = 0; iteration < num_iterations; iteration++) {
         double s_time0 = titanlib::clock();
 
@@ -101,7 +109,6 @@ ivec titanlib::sct(const Points& points,
             if(checked[curr] > 0) {
                 continue;
             }
-
 
             // get all neighbours that are close enough
             vec distances;
@@ -473,7 +480,7 @@ bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::num
 }
 
 
-void remove_flagged(ivec indices, vec distances, ivec flags) {
+void remove_flagged(ivec& indices, vec& distances, ivec flags) {
     ivec indices_new;
     vec distances_new;
     indices_new.reserve(indices.size());
@@ -484,4 +491,6 @@ void remove_flagged(ivec indices, vec distances, ivec flags) {
             distances_new.push_back(distances[i]);
         }
     }
+    indices = indices_new;
+    distances = distances_new;
 }
