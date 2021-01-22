@@ -22,7 +22,7 @@ ivec titanlib::range_check(const vec& values,
     const int s = values.size();
     // assert that the max and min are either both size 1 or the size of values 
     if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::runtime_error("Range check: Min/max arrays must either be length 1 or the same length as values");
     }
 
     ivec flags(s, 0);
@@ -34,7 +34,7 @@ ivec titanlib::range_check(const vec& values,
         int max_i = (max.size() == s) ? i : 0;
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < min[min_i] || values[i] > max[max_i]) {
+        if(!titanlib::is_valid(values[i]) || values[i] < min[min_i] || values[i] > max[max_i]) {
             flags[i] = 1;
         }
     }
@@ -78,7 +78,7 @@ ivec titanlib::range_check_climatology(const Points& points,
         double mean_neg = t + neg[neg_i];
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < mean_neg || values[i] > mean_pos) {
+        if(!titanlib::is_valid(values[i]) || values[i] < mean_neg || values[i] > mean_pos) {
             flags[i] = 1;
         }
     }
