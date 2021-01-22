@@ -149,11 +149,15 @@ namespace titanlib {
      */
     ivec duplicate_check(const Points& points, float radius, float vertical_range=titanlib::MV);
 
+    ivec metadata_check(const Points& points, bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true);
+
     /** ****************************************
      * @name Timeserie methods
      * Functions that operate on timeseries of observations
      * *****************************************/ /**@{*/
-    /** Method by McCarthy 1973 */
+    /** Method by McCarthy 1973
+      * https://doi.org/10.1175/1520-0450(1973)012%3C0211:AMFCAT%3E2.0.CO;2
+    */
     vec lag_reduction_filter(const vec& times, const vec& values, float a=0.5, float b=0.5, float k1=0.25, float k2=0.25, int n=10);
 
     /** ****************************************
@@ -206,7 +210,7 @@ namespace titanlib {
     float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
 
     float compute_quantile(double quantile, const vec& array);
-    vec subset(const vec& input, const ivec& indices);
+    vec subset(const vec& array, const ivec& indices);
     Points subset(const Points& input, const ivec& indices);
     /**@}*/
 
@@ -378,11 +382,14 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& sct, vec& rep, const ivec& indices=ivec());
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& prob_gross_error, vec& rep, const ivec& indices=ivec());
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
-            void isolation_check(int num_min, float radius, float vertical_radius);
-            void duplicate_check(float radius, float vertical_range=titanlib::MV);
+            void isolation_check(int num_min, float radius, float vertical_radius, const ivec& indices=ivec());
+            void duplicate_check(float radius, float vertical_range=titanlib::MV, const ivec& indices=ivec());
+            void dem_check(const vec& dem, float max_elev_diff);
+            void external_check(const ivec& flags);
+            void metadata_check(bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true, const ivec& indices=ivec());
 
             vec lats;
             vec lons;
@@ -405,11 +412,18 @@ namespace titanlib {
                 }
             }
             template <class T> void unsubset(const T& array, T& orig_array, const ivec& indices) {
+                orig_array.clear();
+                orig_array.resize(indices.size());
                 assert(array.size() == indices.size());
                 for(int i = 0; i < indices.size(); i++) {
                     orig_array[indices[i]] = array[i];
                 }
             }
+            void merge(const ivec& new_flags, const ivec& indices);
+            vec subset(const vec& array, const ivec& indices, ivec& new_indices);
+            vec subset(const vec& array, const ivec& indices);
+            ivec subset(const ivec& indices);
+            Points subset(const Points& input, const ivec& indices);
     };
     class not_implemented_exception: public std::logic_error
     {
