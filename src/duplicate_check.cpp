@@ -14,6 +14,7 @@ ivec titanlib::duplicate_check(const Points& points, float radius, float vertica
     ivec checked(points.size(), 0); // Which points have been checked
     keep.reserve(points.size());
 
+    // TODO: Can this be parallelized? Looks difficult...
     for(int i = 0; i < points.size(); i++) {
         if(checked[i] == 1)
             continue;

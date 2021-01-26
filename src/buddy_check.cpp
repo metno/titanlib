@@ -53,7 +53,8 @@ ivec titanlib::buddy_check(const Points& points,
     bool check_all = obs_to_check.size() != s;
 
     for(int it = 0; it < num_iterations; it++) {
-        #pragma omp parallel for
+        // TODO: Can this really be parallelized? Loop dependencies: flags.
+        // #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
             int b_i = (num_min.size() == s) ? i : 0;
