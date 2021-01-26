@@ -275,13 +275,14 @@ ivec titanlib::sct(const Points& points,
             count_oi++;
         }
         if(thrown_out == 0) {
-            if(iteration + 1 < num_iterations)
-                std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
+            if(iteration + 1 < num_iterations) {
+                // std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
+            }
             break;
         }
-        std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
+        // std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
         double e_time0 = titanlib::clock();
-        std::cout << e_time0 - s_time0 << std::endl;
+        // std::cout << e_time0 - s_time0 << std::endl;
     }
 
     return flags;
