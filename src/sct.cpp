@@ -63,8 +63,6 @@ ivec titanlib::sct( const vec& lats,
                     float max_horizontal_scale,
                     int kth_closest_obs_horizontal_scale,
                     float vertical_scale,
-                    float value_minp,
-                    float value_maxp,
                     const vec& values_mina,
                     const vec& values_maxa,
                     const vec& values_minv,
@@ -104,13 +102,13 @@ ivec titanlib::sct( const vec& lats,
   In addition, an extra-loop is done over the bad observations where only the good ones are considered. We may "save" bad observations.
   Analogously, to avoid "false negatives" (bad flagged as good), the last loop is done over the bad observations where only the good ones are considered. We may "save" bad observations during this last loop.
 
-  (*) Notes on prior information (see also comments in sct_core): the user is expected to provide three different range of values, that inform about the desired tolerance level of the SCT.
-    i.   The range of allowed/plausible values (value_minp,value_maxp). The range is valid for all observations. Outside this range the variale values do not make sense.
-    ii.  The range of admissible values (values_mina,values_maxa). A range for each observation. The observed value have to be within the corresponding range (e.g. observation=2, then OK if values_mina=0 & values_maxa=4; not OK if values_mina=10 & values_maxa=14). A cv-analysis outside this range warns us about possible problems with the observation.
-    iii. The range of valid values (values_minv,values_maxv). A range for each observation. The observed value have to be within the corresponding range. If the cv-analysis is within this range, then we assume the corresponding observation is a good one, regardless of the SCT score.
+  (*) Notes on prior information (see also comments in sct_core): the user is expected to provide two different range of values, that inform about the desired tolerance level of the SCT.
+    i.  The range of admissible values (values_mina,values_maxa). A range for each observation. The observed value have to be within the corresponding range (e.g. observation=2, then OK if values_mina=0 & values_maxa=4; not OK if values_mina=10 & values_maxa=14). A cv-analysis outside this range warns us about possible problems with the observation.
+        a.   The range of plausible values (value_minp,value_maxp) is derived from the range of admissible values and it is used to check the analyses and backgrounds. Outside this range the values do not make sense.
+    ii. The range of valid values (values_minv,values_maxv). A range for each observation. The observed value have to be within the corresponding range. If the cv-analysis is within this range, then we assume the corresponding observation is a good one, regardless of the SCT score.
   Examples:
-    Temperature: 3 observed values(degC)=( 10, 15, 5). (value_minp,value_maxp)=(-60,50). (values_mina,values_maxa) = observed values plus/minus 15 degC. (values_minv,values_maxv) = observed values plus/minus 1 degC.
-    Precipitation: 3 observed values(mm)=( 0, 50, 1). (value_minp,value_maxp)=(0,300). (values_mina,values_maxa) = observed values plus/minus either 10 mm or 50% of the value. (values_minv,values_maxv) = observed values plus/minus either 1 mm or 10% of the value.
+    Temperature: 3 observed values(degC)=( 10, 15, 5). (values_mina,values_maxa) = observed values plus/minus 15 degC. (values_minv,values_maxv) = observed values plus/minus 1 degC.
+    Precipitation: 3 observed values(mm)=( 0, 50, 1). (values_mina,values_maxa) = observed values plus/minus either 10 mm or 50% of the value. (values_minv,values_maxv) = observed values plus/minus either 1 mm or 10% of the value.
 
   (*) Notes on the data structures (see also comments in set_indices): we have defined a hierarchy of data structures
     global -> outer -> inner -> test
@@ -167,8 +165,6 @@ ivec titanlib::sct( const vec& lats,
         throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
-    if(value_maxp <= value_minp)
-        throw std::invalid_argument("value_maxp must be > value_minp");
     if( background_elab_type != "vertical_profile" && 
         background_elab_type != "vertical_profile_Theil_Sen" && 
         background_elab_type != "mean_outer_circle" && 
@@ -195,19 +191,19 @@ ivec titanlib::sct( const vec& lats,
           obs_test[g] = obs_to_check[g];
     }
 
-    /* preliminary range check
-       note: the sct can mistake obvious large errors for good observations 
+    /* plausible values are inferred from admissible values
+       note: a range check should be performed before doing the SCT.
+             The SCT can mistake obvious large errors for good observations 
              if they happen to be close enough that they support each other */
-    int thrown_out = 0; 
-    for(int g=0; g < p; g++) {
-        if((values[g] < value_minp) || (values[g] > value_maxp)) { 
-          flags[g] = 1;
-          thrown_out++;
-        }
+    float value_minp = values_mina[0];
+    float value_maxp = values_maxa[0];
+    for(int g=1; g < p; g++) {
+        if ( values_mina[g] < value_minp) value_minp = values_mina[g];
+        if ( values_maxa[g] > value_maxp) value_maxp = values_maxa[g];
     }
     if(debug) std::cout << "=============================================== " << p << std::endl;
     if(debug) std::cout << "Number of observations to test is " << p << std::endl;
-    if(debug) std::cout << "Range check is removing " << thrown_out << " observations " << std::endl;
+    if(debug) std::cout << "Min and max acceptable values are " << value_minp << " " << value_maxp << std::endl;
 
     // KDtree has to do with fast computation of distances
     titanlib::KDTree tree(lats, lons);
