@@ -401,7 +401,7 @@ ivec titanlib::sct( const vec& lats,
     double s_time0 = titanlib::util::clock();
         
     // reset this number each loop (this is for breaking if we don't throw anything new out)
-    thrown_out = 0; 
+    int thrown_out = 0; 
         
     // diagnostic. count the number of times OI is performed
     int count_oi = 0;

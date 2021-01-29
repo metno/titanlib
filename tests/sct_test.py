@@ -33,15 +33,13 @@ class SctTest(unittest.TestCase):
 #        tpos = np.ones(N) * 16
 #        tneg = np.ones(N) * 16
 #        eps2 = np.ones(N) * 0.5
-#        value_min = -50
-#        value_max = 50
 #        values_mina = values - 20 * np.ones(N)
 #        values_maxa = values + 20 * np.ones(N)
 #        values_minv = values - 1 * np.ones(N)
 #        values_maxv = values + 1 * np.ones(N)
 #        debug = False
 #
-#        flags, score = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+#        flags, score = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
 #        print(flags)
 #
 #        np.testing.assert_array_equal(flags, [0, 0, 0, 0, 1])
@@ -82,8 +80,6 @@ class SctTest(unittest.TestCase):
         tpos = np.ones(N) * 3
         tneg = np.ones(N) * 3
         eps2 = np.ones(N) * 0.5
-        value_min = -50
-        value_max = 50
         values_mina = values - 20 * np.ones(N)
         values_maxa = values + 20 * np.ones(N)
         values_minv = values - 1 * np.ones(N)
@@ -92,7 +88,7 @@ class SctTest(unittest.TestCase):
         flags = np.ones(N) * (-999.)
 
         
-        flags, score = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+        flags, score = titanlib.sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
 
         print("%.1fs" % (time.time() - s_time))
 
