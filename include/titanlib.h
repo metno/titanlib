@@ -46,8 +46,6 @@ namespace titanlib {
      *  @param max_horizontal_scale Maximum horizontal decorrelation length [m]
      *  @param kth_closest_obs_horizontal_scale Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
      *  @param vertical_scale Vertical decorrelation length [m]
-     *  @param value_minp Minimum allowed value (observations and background)
-     *  @param value_maxp Maximum allowed value (observations and background)
      *  @param value_mina Minimum admissible value
      *  @param value_maxa Maximum admissible value
      *  @param value_minv Minimum valid value
@@ -77,8 +75,6 @@ namespace titanlib {
              float max_horizontal_scale,
              int kth_closest_obs_horizontal_scale,
              float vertical_scale,
-             float value_minp,
-             float value_maxp,
              const vec& value_mina,
              const vec& value_maxa,
              const vec& value_minv,
@@ -233,7 +229,7 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, float value_minp, float value_maxp, const vec& value_mina, const vec& value_maxa, const vec& value_minv, const vec& value_maxv, const vec& eps2, const vec& tpos, const vec& tneg, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& scores, const ivec& indices=ivec()); 
+            void sct(int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const vec& value_mina, const vec& value_maxa, const vec& value_minv, const vec& value_maxv, const vec& eps2, const vec& tpos, const vec& tneg, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& scores, const ivec& indices=ivec()); 
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);

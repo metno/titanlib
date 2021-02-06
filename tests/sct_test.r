@@ -31,14 +31,12 @@ tpos = rep(1,N) * 16
 tneg = rep(1,N) * 16
 t_sod = rep(1,N) * 4
 eps2 = rep(1,N) * 0.5
-value_min = -50
-value_max = 50
 values_mina = values - 20
 values_maxa = values + 20
 values_minv = values - 1
 values_maxv = values + 1
 debug = T
-res<-sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+res<-sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
 # check the results of sct woth the following OI
 #  first create the data_inner.txt file from sct output with debug=T
 #d<-read.table(file="data_inner.txt",header=F,stringsAsFactors=F,strip.white=T)
@@ -85,8 +83,6 @@ background_elab_type = "vertical_profile_Theil_Sen"
 tpos = rep(3,P)
 tneg = rep(3,P)
 eps2 = rep(0.5,P)
-value_min = -50
-value_max = 50
 values_mina = values - 20
 values_maxa = values + 20
 values_minv = values - 1
@@ -105,7 +101,7 @@ kth_closest_obs_horizontal_scale = 3
 vertical_scale = 600
 
 t0<-Sys.time()
-res<-sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+res<-sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
 t1<-Sys.time()
 print(t1-t0)
 flags<-res[[1]]
