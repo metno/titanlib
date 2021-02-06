@@ -214,9 +214,9 @@ ivec titanlib::sct( const vec& lats,
 
     //
     if(debug) {
-        std::cout << "g lats lons obs:" << std::endl;
+        std::cout << "g lats lons elevs obs:" << std::endl;
         for(int g=0; g < p; g++) {
-            std::cout << g << " " << lats[g] << " " << lons[g] << " " << values[g] << std::endl;
+            std::cout << g << " " << lats[g] << " " << lons[g] << " " << elevs[g] << " " << values[g] << std::endl;
         }
     }
 
@@ -302,32 +302,32 @@ ivec titanlib::sct( const vec& lats,
                    int g = indices_global_outer[i];
                    flags_outer[i] = flags[g];
                 }
-                std::cout << "curr lats lons obs:" << std::endl;
-                std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << values[curr] << std::endl;
-                std::cout << "indices_global_outer - i g lats lons obs:" << std::endl;
+                std::cout << "curr lats lons elevs obs:" << std::endl;
+                std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << elevs[curr] << " " << values[curr] << std::endl;
+                std::cout << "indices_global_outer - i g lats lons elevs obs flags:" << std::endl;
                 for(int i=0; i<p_outer; i++) {
                     int g = indices_global_outer[i];
-                    std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << values[g] << " " << flags[g] << std::endl;
+                    std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << elevs[g] << " " << values[g] << " " << flags[g] << std::endl;
                 }
-                std::cout << "outer - i lats lons obs:" << std::endl;
+                std::cout << "outer - i lats lons elevs obs flags:" << std::endl;
                 for(int i=0; i<p_outer; i++) {
-                    std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                    std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
                 }
-                std::cout << "indices_outer_inner - l i lats lons obs:" << std::endl;
+                std::cout << "indices_outer_inner - l i lats lons elevs obs flags:" << std::endl;
                 for(int l=0; l<p_inner; l++) {
                     int i = indices_outer_inner[l];
-                    std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                    std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
                 }
-                std::cout << "indices_outer_test - l m lats lons obs:" << std::endl;
+                std::cout << "indices_outer_test - l m lats lons elevs obs flags:" << std::endl;
                 for(int m=0; m<p_test; m++) {
                     int i = indices_outer_test[m];
-                    std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                    std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
                 }
-                std::cout << "indices_inner_test - l m lats lons obs:" << std::endl;
+                std::cout << "indices_inner_test - l m lats lons elevs obs flags:" << std::endl;
                 for(int m=0; m<p_test; m++) {
                     int l = indices_inner_test[m];
                     int i = indices_outer_inner[l];
-                    std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                    std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
                 }
             }
 
@@ -335,7 +335,14 @@ ivec titanlib::sct( const vec& lats,
             // -~- Compute the background 
             vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
-            if(debug) std::cout << "... background ok ..." << std::endl;
+            if(debug) {
+              std::cout << "... background ok ..." << std::endl;
+              std::cout << "outer - i lats lons elevs yo yb flags:" << std::endl;
+              for(int i=0; i<p_outer; i++) {
+                  int g = indices_global_outer[i];
+                  std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << bvalues_outer[i] << " " << flags[g] << std::endl;
+              }
+            }
 
             // -~- If deviations between backgrounds and observations are small then flag = 0
 
@@ -470,7 +477,14 @@ ivec titanlib::sct( const vec& lats,
         // -~- Compute the background 
         vec bvalues_outer = background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
 
-        if(debug) std::cout << "... background ok ..." << std::endl;
+        if(debug) {
+          std::cout << "... background ok ..." << std::endl;
+          std::cout << "outer - i lats lons elevs yo yb flags:" << std::endl;
+          for(int i=0; i<p_outer; i++) {
+              int g = indices_global_outer[i];
+              std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << bvalues_outer[i] << " " << flags[g] << std::endl;
+          }
+        }
 
         // -~- If deviations between backgrounds and observations are small then flag = 0
 
@@ -582,32 +596,32 @@ ivec titanlib::sct( const vec& lats,
                int g = indices_global_outer[i];
                flags_outer[i] = flags[g];
             }
-            std::cout << "curr lats lons obs:" << std::endl;
-            std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << values[curr] << std::endl;
-            std::cout << "indices_global_outer - i g lats lons obs:" << std::endl;
+            std::cout << "curr lats lons elevs obs:" << std::endl;
+            std::cout << curr << " " << lats[curr] << " " << lons[curr] << " " << elevs[curr] << " " << values[curr] << std::endl;
+            std::cout << "indices_global_outer - i g lats lons elevs obs flags:" << std::endl;
             for(int i=0; i<p_outer; i++) {
                 int g = indices_global_outer[i];
-                std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << values[g] << " " << flags[g] << std::endl;
+                std::cout << std::setprecision(6) << i << " " << g << " " << lats[g] << " " << lons[g] << " " << elevs[g] << " " << values[g] << " " << flags[g] << std::endl;
             }
-            std::cout << "outer - i lats lons obs:" << std::endl;
+            std::cout << "outer - i lats lons elevs obs flags:" << std::endl;
             for(int i=0; i<p_outer; i++) {
-                std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
             }
-            std::cout << "indices_outer_inner - l i lats lons obs:" << std::endl;
+            std::cout << "indices_outer_inner - l i lats lons elevs obs flags:" << std::endl;
             for(int l=0; l<p_inner; l++) {
                 int i = indices_outer_inner[l];
-                std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                std::cout << std::setprecision(6) << l << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
             }
-            std::cout << "indices_outer_test - l m lats lons obs:" << std::endl;
+            std::cout << "indices_outer_test - l m lats lons elevs obs flag:" << std::endl;
             for(int m=0; m<p_test; m++) {
                 int i = indices_outer_test[m];
-                std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                std::cout << std::setprecision(6) << m << " " << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
             }
-            std::cout << "indices_inner_test - l m lats lons obs:" << std::endl;
+            std::cout << "indices_inner_test - l m lats lons elevs obs flags:" << std::endl;
             for(int m=0; m<p_test; m++) {
                 int l = indices_inner_test[m];
                 int i = indices_outer_inner[l];
-                std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
+                std::cout << std::setprecision(6) << m << " " << l << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << flags_outer[i] << std::endl;
             }
         }
 
@@ -620,6 +634,12 @@ ivec titanlib::sct( const vec& lats,
                 std::cout << std::setprecision(6) << "values backg minv maxv " << values_outer[i] << " " << bvalues_outer[i] << " " << minv_outer[i] << " " << maxv_outer[i] << " " << std::endl; 
             }
             std::cout << "j " << j << std::endl; 
+            std::cout << "... background ok ..." << std::endl;
+            std::cout << "outer - i lats lons elevs yo yb flags:" << std::endl;
+            for(int i=0; i<p_outer; i++) {
+                int g = indices_global_outer[i];
+                std::cout << std::setprecision(6) << i << " " << lats_outer[i] << " " << lons_outer[i] << " " << elevs_outer[i] << " " << values_outer[i] << " " << bvalues_outer[i] << " " << flags[g] << std::endl;
+            }
         }
         if(debug) std::cout << "... background ok ..." << std::endl;
 
@@ -1211,6 +1231,7 @@ bool sct_core( const vec& lats,
         Dh_mean = Dh_max;
     }
     if(debug) std::cout << "Dh_mean " << Dh_mean << std::endl;
+    if(debug) std::cout << "Dz " << Dz << std::endl;
     
     // Compute S + eps2*I and store it in S 
     boost::numeric::ublas::matrix<float> S(p_outer,p_outer);
@@ -1256,7 +1277,7 @@ bool sct_core( const vec& lats,
     boost::numeric::ublas::vector<float> chi_inner(p_inner);
     boost::numeric::ublas::vector<float> chi_inner_alt(p_inner);
     boost::numeric::ublas::vector<float> yav(p_inner);
-    if(debug) std::cout << "analysis - i l lon lat yo yb ya yav chi chi_alt" << std::endl;
+    if(debug) std::cout << "analysis - i l lon lat elevs yo yb ya yav chi chi_alt" << std::endl;
     for(int l=0; l<p_inner; l++) {
         int i = indices_outer_inner[l];
         float ya = yb[i];
@@ -1273,7 +1294,7 @@ bool sct_core( const vec& lats,
             chi_stat.push_back(chi_inner(l));
             chi_stat_alt.push_back(chi_inner_alt(l));
         }
-        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << yo[i] << " " << yb[i] << " " << ya << " " << yav(l) << " " << chi_inner(l) << " " << chi_inner_alt(l) << std::endl;
+        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << elevs[i] << " " << yo[i] << " " << yb[i] << " " << ya << " " << yav(l) << " " << chi_inner(l) << " " << chi_inner_alt(l) << std::endl;
     }
     
     // chi_stat is empty (yav all outside the range of admissible values), set all flags to 1
@@ -1309,7 +1330,7 @@ bool sct_core( const vec& lats,
     // z = ( chi - mu ) / ( sigma + sigma_mu )
     float zmx = -10000;
     int mmx = -1;
-    if(debug) std::cout << "z_test - i l lons lats yo yb yav chi z " << std::endl;
+    if(debug) std::cout << "z_test - i l lons lats elevs yo yb yav chi z " << std::endl;
     for(int m=0; m<p_test; m++) {
         int i = indices_outer_test[m];
         int l = indices_inner_test[m];
@@ -1318,7 +1339,7 @@ bool sct_core( const vec& lats,
           zmx = z;
           mmx = m;
         } 
-        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << yo[i] << " " << yb[i] << " " << yav(l) << " " << chi_inner(l) << " " << z << std::endl;
+        if(debug) std::cout << std::setprecision(6) << i << " " << l << " " << lons[i] << " " << lats[i] << " " << elevs[i] << " " << yo[i] << " " << yb[i] << " " << yav(l) << " " << chi_inner(l) << " " << z << std::endl;
     }
 
     // Decision making 
