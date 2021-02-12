@@ -30,7 +30,6 @@ ivec titanlib::range_check(const vec& values,
         // else same as loop
         int min_i = (min.size() == s) ? i : 0;
         int max_i = (max.size() == s) ? i : 0;
-
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
         if(values[i] < min[min_i] || values[i] > max[max_i]) {
             flags[i] = 1;

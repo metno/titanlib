@@ -30,18 +30,6 @@ void titanlib::Dataset::range_check_climatology(int unixtime, const vec& pos, co
     }
 }
 
-//+ SCT - Spatial Consistency Test
-void titanlib::Dataset::sct( int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const vec& value_mina, const vec& value_maxa, const vec& value_minv, const vec& value_maxv, const vec& eps2, const vec& tpos, const vec& tneg, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& scores, const ivec& indices) {
-    ivec boxids;
-    if(indices.size() > 0) {
-        ivec iflags = titanlib::sct(subset(lats, indices), subset(lons, indices), subset(elevs, indices), subset(values, indices), subset(obs_to_check, indices), subset(background_values, indices), background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, subset(value_mina, indices), subset(value_maxa, indices), subset(value_minv, indices), subset(value_maxv, indices), subset(eps2, indices), subset(tpos, indices), subset(tneg, indices), debug, scores);
-        unsubset(iflags, flags, indices);
-        // DO we have to deal with unsubsetting sct variable?
-    } else {
-        flags = titanlib::sct( lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_mina, value_maxa, value_minv, value_maxv, eps2, tpos, tneg, debug, scores);
-    }
-}
-
 void titanlib::Dataset::buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices) {
     if(indices.size() > 0) {
         ivec iflags = titanlib::buddy_check(lats, lons, elevs, values, subset(radius, indices), subset(num_min, indices), threshold, max_elev_diff, elev_gradient, min_std, num_iterations, obs_to_check);

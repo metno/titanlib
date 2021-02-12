@@ -7,6 +7,8 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_linalg.h>
 #ifdef _OPENMP
     #include <omp.h>
 #endif
@@ -27,7 +29,7 @@ namespace titanlib {
      */
     std::string version();
 
-    /** Spatial Consistency Test (SCT)
+    /** Spatial Consistency Test (SCT) - resistant to outliers
      *  @param lats latitudes 
      *  @param lons longitudes 
      *  @param elevs elevations (m amsl)
@@ -57,33 +59,83 @@ namespace titanlib {
      *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
-    ivec sct(const vec& lats,
-             const vec& lons,
-             const vec& elevs,
-             const vec& values,
-             const ivec& obs_to_check,
-             const vec& background_values,
-             std::string background_elab_type,
-             int num_min_outer,
-             int num_max_outer,
-             float inner_radius,
-             float outer_radius,
-             int num_iterations,
-             int num_min_prof,
-             float min_elev_diff,
-             float min_horizontal_scale,
-             float max_horizontal_scale,
-             int kth_closest_obs_horizontal_scale,
-             float vertical_scale,
-             const vec& value_mina,
-             const vec& value_maxa,
-             const vec& value_minv,
-             const vec& value_maxv,
-             const vec& eps2,
-             const vec& tpos,
-             const vec& tneg,
-             bool debug,
-             vec& scores);
+    ivec sct_resistant( const vec& lats,
+                        const vec& lons,
+                        const vec& elevs,
+                        const vec& values,
+                        const ivec& obs_to_check,
+                        const vec& background_values,
+                        std::string background_elab_type,
+                        int num_min_outer,
+                        int num_max_outer,
+                        float inner_radius,
+                        float outer_radius,
+                        int num_iterations,
+                        int num_min_prof,
+                        float min_elev_diff,
+                        float min_horizontal_scale,
+                        float max_horizontal_scale,
+                        int kth_closest_obs_horizontal_scale,
+                        float vertical_scale,
+                        const vec& value_mina,
+                        const vec& value_maxa,
+                        const vec& value_minv,
+                        const vec& value_maxv,
+                        const vec& eps2,
+                        const vec& tpos,
+                        const vec& tneg,
+                        bool debug,
+                        vec& scores);
+    
+     /** First Guess Test (FGT) - simplified (without OI) SCT
+     *  @param lats latitudes 
+     *  @param lons longitudes 
+     *  @param elevs elevations (m amsl)
+     *  @param values observed values to check (and/or to use)
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
+     *  @param background_values external background value (not used if background_elab_type!=external)
+     *  @param background_uncertainties uncertainty of the external background value (not used if background_elab_type!=external, optional when  background_elab_type=external)
+     *  @param background_elab_type one of: vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, external
+     *  @param num_min_outer Minimum number of observations inside the outer circle to compute FGT
+     *  @param num_max_outer Maximum number of observations inside the outer circle used
+     *  @param num_min_prof Minimum number of observations to compute vertical profile
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param num_iterations Number of FGT iterations
+     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
+     *  @param value_mina Minimum admissible value
+     *  @param value_maxa Maximum admissible value
+     *  @param value_minv Minimum valid value
+     *  @param value_maxv Maximum valid value
+     *  @param tpos FGT-score threshold. Positive deviation allowed
+     *  @param tneg FGT-score threshold. Negative deviation allowed
+     *  @param debug Verbose output
+     *  @param scores FGT-score. The higher the score, the more likely is the presence of a gross measurement error
+     *  @return flags
+     */
+    ivec fgt( const vec& lats,
+              const vec& lons,
+              const vec& elevs,
+              const vec& values,
+              const ivec& obs_to_check,
+              const vec& background_values,
+              const vec& background_uncertainties,
+              std::string background_elab_type,
+              int num_min_outer,
+              int num_max_outer,
+              float inner_radius,
+              float outer_radius,
+              int num_iterations,
+              int num_min_prof,
+              float min_elev_diff,
+              const vec& value_mina,
+              const vec& value_maxa,
+              const vec& value_minv,
+              const vec& value_maxv,
+              const vec& tpos,
+              const vec& tneg,
+              bool debug,
+              vec& scores);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
@@ -172,11 +224,31 @@ namespace titanlib {
             float radius,
             float vertical_radius);
 
+/*    vec background( std::string background_elab_type, const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, const vec& external_background_values, const ivec& indices_global_outer, bool debug);*/
+
     /** Set the number of OpenMP threads to use. Overwrides OMP_NUM_THREAD env variable. */
     void set_omp_threads(int num);
 
     /** Sets the number of OpenMP threads to 1 if OMP_NUM_THREADS undefined */
     void initialize_omp();
+
+    namespace background {
+
+        /** Background (first guess) calculations at observation locations
+        *  @param background_elab_type background elaboration types: vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, median_outer_circle or external
+        *  @param elevs elevations (m above mean sea level)
+        *  @param values observed values
+        *  @param num_min_prof minimum number of observations needed to compute a vertical profile different from the pseudo-adiabatic lapse rate (-0.0065 degC/m)
+        *  @param min_elev_diff when computing vertical profiles, the elevation difference between the 95th percentile and 5th percentile must be greater than this parameter. Otherwise use the pseudo-adiabatic lapse rate 
+        *  @param value_minp minimum plausible value
+        *  @param value_maxp maximum plausible value
+        *  @param external_background_values external background values (used when background_elab_type=external)
+        *  @param indices_global_outer vector of positions of matches of (vector with the observations belonging to the outer circle) in the (global vector) (dimension is the number of observations in the outer circle)
+        *  @param debug verbose mode (true / false)
+        */
+        vec background( std::string background_elab_type, const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, const vec& external_background_values, const ivec& indices_global_outer, bool debug);
+
+    }
 
     namespace util {
         /**
@@ -212,8 +284,25 @@ namespace titanlib {
         float findKclosest(int k, const vec& array); 
         vec subset(const vec& input, const ivec& indices);
 
+        /** Select observations belonging to: i) outer circle, ii) inner circle, iii) set of observations to test. At the same time, set vectors of indices linking those selections between each other and to the global vectors
+         *  @param indices_global_outer_guess input vector of positions of matches of (vector with the first guess of observations belonging to the outer circle) in the (global vector) (dimension is the number of candidate observations belonging to the outer circle. In fact, not all of them can be selected, for instance bad observations are excluded)
+         *  @param obs_test observations to test (1=yes, 0=no)
+         *  @param flags data quality control flags
+         *  @param dist_outer_guess distances between the centroid observations and the observations belonging to the first guess of the observations belonging to the outer circle
+         *  @param inner_radius radius of the inner circle
+         *  @param test_just_this position in the global vector of the only observation to test (set to < 0 if we want to test more than one observation)
+         *  @param indices_global_outer output vector of positions of matches of (vector with the observations belonging to the outer circle) in the (global vector) (dimension is the number of observations in the outer circle)
+         *  @param indices_global_test output vector of positions of matches of (vector with the observations to test) in the (global vector) (dimension is the number of observations to test)
+         *  @param indices_outer_inner output vector of positions of matches of (vector with the observations belonging to the inner circle) in the (vector with the observations belonging to the outer circle) (dimension is the number of observations in the inner circle)
+         *  @param indices_outer_test output vector of positions of matches of (vector with the observations to test) in the (vector with the observations belonging to the outer circle) (dimension is the number of observations to test)
+         *  @param indices_inner_test output vector of positions of matches of (vector with the observations to test) in the (vector with the observations belonging to the inner circle) (dimension is the number of observations to test)
+         */
+
+        bool set_indices( const ivec& indices_global_outer_guess, const ivec& obs_test, const ivec& dqcflags, const vec& dist_outer_guess, float inner_radius, int test_just_this, ivec& indices_global_outer, ivec& indices_global_test, ivec& indices_outer_inner, ivec& indices_outer_test, ivec& indices_inner_test); 
+
         /** Required for SWIG only */
         float* test_array(float* v, int n);
+
     }
 
     // ivec nearest_neighbours(const vec& lats, const vec& lons, float radius, float lat, float lon);
@@ -229,7 +318,6 @@ namespace titanlib {
              */
             void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
             void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const vec& value_mina, const vec& value_maxa, const vec& value_minv, const vec& value_maxv, const vec& eps2, const vec& tpos, const vec& tneg, bool debug, const ivec& obs_to_check, const vec& background_values, std::string background_elab_type, vec& scores, const ivec& indices=ivec()); 
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check = ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius);
