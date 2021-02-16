@@ -92,9 +92,7 @@ namespace titanlib {
             vec& rep);
 
     /** Spatial Consistency Test (SCT) - resistant to outliers
-     *  @param lats latitudes
-     *  @param lons longitudes
-     *  @param elevs elevations (m amsl)
+     *  @param points Input points
      *  @param values observed values to check (and/or to use)
      *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @param background_values external background value (not used if background_elab_type!=external)
@@ -121,9 +119,7 @@ namespace titanlib {
      *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
-    ivec sct_resistant( const vec& lats,
-                        const vec& lons,
-                        const vec& elevs,
+    ivec sct_resistant( const Points& points,
                         const vec& values,
                         const ivec& obs_to_check,
                         const vec& background_values,
@@ -150,9 +146,7 @@ namespace titanlib {
                         vec& scores);
 
      /** First Guess Test (FGT) - simplified (without OI) SCT
-     *  @param lats latitudes
-     *  @param lons longitudes
-     *  @param elevs elevations (m amsl)
+     *  @param points Input points
      *  @param values observed values to check (and/or to use)
      *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @param background_values external background value (not used if background_elab_type!=external)
@@ -175,9 +169,7 @@ namespace titanlib {
      *  @param scores FGT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
-    ivec fgt( const vec& lats,
-              const vec& lons,
-              const vec& elevs,
+    ivec fgt( const Points& points,
               const vec& values,
               const ivec& obs_to_check,
               const vec& background_values,

@@ -23,9 +23,7 @@ bool sct_core( const vec& lats, const vec& lons, const vec& elevs, const vec& yo
 //=============================================================================
 
 //+ SCT - Spatial Consistency Test
-ivec titanlib::sct_resistant( const vec& lats,
-                              const vec& lons,
-                              const vec& elevs,
+ivec titanlib::sct_resistant( const Points& points,
                               const vec& values,
                               const ivec& obs_to_check,
                               const vec& background_values,
@@ -120,8 +118,12 @@ ivec titanlib::sct_resistant( const vec& lats,
   flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
 
 */
+
     double s_time = titanlib::clock();
-    
+
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
     const int p = values.size();
     if( lats.size() != p || lons.size() != p || elevs.size() != p || values.size() != p || tpos.size() != p || tneg.size() != p || eps2.size() != p || values_mina.size() != p || values_maxa.size() != p || values_minv.size() != p || values_maxv.size() != p)
         throw std::runtime_error("Dimension mismatch");
