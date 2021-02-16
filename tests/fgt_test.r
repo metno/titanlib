@@ -1,21 +1,17 @@
-#titanlib_path <- "/home/cristianl/projects/titanlib/build/extras"
-titanlib_path <- "/home/cristianl/projects/titanlib/build/extras"
-#titanlib_path <- "/home/lineb/projects/titanlib/titanlib/build/extras"
-dyn.load( file.path( titanlib_path, 
-                     paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep="")))
-source(   file.path( titanlib_path,"SWIG/R/titanlib.R"))
-
+titanlib_path <- "../build/extras"
+dyn.load( file.path( titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep="")))
+source( file.path( titanlib_path,"SWIG/R/titanlib.R"))
 #---------------------------------------------------------------
 # Test with small vectors
 lats = c(60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60)
 lons = 10 + 0.005 * 0:(length(lats)-1)
 elevs = rep(0, length(lats))
-values = round( 10*sin(lons*2*pi/(max(lons)-min(lons))), 2)
+values = round( 10*sin(lons*2*base::pi/(max(lons)-min(lons))), 2)
 #values = c(0, 0, 0, 0, -100)
 obs_to_check = rep(1, length(lats))
 background_values = rep(0, length(lats))
 background_uncertainties = rep(1, length(lats))
-background_elab_type = "median_outer_circle"
+background_elab_type = "MedianOuterCircle"
 N = length(lats)
 num_min_outer = 3
 num_max_outer = 10
@@ -34,7 +30,8 @@ values_maxa = values + 20
 values_minv = values - 1
 values_maxv = values + 1
 debug = T
-res<-fgt(lats, lons, elevs, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
+points = Points(lats, lons, elevs)
+res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
 # check the results of sct woth the following OI
 #  first create the data_inner.txt file from sct output with debug=T
 #d<-read.table(file="data_inner.txt",header=F,stringsAsFactors=F,strip.white=T)
@@ -63,7 +60,7 @@ res<-fgt(lats, lons, elevs, values, obs_to_check, background_values, background_
 #sigma_mu <- sigma / length(lats)
 #--------------------------------------------------------
 # Test with larger vectors
-P = 150000
+P = 50000
 pGE = 0.3 # probability of gross error 0.3 = 30%
 lats = runif(P, min = 55, max = 70)
 lons = runif(P, min = 5, max = 30)
@@ -77,7 +74,7 @@ true_flags[idx] <- 1
 values[idx]<-runif(ceiling(P*pGE), min = -50, max = 50)
 obs_to_check = rep(1,P)
 background_values = 0
-background_elab_type = "vertical_profile_Theil_Sen"
+background_elab_type = "VerticalProfileTheilSen"
 tpos = rep(3,P)
 tneg = rep(3,P)
 values_mina = values - 20
@@ -95,9 +92,10 @@ min_elev_diff = 500
 min_horizontal_scale = 500
 max_horizontal_scale = 10000
 kth_closest_obs_horizontal_scale = 3
-
+points = Points(lats, lons, elevs)
+#
 t0<-Sys.time()
-res<-fgt(lats, lons, elevs, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
+res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
 t1<-Sys.time()-t0
 print( paste( "total time=", round(t1,3), attr(t1,"units")))
 flags<-res[[1]]

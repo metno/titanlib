@@ -1,7 +1,10 @@
 .nfs*
 .*.swp
+.*.swo
 *~
 *.o
 build
 *.pyc
 deps
+*.RData
+*.Rhistory
