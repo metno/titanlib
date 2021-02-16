@@ -8,6 +8,12 @@
 #include <cstdio>
 #include <exception>
 #include <sys/time.h>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 #ifdef DEBUG
 extern "C" void __gcov_flush();
@@ -194,3 +200,107 @@ Points titanlib::subset(const Points& input, const ivec& indices) {
     }
     return Points(lats, lons, elevs, lafs);
 }
+
+bool titanlib::invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
+    using namespace boost::numeric::ublas;
+    typedef permutation_matrix<std::size_t> pmatrix;
+    // create a working copy of the input
+    matrix<float> A(input);
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+    // perform LU-factorization
+    int res = lu_factorize(A,pm);
+    if( res != 0 ) return false;
+    // create identity matrix of "inverse"
+    inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inverse);
+    return true;
+}
+
+
+//+ Set indices when inner and outer circles are present
+bool titanlib::set_indices( const ivec& indices_global_outer_guess, 
+                  const ivec& obs_test,
+                  const ivec& dqcflags, 
+                  const vec& dist_outer_guess, 
+                  float inner_radius, 
+                  int test_just_this,
+                  ivec& indices_global_outer, 
+                  ivec& indices_global_test, 
+                  ivec& indices_outer_inner, 
+                  ivec& indices_outer_test, 
+                  ivec& indices_inner_test) {
+/*-----------------------------------------------------------------------------
+ Set all the vectors of indices linking the vectors operating over the
+ different regions that we have defined: global, outer circle, inner circle,
+ observations to test within the inner circle
+ If the index test_just_this is set to a value greater than 0 (i.e. it 
+ does point to an observation of the global vectors), then the only
+ observation to test is test_just_this.
+ 
+ Rules for an observation to be assigned to:
+ 1) outer circle. Within outer_radius from the centroid and flag!=1
+ 2) inner circle. In the outer circle AND within inner_radius from the centroid
+ 3) test. In the inner circle AND flag!=0 AND the user want to test it 
+
+----------------------------------------------------------------------------*/
+    int p_outer_guess = indices_global_outer_guess.size();
+    indices_global_outer.reserve(p_outer_guess);
+    indices_global_test.reserve(p_outer_guess);
+    indices_outer_inner.reserve(p_outer_guess);
+    indices_outer_test.reserve(p_outer_guess);
+    indices_inner_test.reserve(p_outer_guess);
+    int i = -1; // counter for indices on outer
+    int l = -1; // counter for indices on inner
+    for(int count=0; count<p_outer_guess; count++) {
+        int g = indices_global_outer_guess[count];
+        if(dqcflags[g] != 1 && g != test_just_this) {
+            indices_global_outer.push_back(g);
+            i++;
+            if(dist_outer_guess[count] <= inner_radius) {
+                indices_outer_inner.push_back(i);
+                l++;
+                if (test_just_this < 0 && dqcflags[g] != 0 && obs_test[g] == 1) {
+                    indices_global_test.push_back(g);
+                    indices_outer_test.push_back(i);
+                    indices_inner_test.push_back(l);
+                }
+            }
+        }
+    }
+    if ( test_just_this >= 0) {
+        // add global index to global_outer indices as its last element
+        indices_global_outer.push_back(test_just_this);
+        // add global index to global_test as its only element
+        indices_global_test.push_back(test_just_this);
+        // adjust outer_inner, last element of outer_inner points to last element of outer 
+        indices_outer_inner.push_back(indices_global_outer.size()-1);
+        // adjust outer_test, only element of test points to last element of outer 
+        indices_outer_test.push_back(indices_global_outer.size()-1);
+        // adjust inner_test, only element of test points to last element of inner 
+        indices_inner_test.push_back(indices_outer_inner.size()-1);
+    }
+    //
+    return true;
+}
+
+float titanlib::find_k_closest(const vec& array, int k) {
+    int n = array.size();
+    if(n == 0) {
+        throw std::runtime_error("Cannot compute quantile on empty array");
+    }
+    vec array_copy(n);
+    // make a copy of the vector
+    for(int i = 0; i < n; i++)
+        array_copy[i] = array[i];
+    std::sort(array_copy.begin(), array_copy.end());
+    if(k > n) {
+      k = n-1;
+    } else {
+      k = k-1;
+    }
+    float value = array_copy[k];
+    return value;
+}
+

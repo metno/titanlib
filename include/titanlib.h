@@ -7,6 +7,7 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #ifdef _OPENMP
     #include <omp.h>
 #endif
@@ -45,6 +46,14 @@ namespace titanlib {
         Cartesian = 1,     /**< X and Y */
     };
 
+    enum BackgroundType {
+        VerticalProfile = 0,
+        VerticalProfileTheilSen = 1,
+        MeanOuterCircle = 2,
+        MedianOuterCircle = 3,
+        External = 4,
+    };
+
     class Points;
 
     /** ****************************************
@@ -81,6 +90,114 @@ namespace titanlib {
             const vec& eps2,
             vec& prob_gross_error,
             vec& rep);
+
+    /** Spatial Consistency Test (SCT) - resistant to outliers
+     *  @param lats latitudes
+     *  @param lons longitudes
+     *  @param elevs elevations (m amsl)
+     *  @param values observed values to check (and/or to use)
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
+     *  @param background_values external background value (not used if background_elab_type!=external)
+     *  @param background_elab_type one of: vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, external
+     *  @param num_min_outer Minimum number of observations inside the outer circle to compute SCT
+     *  @param num_max_outer Maximum number of observations inside the outer circle used
+     *  @param num_min_prof Minimum number of observations to compute vertical profile
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param num_iterations Number of SCT iterations
+     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
+     *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     *  @param max_horizontal_scale Maximum horizontal decorrelation length [m]
+     *  @param kth_closest_obs_horizontal_scale Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
+     *  @param vertical_scale Vertical decorrelation length [m]
+     *  @param value_mina Minimum admissible value
+     *  @param value_maxa Maximum admissible value
+     *  @param value_minv Minimum valid value
+     *  @param value_maxv Maximum valid value
+     *  @param eps2 ratio between observation and background error variances
+     *  @param tpos SCT-score threshold. Positive deviation allowed
+     *  @param tneg SCT-score threshold. Negative deviation allowed
+     *  @param debug Verbose output
+     *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
+     *  @return flags
+     */
+    ivec sct_resistant( const vec& lats,
+                        const vec& lons,
+                        const vec& elevs,
+                        const vec& values,
+                        const ivec& obs_to_check,
+                        const vec& background_values,
+                        BackgroundType background_elab_type,
+                        int num_min_outer,
+                        int num_max_outer,
+                        float inner_radius,
+                        float outer_radius,
+                        int num_iterations,
+                        int num_min_prof,
+                        float min_elev_diff,
+                        float min_horizontal_scale,
+                        float max_horizontal_scale,
+                        int kth_closest_obs_horizontal_scale,
+                        float vertical_scale,
+                        const vec& value_mina,
+                        const vec& value_maxa,
+                        const vec& value_minv,
+                        const vec& value_maxv,
+                        const vec& eps2,
+                        const vec& tpos,
+                        const vec& tneg,
+                        bool debug,
+                        vec& scores);
+
+     /** First Guess Test (FGT) - simplified (without OI) SCT
+     *  @param lats latitudes
+     *  @param lons longitudes
+     *  @param elevs elevations (m amsl)
+     *  @param values observed values to check (and/or to use)
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
+     *  @param background_values external background value (not used if background_elab_type!=external)
+     *  @param background_uncertainties uncertainty of the external background value (not used if background_elab_type!=external, optional when  background_elab_type=external)
+     *  @param background_elab_type one of: vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, external
+     *  @param num_min_outer Minimum number of observations inside the outer circle to compute FGT
+     *  @param num_max_outer Maximum number of observations inside the outer circle used
+     *  @param num_min_prof Minimum number of observations to compute vertical profile
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param num_iterations Number of FGT iterations
+     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
+     *  @param value_mina Minimum admissible value
+     *  @param value_maxa Maximum admissible value
+     *  @param value_minv Minimum valid value
+     *  @param value_maxv Maximum valid value
+     *  @param tpos FGT-score threshold. Positive deviation allowed
+     *  @param tneg FGT-score threshold. Negative deviation allowed
+     *  @param debug Verbose output
+     *  @param scores FGT-score. The higher the score, the more likely is the presence of a gross measurement error
+     *  @return flags
+     */
+    ivec fgt( const vec& lats,
+              const vec& lons,
+              const vec& elevs,
+              const vec& values,
+              const ivec& obs_to_check,
+              const vec& background_values,
+              const vec& background_uncertainties,
+              BackgroundType background_elab_type,
+              int num_min_outer,
+              int num_max_outer,
+              float inner_radius,
+              float outer_radius,
+              int num_iterations,
+              int num_min_prof,
+              float min_elev_diff,
+              const vec& value_mina,
+              const vec& value_maxa,
+              const vec& value_minv,
+              const vec& value_maxv,
+              const vec& tpos,
+              const vec& tneg,
+              bool debug,
+              vec& scores);
 
     /** Range check. Checks observation is within the ranges given
      *  @param values vector of observations
@@ -210,8 +327,33 @@ namespace titanlib {
     float calc_distance(float x0, float y0, float z0, float x1, float y1, float z1);
 
     float compute_quantile(double quantile, const vec& array);
+    float find_k_closest(const vec& array, int k);
     vec subset(const vec& array, const ivec& indices);
     Points subset(const Points& input, const ivec& indices);
+
+
+    /** Background (first guess) calculations at observation locations
+    *  @param background_type background elaboration type
+    *  @param elevs elevations (m above mean sea level)
+    *  @param values observed values
+    *  @param num_min_prof minimum number of observations needed to compute a vertical profile different from the pseudo-adiabatic lapse rate (-0.0065 degC/m)
+    *  @param min_elev_diff when computing vertical profiles, the elevation difference between the 95th percentile and 5th percentile must be greater than this parameter. Otherwise use the pseudo-adiabatic lapse rate
+    *  @param value_minp minimum plausible value
+    *  @param value_maxp maximum plausible value
+    *  @param external_background_values external background values (used when background_elab_type=external)
+    *  @param indices_global_outer vector of positions of matches of (vector with the observations belonging to the outer circle) in the (global vector) (dimension is the number of observations in the outer circle)
+    *  @param debug verbose mode (true / false)
+    */
+    vec background(const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, BackgroundType background_type, const vec& external_background_values, const ivec& indices_global_outer, bool debug);
+
+    bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
+
+    bool set_indices( const ivec& indices_global_outer_guess, const ivec& obs_test, const ivec& dqcflags, const vec& dist_outer_guess, float inner_radius, int test_just_this, ivec& indices_global_outer, ivec& indices_global_test, ivec& indices_outer_inner, ivec& indices_outer_test, ivec& indices_inner_test);
+    template<class T1, class T2> struct sort_pair_first {
+        bool operator()(const std::pair<T1,T2>&left, const std::pair<T1,T2>&right) {
+            return left.first < right.first;
+        };
+    };
     /**@}*/
 
     /** ****************************************

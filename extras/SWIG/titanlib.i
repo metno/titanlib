@@ -607,6 +607,9 @@ namespace std {
 %apply std::vector<float>& OUTPUT { std::vector<float>& z_coords };
 %apply std::vector<float>& OUTPUT { std::vector<float>& distances };
 %apply std::vector<std::vector<float> >& OUTPUT { std::vector<std::vector<float> >& distances };
+%apply std::vector<float>& OUTPUT { std::vector<float>& scores };
+%apply std::vector<float>& OUTPUT { std::vector<float>& num_inner };
+%apply std::vector<float>& OUTPUT { std::vector<float>& horizontal_scale };
 %apply int& OUTPUT { int& X1_out };
 %apply int& OUTPUT { int& Y1_out };
 %apply int& OUTPUT { int& X2_out };

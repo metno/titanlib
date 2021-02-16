@@ -16,15 +16,7 @@
 
 using namespace titanlib;
 
-namespace {
-    template<class T1, class T2> struct sort_pair_first {
-        bool operator()(const std::pair<T1,T2>&left, const std::pair<T1,T2>&right) {
-            return left.first < right.first;
-        };
-    };
-}
 // helpers
-bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
 void remove_flagged(ivec& indices, vec& distances, ivec flags);
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
@@ -122,7 +114,7 @@ ivec titanlib::sct(const Points& points,
                 for(int i = 0; i < neighbour_indices.size(); i++) {
                     pairs[i] = std::pair<float, int>(distances[i], neighbour_indices[i]);
                 }
-                std::sort(pairs.begin(), pairs.end(), ::sort_pair_first<float,int>());
+                std::sort(pairs.begin(), pairs.end(), titanlib::sort_pair_first<float,int>());
                 distances.clear();
                 neighbour_indices.clear();
                 distances.resize(num_max);
@@ -204,7 +196,7 @@ ivec titanlib::sct(const Points& points,
             /* ---------------------------------------------------
                Beginning of real SCT
                ------------------------------------------------------*/
-            bool b = invert_matrix(S, Sinv);
+            bool b = titanlib::invert_matrix(S, Sinv);
             if(b != true) {
                 // TODO: flag differently or give an error???
                 continue;
@@ -462,24 +454,6 @@ vec vertical_profile(const int n, const double *elevs, const double t0, const do
 
 //----------------------------------------------------------------------------//
 // HELPER FUNCTIONS
-
-bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
-    using namespace boost::numeric::ublas;
-    typedef permutation_matrix<std::size_t> pmatrix;
-    // create a working copy of the input
-    matrix<float> A(input);
-    // create a permutation matrix for the LU-factorization
-    pmatrix pm(A.size1());
-    // perform LU-factorization
-    int res = lu_factorize(A,pm);
-    if( res != 0 ) return false;
-    // create identity matrix of "inverse"
-    inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
-    // backsubstitute to get the inverse
-    lu_substitute(A, pm, inverse);
-    return true;
-}
-
 
 void remove_flagged(ivec& indices, vec& distances, ivec flags) {
     ivec indices_new;
