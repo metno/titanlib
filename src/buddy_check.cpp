@@ -53,6 +53,7 @@ ivec titanlib::buddy_check(const Points& points,
     bool check_all = obs_to_check.size() != s;
 
     for(int it = 0; it < num_iterations; it++) {
+        int count_bad = 0;
         // TODO: Can this really be parallelized? Loop dependencies: flags.
         // #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
@@ -132,12 +133,17 @@ ivec titanlib::buddy_check(const Points& points,
                     }
                     float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
+                        count_bad ++;
                         flags[i] = 1;
                     }
                 }
-            }
+            } // end if observation is to check
+        } // end loop over values
+        if(debug) {
+            std::cout << "iteration, number of bad observations: " << it << ", " << count_bad << '\n';
         }
-    }
+        if(count_bad == 0) break;
+    } // end loop over num_iterations
 
     return flags;
 }
