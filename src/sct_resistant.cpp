@@ -14,11 +14,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
-
-//=============================================================================
-
-// helpers
-bool invert_matrix (const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse);
+using namespace titanlib;
 
 // SCT within the inner circle
 
@@ -27,13 +23,11 @@ bool sct_core( const vec& lats, const vec& lons, const vec& elevs, const vec& yo
 //=============================================================================
 
 //+ SCT - Spatial Consistency Test
-ivec titanlib::sct_resistant( const vec& lats,
-                              const vec& lons,
-                              const vec& elevs,
+ivec titanlib::sct_resistant( const Points& points,
                               const vec& values,
                               const ivec& obs_to_check,
                               const vec& background_values,
-                              std::string background_elab_type,
+                              BackgroundType background_elab_type,
                               int num_min_outer,
                               int num_max_outer,
                               float inner_radius,
@@ -124,8 +118,12 @@ ivec titanlib::sct_resistant( const vec& lats,
   flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
 
 */
-    double s_time = titanlib::util::clock();
-    
+
+    double s_time = titanlib::clock();
+
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
     const int p = values.size();
     if( lats.size() != p || lons.size() != p || elevs.size() != p || values.size() != p || tpos.size() != p || tneg.size() != p || eps2.size() != p || values_mina.size() != p || values_maxa.size() != p || values_minv.size() != p || values_maxv.size() != p)
         throw std::runtime_error("Dimension mismatch");
@@ -147,15 +145,9 @@ ivec titanlib::sct_resistant( const vec& lats,
         throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
-    if( background_elab_type != "vertical_profile" && 
-        background_elab_type != "vertical_profile_Theil_Sen" && 
-        background_elab_type != "mean_outer_circle" && 
-        background_elab_type != "median_outer_circle" &&
-        background_elab_type != "external")
-        throw std::invalid_argument("background_elab_type must be one of vertical_profile, vertical_profile_Theil_Sen, mean_outer_circle, median_outer_circle or external");
-    if(background_elab_type == "vertical_profile" && num_min_prof<0)
+    if(background_elab_type == titanlib::VerticalProfile && num_min_prof<0)
         throw std::invalid_argument("num_min_prof must be >=0");
-    if(background_elab_type == "external" &&  background_values.size() != p)
+    if(background_elab_type == External && background_values.size() != p)
         throw std::runtime_error("Background vector dimension mismatch");
 
     // initializations
@@ -203,7 +195,7 @@ ivec titanlib::sct_resistant( const vec& lats,
 
         if(debug) std::cout << " +++++ Iteration " << iteration << " ++++++++++++++++" << std::endl;
 
-        double s_time0 = titanlib::util::clock();
+        double s_time0 = titanlib::clock();
         
         // reset this number each loop (this is for breaking if we don't throw anything new out)
         int thrown_out = 0; 
@@ -228,7 +220,24 @@ ivec titanlib::sct_resistant( const vec& lats,
 
             // get all neighbours that are close enough (inside outer circle)
             vec distances;
-            ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+            ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
+            if(indices_global_outer_guess.size() > num_max_outer) {
+
+                int N = indices_global_outer_guess.size();
+                std::vector<std::pair<float,int> > pairs(N);
+                for(int i = 0; i < indices_global_outer_guess.size(); i++) {
+                    pairs[i] = std::pair<float, int>(distances[i], indices_global_outer_guess[i]);
+                }
+                std::sort(pairs.begin(), pairs.end(), titanlib::sort_pair_first<float,int>());
+                distances.clear();
+                indices_global_outer_guess.clear();
+                distances.resize(num_max_outer);
+                indices_global_outer_guess.resize(num_max_outer);
+                for(int i = 0; i < num_max_outer; i++) {
+                    distances[i] = pairs[i].first;
+                    indices_global_outer_guess[i] = pairs[i].second;
+                }
+            }
             if(debug) {
                 int p_dist = distances.size();
                 std::cout << "p_dist  " << p_dist << std::endl;
@@ -237,7 +246,7 @@ ivec titanlib::sct_resistant( const vec& lats,
             // set all the indices linking the different levels
 
             ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
-            bool res = titanlib::util::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, -1, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
+            bool res = titanlib::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, -1, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
 
             int p_outer = indices_global_outer.size();
             int p_inner = indices_outer_inner.size();
@@ -260,17 +269,17 @@ ivec titanlib::sct_resistant( const vec& lats,
             
             // -~- Vectors on the outer circle
 
-            vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
-            vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
-            vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
-            vec values_outer = titanlib::util::subset(values, indices_global_outer);
-            vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
-            vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
-            vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
-            vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
-            vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
-            vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
-            vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
+            vec lons_outer   = titanlib::subset(lons, indices_global_outer);
+            vec elevs_outer  = titanlib::subset(elevs, indices_global_outer);
+            vec lats_outer   = titanlib::subset(lats, indices_global_outer);
+            vec values_outer = titanlib::subset(values, indices_global_outer);
+            vec eps2_outer   = titanlib::subset(eps2, indices_global_outer);
+            vec tpos_outer   = titanlib::subset(tpos, indices_global_outer);
+            vec tneg_outer   = titanlib::subset(tneg, indices_global_outer);
+            vec mina_outer   = titanlib::subset(values_mina, indices_global_outer);
+            vec minv_outer   = titanlib::subset(values_minv, indices_global_outer);
+            vec maxa_outer   = titanlib::subset(values_maxa, indices_global_outer);
+            vec maxv_outer   = titanlib::subset(values_maxv, indices_global_outer);
             
             // Debug for indices
             if(debug) {
@@ -311,7 +320,7 @@ ivec titanlib::sct_resistant( const vec& lats,
 
 
             // -~- Compute the background 
-            vec bvalues_outer = titanlib::background::background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
+            vec bvalues_outer = titanlib::background(elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_elab_type, background_values, indices_global_outer, debug);
 
             if(debug) {
               std::cout << "... background ok ..." << std::endl;
@@ -360,7 +369,7 @@ ivec titanlib::sct_resistant( const vec& lats,
         }  // end loop over observations
 
         std::cout << "SCT loop - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
-        double e_time0 = titanlib::util::clock();
+        double e_time0 = titanlib::clock();
         std::cout << e_time0 - s_time0 << " secs" << std::endl;
         if(thrown_out == 0) {
             if ( iteration == 0) set_all_good = true;
@@ -387,7 +396,7 @@ ivec titanlib::sct_resistant( const vec& lats,
     /* check on observations missing QC flags */
 
     if(debug) std::cout << " +++++ check on observations missing QC flags ++++++++++++++++" << std::endl;
-    double s_time0 = titanlib::util::clock();
+    double s_time0 = titanlib::clock();
         
     // reset this number each loop (this is for breaking if we don't throw anything new out)
     int thrown_out = 0; 
@@ -411,12 +420,29 @@ ivec titanlib::sct_resistant( const vec& lats,
 
         // get all neighbours that are close enough (inside outer circle)
         vec distances;
-        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
+        if(indices_global_outer_guess.size() > num_max_outer) {
+
+            int N = indices_global_outer_guess.size();
+            std::vector<std::pair<float,int> > pairs(N);
+            for(int i = 0; i < indices_global_outer_guess.size(); i++) {
+                pairs[i] = std::pair<float, int>(distances[i], indices_global_outer_guess[i]);
+            }
+            std::sort(pairs.begin(), pairs.end(), titanlib::sort_pair_first<float,int>());
+            distances.clear();
+            indices_global_outer_guess.clear();
+            distances.resize(num_max_outer);
+            indices_global_outer_guess.resize(num_max_outer);
+            for(int i = 0; i < num_max_outer; i++) {
+                distances[i] = pairs[i].first;
+                indices_global_outer_guess[i] = pairs[i].second;
+            }
+        }
 
         // set all the indices linking the different levels
         // note that the only observation to test is curr
         ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
-        bool res = titanlib::util::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
+        bool res = titanlib::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
             
         int p_outer = indices_global_outer.size();
         int p_inner = indices_outer_inner.size();
@@ -439,21 +465,21 @@ ivec titanlib::sct_resistant( const vec& lats,
             
         // -~- Vectors on the outer circle
 
-        vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
-        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
-        vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
-        vec values_outer = titanlib::util::subset(values, indices_global_outer);
-        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
-        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
-        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
-        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
-        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
-        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
-        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
+        vec lons_outer   = titanlib::subset(lons, indices_global_outer);
+        vec elevs_outer  = titanlib::subset(elevs, indices_global_outer);
+        vec lats_outer   = titanlib::subset(lats, indices_global_outer);
+        vec values_outer = titanlib::subset(values, indices_global_outer);
+        vec eps2_outer   = titanlib::subset(eps2, indices_global_outer);
+        vec tpos_outer   = titanlib::subset(tpos, indices_global_outer);
+        vec tneg_outer   = titanlib::subset(tneg, indices_global_outer);
+        vec mina_outer   = titanlib::subset(values_mina, indices_global_outer);
+        vec minv_outer   = titanlib::subset(values_minv, indices_global_outer);
+        vec maxa_outer   = titanlib::subset(values_maxa, indices_global_outer);
+        vec maxv_outer   = titanlib::subset(values_maxv, indices_global_outer);
 
 
         // -~- Compute the background 
-        vec bvalues_outer = titanlib::background::background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
+        vec bvalues_outer = titanlib::background(elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_elab_type, background_values, indices_global_outer, debug);
 
         if(debug) {
           std::cout << "... background ok ..." << std::endl;
@@ -493,7 +519,7 @@ ivec titanlib::sct_resistant( const vec& lats,
     }  // end loop over observations
 
     std::cout << "QC missing - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
-    double e_time0 = titanlib::util::clock();
+    double e_time0 = titanlib::clock();
     std::cout << e_time0 - s_time0 << " secs" << std::endl;
 
     /* final check on the bad observations
@@ -503,7 +529,7 @@ ivec titanlib::sct_resistant( const vec& lats,
        This final check is made only on bad observations and uses only good observations. */
 
     if(debug) std::cout << " +++++ final check on the bad observations ++++++++++++++++" << std::endl;
-    s_time0 = titanlib::util::clock();
+    s_time0 = titanlib::clock();
         
     // reset this number each loop (this is for breaking if we don't throw anything new out)
     thrown_out = 0; 
@@ -526,12 +552,29 @@ ivec titanlib::sct_resistant( const vec& lats,
 
         // get all neighbours that are close enough (inside outer circle)
         vec distances;
-        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, num_max_outer, true, distances);
+        ivec indices_global_outer_guess = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
+        if(indices_global_outer_guess.size() > num_max_outer) {
+
+            int N = indices_global_outer_guess.size();
+            std::vector<std::pair<float,int> > pairs(N);
+            for(int i = 0; i < indices_global_outer_guess.size(); i++) {
+                pairs[i] = std::pair<float, int>(distances[i], indices_global_outer_guess[i]);
+            }
+            std::sort(pairs.begin(), pairs.end(), titanlib::sort_pair_first<float,int>());
+            distances.clear();
+            indices_global_outer_guess.clear();
+            distances.resize(num_max_outer);
+            indices_global_outer_guess.resize(num_max_outer);
+            for(int i = 0; i < num_max_outer; i++) {
+                distances[i] = pairs[i].first;
+                indices_global_outer_guess[i] = pairs[i].second;
+            }
+        }
 
         // set all the indices linking the different levels
 
         ivec indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test;
-        bool res = titanlib::util::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
+        bool res = titanlib::set_indices( indices_global_outer_guess, obs_test, flags, distances, inner_radius, curr, indices_global_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test);
             
         int p_outer = indices_global_outer.size();
         int p_inner = indices_outer_inner.size();
@@ -554,17 +597,17 @@ ivec titanlib::sct_resistant( const vec& lats,
             
         // -~- Set vectors on the outer circle
 
-        vec lons_outer   = titanlib::util::subset(lons, indices_global_outer);
-        vec elevs_outer  = titanlib::util::subset(elevs, indices_global_outer);
-        vec lats_outer   = titanlib::util::subset(lats, indices_global_outer);
-        vec values_outer = titanlib::util::subset(values, indices_global_outer);
-        vec eps2_outer   = titanlib::util::subset(eps2, indices_global_outer);
-        vec tpos_outer   = titanlib::util::subset(tpos, indices_global_outer);
-        vec tneg_outer   = titanlib::util::subset(tneg, indices_global_outer);
-        vec mina_outer   = titanlib::util::subset(values_mina, indices_global_outer);
-        vec minv_outer   = titanlib::util::subset(values_minv, indices_global_outer);
-        vec maxa_outer   = titanlib::util::subset(values_maxa, indices_global_outer);
-        vec maxv_outer   = titanlib::util::subset(values_maxv, indices_global_outer);
+        vec lons_outer   = titanlib::subset(lons, indices_global_outer);
+        vec elevs_outer  = titanlib::subset(elevs, indices_global_outer);
+        vec lats_outer   = titanlib::subset(lats, indices_global_outer);
+        vec values_outer = titanlib::subset(values, indices_global_outer);
+        vec eps2_outer   = titanlib::subset(eps2, indices_global_outer);
+        vec tpos_outer   = titanlib::subset(tpos, indices_global_outer);
+        vec tneg_outer   = titanlib::subset(tneg, indices_global_outer);
+        vec mina_outer   = titanlib::subset(values_mina, indices_global_outer);
+        vec minv_outer   = titanlib::subset(values_minv, indices_global_outer);
+        vec maxa_outer   = titanlib::subset(values_maxa, indices_global_outer);
+        vec maxv_outer   = titanlib::subset(values_maxv, indices_global_outer);
 
         // Debug for indices
         if(debug) {
@@ -604,7 +647,7 @@ ivec titanlib::sct_resistant( const vec& lats,
         }
 
         // -~- Compute the background 
-        vec bvalues_outer = titanlib::background::background( background_elab_type, elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_values, indices_global_outer, debug);
+        vec bvalues_outer = titanlib::background(elevs_outer, values_outer, num_min_prof, min_elev_diff, value_minp, value_maxp, background_elab_type, background_values, indices_global_outer, debug);
 
         if(debug) { 
             int j = indices_outer_test[0];
@@ -650,7 +693,7 @@ ivec titanlib::sct_resistant( const vec& lats,
     }  // end loop over observations
 
     std::cout << "Re-check bad obs - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
-    e_time0 = titanlib::util::clock();
+    e_time0 = titanlib::clock();
     std::cout << e_time0 - s_time0 << " secs" << std::endl;
 
     //
@@ -695,29 +738,6 @@ ivec titanlib::sct_resistant( const vec& lats,
 }
 // end SCT //
 
-
-//=============================================================================
-
-//----------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-
-//+ Matrix inversion based on LU-decomposition
-bool invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
-    using namespace boost::numeric::ublas;
-    typedef permutation_matrix<std::size_t> pmatrix;
-    // create a working copy of the input
-    matrix<float> A(input);
-    // create a permutation matrix for the LU-factorization
-    pmatrix pm(A.size1());
-    // perform LU-factorization
-    int res = lu_factorize(A,pm);
-    if( res != 0 ) return false;
-    // create identity matrix of "inverse"
-    inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
-    // backsubstitute to get the inverse
-    lu_substitute(A, pm, inverse);
-    return true;
-}
 
 //----------------------------------------------------------------------------//
 // SCT WITHIN THE INNER CIRCLE
@@ -838,7 +858,7 @@ bool sct_core( const vec& lats,
         vec Dh_vector(p_outer);
         int k = 0;
         for(int j=i; j < p_outer; j++) {
-            disth(i, j) = titanlib::util::calc_distance( lats[i], lons[i], lats[j], lons[j]);
+            disth(i, j) = titanlib::calc_distance( lats[i], lons[i], lats[j], lons[j]);
             distz(i, j) = fabs( elevs[i] - elevs[j]);
             if(i != j) {
                 disth(j, i) = disth(i, j);
@@ -852,7 +872,7 @@ bool sct_core( const vec& lats,
             k++;
         }
         // find distance to the k-th closest observations
-        Dh(i) = titanlib::util::findKclosest( kth_close, Dh_vector); 
+        Dh(i) = titanlib::find_k_closest(Dh_vector, kth_close);
         if(debug) std::cout << "i Dh " << i << " " << Dh(i) << std::endl;
     }
 
@@ -944,9 +964,9 @@ bool sct_core( const vec& lats,
     }
 
     // chi summary statistics
-    float mu = titanlib::util::compute_quantile( 0.5, chi_stat);
-    float sigma = titanlib::util::compute_quantile( 0.75, chi_stat) - titanlib::util::compute_quantile( 0.25, chi_stat);
-    float sigma_alt = titanlib::util::compute_quantile( 0.75, chi_stat_alt) - titanlib::util::compute_quantile( 0.25, chi_stat_alt);
+    float mu = titanlib::compute_quantile( 0.5, chi_stat);
+    float sigma = titanlib::compute_quantile( 0.75, chi_stat) - titanlib::compute_quantile( 0.25, chi_stat);
+    float sigma_alt = titanlib::compute_quantile( 0.75, chi_stat_alt) - titanlib::compute_quantile( 0.25, chi_stat_alt);
     if (sigma_alt > sigma) sigma = sigma_alt;
  
     if(sigma == 0) {

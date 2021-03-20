@@ -8,9 +8,9 @@
 #include <exception>
 #include "titanlib.h"
 
-ivec titanlib::buddy_check(const vec& lats,
-        const vec& lons,
-        const vec& elevs,
+using namespace titanlib;
+
+ivec titanlib::buddy_check(const Points& points,
         const vec& values,
         const vec& radius,
         const ivec& num_min,
@@ -22,18 +22,18 @@ ivec titanlib::buddy_check(const vec& lats,
         const ivec& obs_to_check) {
 
     bool debug = false;
-    const int s = values.size();
+    const int s = points.size();
     // assert that the arrays we expect are of size s
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s) {
-        throw std::invalid_argument("Lats, lons, elevs, values dimension mismatch");
+    if(values.size() != s) {
+        throw std::invalid_argument("Points and values dimension mismatch");
     }
-    else if( radius.size() != s && radius.size() != 1 ) {
+    else if(radius.size() != s && radius.size() != 1) {
         throw std::invalid_argument("Radius has an invalid length");
     }
-    if( (num_min.size() != s && num_min.size() != 1)) {
+    if((num_min.size() != s && num_min.size() != 1)) {
         throw std::invalid_argument("'num_min' has an invalid length");
     }
-    if( (obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) ) {
+    if((obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0)) {
         throw std::invalid_argument("'obs_to_check' has an invalid length");
     }
 
@@ -43,15 +43,19 @@ ivec titanlib::buddy_check(const vec& lats,
             throw std::runtime_error("Buddies_min must be > 0");
     }
 
-    // create the KD tree to be used later
-    titanlib::KDTree tree(lats, lons);
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
+
     // resize the flags and set them to 0
     ivec flags(s, 0);
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != s;
 
     for(int it = 0; it < num_iterations; it++) {
-        #pragma omp parallel for
+        int count_bad = 0;
+        // TODO: Can this really be parallelized? Loop dependencies: flags.
+        // #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
             int b_i = (num_min.size() == s) ? i : 0;
@@ -66,7 +70,7 @@ ivec titanlib::buddy_check(const vec& lats,
                 }
 
                 // get all neighbours that are close enough
-                ivec neighbour_indices = tree.get_neighbours(lats[i], lons[i], radius[d_i], 0, false);
+                ivec neighbour_indices = points.get_neighbours(lats[i], lons[i], radius[d_i], false);
 
                 int n_buddies = 0;
                 vec list_buddies;
@@ -122,19 +126,24 @@ ivec titanlib::buddy_check(const vec& lats,
                         std::cout << "variance: " << variance << '\n';
                     }
 
-//                    float std = sqrt(variance);
+                    float std = sqrt(variance);
                     float std_adjusted = sqrt(variance + variance / n_buddies);
                     if(std_adjusted < min_std) {
                         std_adjusted = min_std;
                     }
                     float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
+                        count_bad ++;
                         flags[i] = 1;
                     }
                 }
-            }
+            } // end if observation is to check
+        } // end loop over values
+        if(debug) {
+            std::cout << "iteration, number of bad observations: " << it << ", " << count_bad << '\n';
         }
-    }
+        if(count_bad == 0) break;
+    } // end loop over num_iterations
 
     return flags;
 }

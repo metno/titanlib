@@ -1,9 +1,62 @@
-#include <cmath>
 #include "titanlib.h"
-#include <proj_api.h>
+#include <cmath>
 #include <math.h>
+#include <assert.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <iomanip>
+#include <cstdio>
+#include <exception>
+#include <sys/time.h>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
-bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
+#ifdef DEBUG
+extern "C" void __gcov_flush();
+#endif
+
+using namespace titanlib;
+
+bool titanlib::is_valid(float value) {
+    return !std::isnan(value) && !std::isinf(value) && value != titanlib::MV;
+}
+std::string titanlib::version() {
+    return __version__;
+}
+
+void titanlib::initialize_omp() {
+#ifdef _OPENMP
+    int num_threads = 1;
+    const char* num_threads_char = std::getenv("OMP_NUM_THREADS");
+    if(num_threads_char != NULL) {
+        std::istringstream(std::string(num_threads_char)) >> num_threads;
+        if(num_threads <= 0)
+            num_threads = 1;
+    }
+    titanlib::set_omp_threads(num_threads);
+#endif
+}
+
+void titanlib::set_omp_threads(int num) {
+#ifdef _OPENMP
+    // omp_set_dynamic(0);
+    omp_set_num_threads(num);
+#endif
+}
+
+double titanlib::clock() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    double sec = (t.tv_sec);
+    double msec= (t.tv_usec);
+    return sec + msec/1e6;
+}
+
+bool titanlib::convert_coordinates(const vec& lats, const vec& lons, vec& x_coords, vec& y_coords, vec& z_coords) {
     int N = lats.size();
     x_coords.resize(N);
     y_coords.resize(N);
@@ -15,7 +68,7 @@ bool titanlib::util::convert_coordinates(const vec& lats, const vec& lons, vec& 
     return true;
 }
 
-bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord) {
+bool titanlib::convert_coordinates(float lat, float lon, float& x_coord, float& y_coord, float& z_coord) {
 
     float earth_radius = 6.37e6;
     double lonr = M_PI / 180 * lon;
@@ -27,25 +80,7 @@ bool titanlib::util::convert_coordinates(float lat, float lon, float& x_coord, f
     return true;
 }
 
-void titanlib::util::convert_to_proj(const vec& lats, const vec& lons, std::string proj4, vec& x_coords, vec& y_coords) {
-    int N = lats.size();
-    x_coords.resize(N);
-    y_coords.resize(N);
-
-    projPJ Pproj = pj_init_plus(proj4.c_str());
-    projPJ Plonglat = pj_init_plus("+proj=longlat +ellps=clrk66");
-
-    for(int i = 0; i < N; i++) {
-        double lat0 = deg2rad(lats[i]);
-        double lon0 = deg2rad(lons[i]);
-        pj_transform(Plonglat, Pproj, 1, 1, &lon0, &lat0, NULL);
-        x_coords[i] = lon0;
-        y_coords[i] = lat0;
-    }
-    pj_free(Pproj);
-    pj_free(Plonglat);
-}
-float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lon2) {
+float titanlib::calc_distance(float lat1, float lon1, float lat2, float lon2) {
     if(!(fabs(lat1) <= 90 && fabs(lat2) <= 90 && fabs(lon1) <= 360 && fabs(lon2) <= 360)) {
         // std::cout << " Cannot calculate distance, invalid lat/lon: (" << lat1 << "," << lon1 << ") (" << lat2 << "," << lon2 << ")";
         // std::cout << '\n';
@@ -65,13 +100,16 @@ float titanlib::util::calc_distance(float lat1, float lon1, float lat2, float lo
     double dist = acos(ratio)*radiusEarth;
     return (float) dist;
 }
-float titanlib::util::calc_distance(float x0, float y0, float z0, float x1, float y1, float z1) {
+
+float titanlib::calc_distance(float x0, float y0, float z0, float x1, float y1, float z1) {
     return sqrt((x0 - x1)*(x0 - x1) + (y0 - y1)*(y0 - y1) + (z0 - z1)*(z0 - z1));
 }
-float titanlib::util::deg2rad(float deg) {
+
+float titanlib::deg2rad(float deg) {
    return (deg * M_PI / 180);
 }
-vec titanlib::util::interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons) {
+
+vec titanlib::interpolate_to_points(const vec2& input_lats, const vec2& input_lons, const vec2& input_values, const vec& output_lats, const vec& output_lons) {
     assert(input_lats.size() > 0);
     assert(input_lats[0].size() > 0);
     vec output_values(output_lats.size(), 0);
@@ -98,7 +136,7 @@ vec titanlib::util::interpolate_to_points(const vec2& input_lats, const vec2& in
     return output_values;
 }
 
-float titanlib::util::compute_quantile(double quantile, const vec& array) {
+float titanlib::compute_quantile(double quantile, const vec& array) {
     int n = array.size();
     if(n == 0) {
         throw std::runtime_error("Cannot compute quantile on empty array");
@@ -131,26 +169,7 @@ float titanlib::util::compute_quantile(double quantile, const vec& array) {
     return exact_q;
 }
 
-float titanlib::util::findKclosest(int k, const vec& array) {
-    int n = array.size();
-    if(n == 0) {
-        throw std::runtime_error("Cannot compute quantile on empty array");
-    }
-    vec array_copy(n);
-    // make a copy of the vector
-    for(int i = 0; i < n; i++)
-        array_copy[i] = array[i];
-    std::sort(array_copy.begin(), array_copy.end());
-    if(k > n) {
-      k = n-1;
-    } else {
-      k = k-1;
-    }
-    float value = array_copy[k];
-    return value;
-}
-
-vec titanlib::util::subset(const vec& input, const ivec& indices) {
+vec titanlib::subset(const vec& input, const ivec& indices) {
     vec output(indices.size());
     int size = indices.size();
     for(int i=0; i < size; i++) {
@@ -161,15 +180,47 @@ vec titanlib::util::subset(const vec& input, const ivec& indices) {
     return output;
 }
 
-float* titanlib::util::test_array(float* v, int n) {
-    int count = 0;
-    for(int i = 0; i < n; i++)
-        count++;
-    return v;
- }
+Points titanlib::subset(const Points& input, const ivec& indices) {
+    int size = indices.size();
+    vec ilats = input.get_lats();
+    vec ilons = input.get_lons();
+    vec ielevs = input.get_elevs();
+    vec ilafs = input.get_lafs();
+    vec lats(size);
+    vec lons(size);
+    vec elevs(size);
+    vec lafs(size);
+    for(int i=0; i < size; i++) {
+        int index = indices[i];
+        assert(index < input.size());
+        lats[i] = ilats[index];
+        lons[i] = ilons[index];
+        elevs[i] = ielevs[index];
+        lafs[i] = ilafs[index];
+    }
+    return Points(lats, lons, elevs, lafs);
+}
+
+bool titanlib::invert_matrix(const boost::numeric::ublas::matrix<float>& input, boost::numeric::ublas::matrix<float>& inverse) {
+    using namespace boost::numeric::ublas;
+    typedef permutation_matrix<std::size_t> pmatrix;
+    // create a working copy of the input
+    matrix<float> A(input);
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+    // perform LU-factorization
+    int res = lu_factorize(A,pm);
+    if( res != 0 ) return false;
+    // create identity matrix of "inverse"
+    inverse.assign(boost::numeric::ublas::identity_matrix<float>(A.size1()));
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inverse);
+    return true;
+}
+
 
 //+ Set indices when inner and outer circles are present
-bool titanlib::util::set_indices( const ivec& indices_global_outer_guess, 
+bool titanlib::set_indices( const ivec& indices_global_outer_guess, 
                   const ivec& obs_test,
                   const ivec& dqcflags, 
                   const vec& dist_outer_guess, 
@@ -232,5 +283,24 @@ bool titanlib::util::set_indices( const ivec& indices_global_outer_guess,
     }
     //
     return true;
+}
+
+float titanlib::find_k_closest(const vec& array, int k) {
+    int n = array.size();
+    if(n == 0) {
+        throw std::runtime_error("Cannot compute quantile on empty array");
+    }
+    vec array_copy(n);
+    // make a copy of the vector
+    for(int i = 0; i < n; i++)
+        array_copy[i] = array[i];
+    std::sort(array_copy.begin(), array_copy.end());
+    if(k > n) {
+      k = n-1;
+    } else {
+      k = k-1;
+    }
+    float value = array_copy[k];
+    return value;
 }
 

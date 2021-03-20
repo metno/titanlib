@@ -7,62 +7,52 @@
 #include <exception>
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_linalg.h>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+
+using namespace titanlib;
 
 
 /*----------------------------------------------------------------------------
  BACKGROUND FUNCTIONS */
 
-vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
+namespace {
+    vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
 
-vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
+    vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
 
-double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
+    double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 
-vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
+    vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
 
-double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
+    double vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 
-vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
+    vec vertical_profile(const int n, const double *elevs, const double t0, const double gamma, const double a, const double h0, const double h1i);
+}
 
 /*----------------------------------------------------------------------------
  BACKGROUND FUNCTIONS */
 
 //+ Compute the background for all the observations in the outer circle
-vec titanlib::background::background( std::string background_elab_type,
-                const vec& elevs, 
-                const vec& values, 
-                int num_min_prof, 
-                float min_elev_diff,
-                float value_minp,
-                float value_maxp,
-                const vec& external_background_values,
-                const ivec& indices_global_outer,
-                bool debug) {
+vec titanlib::background(const vec& elevs, const vec& values, int num_min_prof, float min_elev_diff, float value_minp, float value_maxp, BackgroundType background_type, const vec& external_background_values, const ivec& indices_global_outer, bool debug) {
+
     vec bvalues;
     int p = values.size();
-    
-    if( background_elab_type == "vertical_profile") {
+
+    if( background_type == titanlib::VerticalProfile) {
         // vertical profile is independent from the curr-th observation
-        bvalues = compute_vertical_profile(elevs, elevs, values, num_min_prof, min_elev_diff, debug);
-    } else if( background_elab_type == "vertical_profile_Theil_Sen") {
+        bvalues = ::compute_vertical_profile(elevs, elevs, values, num_min_prof, min_elev_diff, debug);
+    } else if( background_type == titanlib::VerticalProfileTheilSen) {
         // vertical profile is independent from the curr-th observation
-        bvalues = compute_vertical_profile_Theil_Sen(elevs, elevs, values, num_min_prof, min_elev_diff, debug);
-    } else if( background_elab_type == "mean_outer_circle"){
+        bvalues = ::compute_vertical_profile_Theil_Sen(elevs, elevs, values, num_min_prof, min_elev_diff, debug);
+    } else if( background_type == titanlib::MeanOuterCircle){
         // vertical profile is independent from the curr-th observation
         float mean_val = std::accumulate(values.begin(), values.end(), 0.0) / p;
         bvalues.resize(p, mean_val);
-    } else if( background_elab_type == "median_outer_circle"){
+    } else if( background_type == titanlib::MedianOuterCircle){
         // vertical profile is independent from the curr-th observation
-        float median_val = titanlib::util::compute_quantile( 0.5, values);
+        float median_val = titanlib::compute_quantile( 0.5, values);
         bvalues.resize(p, median_val);
-    } else if( background_elab_type == "external"){
-        bvalues = titanlib::util::subset(external_background_values, indices_global_outer);
+    } else if( background_type == titanlib::External){
+        bvalues = titanlib::subset(external_background_values, indices_global_outer);
     }
     // set the range 
     for(int i=0; i<p; i++) {
@@ -72,7 +62,7 @@ vec titanlib::background::background( std::string background_elab_type,
     //
     return bvalues;
 }
-
+namespace {
 vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug) {
     // Starting value guesses
     double gamma = -0.0065;
@@ -86,8 +76,8 @@ vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, cons
     }
 
     // Check if terrain is too flat
-    double z05 = titanlib::util::compute_quantile(0.05, elevs);
-    double z95 = titanlib::util::compute_quantile(0.95, elevs);
+    double z05 = titanlib::compute_quantile(0.05, elevs);
+    double z95 = titanlib::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_diff;
@@ -113,12 +103,12 @@ vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, cons
                 k++;
             }
         }
-        m_median = titanlib::util::compute_quantile( 0.5, m);
+        m_median = titanlib::compute_quantile( 0.5, m);
     }
     for(int i=0; i<n; i++) {
         q[i] = values[i] - m_median * elevs[i];
     }
-    double q_median = titanlib::util::compute_quantile( 0.5, q);
+    double q_median = titanlib::compute_quantile( 0.5, q);
     vec vp(no);
     if (debug) std::cout << "Theil-Sen vp - m q " << m_median  << " " << q_median << std::endl;
     for(int i=0; i<no; i++) {
@@ -141,8 +131,8 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
         vec vp( oelevs.size(), meanT);
         return vp;
     }
-    double exact_p10 = titanlib::util::compute_quantile(0.10, elevs);
-    double exact_p90 = titanlib::util::compute_quantile(0.90, elevs);
+    double exact_p10 = titanlib::compute_quantile(0.10, elevs);
+    double exact_p90 = titanlib::compute_quantile(0.90, elevs);
     
     // optimize inputs for VP (using Nelder-Mead Simplex algorithm)
     const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
@@ -167,8 +157,8 @@ vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& val
     double * data[3] = {&nd, dpelevs, dpvalues};
 
     // Check if terrain is too flat
-    double z05 = titanlib::util::compute_quantile(0.05, elevs);
-    double z95 = titanlib::util::compute_quantile(0.95, elevs);
+    double z05 = titanlib::compute_quantile(0.05, elevs);
+    double z95 = titanlib::compute_quantile(0.95, elevs);
 
     // should we use the basic or more complicated vertical profile?
     bool use_basic = elevs.size() < num_min_prof || (z95 - z05) < min_diff;
@@ -306,4 +296,4 @@ vec vertical_profile(const int n, const double *elevs, const double t0, const do
     return t_out;
 }
 
-
+}

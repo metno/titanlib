@@ -6,6 +6,8 @@
 #include <exception>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 
+using namespace titanlib;
+
 double mean_temp(float lat, int unixtime);
 double interpolate(int i1, int i2, float lat, float latitudes[], double numbers[]);
 std::pair<int,int> find_between(float lat, float latitudes[], int len);
@@ -20,7 +22,7 @@ ivec titanlib::range_check(const vec& values,
     const int s = values.size();
     // assert that the max and min are either both size 1 or the size of values 
     if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) {
-        throw std::runtime_error("Dimension mismatch");
+        throw std::runtime_error("Range check: Min/max arrays must either be length 1 or the same length as values");
     }
 
     ivec flags(s, 0);
@@ -30,8 +32,9 @@ ivec titanlib::range_check(const vec& values,
         // else same as loop
         int min_i = (min.size() == s) ? i : 0;
         int max_i = (max.size() == s) ? i : 0;
+
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < min[min_i] || values[i] > max[max_i]) {
+        if(!titanlib::is_valid(values[i]) || values[i] < min[min_i] || values[i] > max[max_i]) {
             flags[i] = 1;
         }
     }
@@ -40,9 +43,7 @@ ivec titanlib::range_check(const vec& values,
 
 }
 
-ivec titanlib::range_check_climatology(const vec& lats,
-        const vec& lons,
-        const vec& elevs,
+ivec titanlib::range_check_climatology(const Points& points,
         const vec& values,
         int unixtime,
         const vec& pos,
@@ -50,7 +51,11 @@ ivec titanlib::range_check_climatology(const vec& lats,
 
     // loop over all the lats/lons/elevs + value 
     // either min/max has length 1 or is the same length as the other vecs
-    const int s = lats.size();
+    const int s = points.size();
+    const vec& lats = points.get_lats();
+    const vec& lons = points.get_lons();
+    const vec& elevs = points.get_elevs();
+
     if( lons.size() != s || elevs.size() != s || values.size() != s ) {
         throw std::runtime_error("Dimension mismatch");
     }
@@ -70,10 +75,10 @@ ivec titanlib::range_check_climatology(const vec& lats,
         double t = mean_temp(lats[i], unixtime);
         std::cout << "mean t: " << t << "\n";
         double mean_pos = t + pos[pos_i];
-        double mean_neg = t + neg[neg_i];  
+        double mean_neg = t + neg[neg_i];
 
         // loop over the vectors and set the flags (0 = ok and 1 = bad)
-        if(values[i] < mean_neg || values[i] > mean_pos) {
+        if(!titanlib::is_valid(values[i]) || values[i] < mean_neg || values[i] > mean_pos) {
             flags[i] = 1;
         }
     }
@@ -105,7 +110,7 @@ double mean_temp(float lat, int unixtime) {
     boost::gregorian::date epoch(1970,1,1);
     boost::gregorian::date_duration diff(unixtime/86400);
     boost::gregorian::date newDate = epoch + diff;
-//    int date = newDate.year() * 10000 + newDate.month() * 100 + newDate.day();
+    int date = newDate.year() * 10000 + newDate.month() * 100 + newDate.day();
     //std::cout << date << "\n";
     int m = newDate.month();
     //std::cout << "month: " << m << "\n";

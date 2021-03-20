@@ -40,7 +40,7 @@ class SctResistantTest(unittest.TestCase):
 #        debug = False
 #
 #        points = titanlib.Points(lats, lons, elevs)
-#        flags, score = titanlib.sct_resistant(points, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+#        flags, score = titanlib.fgt(points, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
 #        print(flags)
 #
 #        np.testing.assert_array_equal(flags, [0, 0, 0, 0, 1])
@@ -74,22 +74,18 @@ class SctResistantTest(unittest.TestCase):
         num_iterations = 100
         num_min_prof = 10
         min_elev_diff = 500
-        min_horizontal_scale = 500
-        max_horizontal_scale = 10000
-        kth_closest_obs_horizontal_scale = 3
         vertical_scale = 600
         tpos = np.ones(N) * 3
         tneg = np.ones(N) * 3
-        eps2 = np.ones(N) * 0.5
         values_mina = values - 20 * np.ones(N)
         values_maxa = values + 20 * np.ones(N)
         values_minv = values - 1 * np.ones(N)
         values_maxv = values + 1 * np.ones(N)
         debug = False
         flags = np.ones(N) * (-999.)
-
+        background_uncertainties = np.ones(N)
         points = titanlib.Points(lats, lons, elevs)
-        flags, score = titanlib.sct_resistant(points, values, obs_to_check, background_values, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2, tpos, tneg, debug)
+        flags, score = titanlib.fgt(points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
 
         print("%.1fs" % (time.time() - s_time))
 
@@ -114,7 +110,7 @@ class SctResistantTest(unittest.TestCase):
         pofa = b/(b+d)
         print( "a(bad) b c d:", a,"(",nGE,")", b, c, d, a+b+c+d)
 #        print( "acc pod pofa ets", acc, round(pod,2), round(pofa,2), round(ets,2))
-        print( "acc pod pofa ets", round(acc,2), pod, pofa, ets)
+        print( "acc pod pofa ets", round(acc,2), round(pod,3), round(pofa,3), round(ets,4))
  
         print("===============================================================")
 

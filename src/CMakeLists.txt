@@ -23,4 +23,3 @@ install(TARGETS ${PROJECT_NAME} titanlib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib/static
     PUBLIC_HEADER DESTINATION include)
-add_subdirectory(swig)
