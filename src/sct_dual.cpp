@@ -16,7 +16,7 @@ using namespace titanlib;
 
 // SCT_dual within the inner circle
 
-bool sct_dual_core( const vec& lats, const vec& lons, const vec& elevs, const vec& w, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, float na, bool set_flag0, int& thrown_out, ivec& flags); 
+bool sct_dual_core( const vec& lats, const vec& lons, const vec& elevs, const vec& w, const vec& t, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, float na, bool set_flag0, int& thrown_out, ivec& flags); 
 
 
 //=============================================================================
@@ -36,6 +36,7 @@ ivec titanlib::sct_dual( const Points& points,
                          float max_horizontal_scale,
                          int kth_closest_obs_horizontal_scale,
                          float vertical_scale,
+                         const vec& test_thresholds,
                          bool debug) {
 /*
 
@@ -129,23 +130,32 @@ ivec titanlib::sct_dual( const Points& points,
     vec w( p, 0);
     vec eps2( p, 0.1);
     vec r( p, na);
+    vec t( p, na);
 
     bool set_all_good = false;
     
     if (obs_to_check.size() == p) {
-        for(int g=0; g < p; g++) 
+        for(int g=0; g<p; g++) 
           obs_test[g] = obs_to_check[g];
     }
 
     if (event_thresholds.size() == p) {
-        for(int g=0; g < p; g++) 
+        for(int g=0; g<p; g++) 
           r[g] = event_thresholds[g];
     } else {
-        for(int g=0; g < p; g++) 
-          r[g] = event_thresholds[1];
+        for(int g=0; g<p; g++) 
+          r[g] = event_thresholds[0];
     }
 
-    for(int g=0; g < p; g++) {
+    if (test_thresholds.size() == p) {
+        for(int g=0; g<p; g++) 
+          t[g] = test_thresholds[g];
+    } else {
+        for(int g=0; g<p; g++) 
+          t[g] = test_thresholds[0];
+    }
+
+    for(int g=0; g<p; g++) {
       if ( condition == titanlib::Eq) {
         if ( values[g] == r[g]) w[g] = 1;
       } else if ( condition == titanlib::Geq) {
@@ -257,6 +267,7 @@ ivec titanlib::sct_dual( const Points& points,
             vec lats_outer   = titanlib::subset( lats, indices_global_outer);
             vec eps2_outer   = titanlib::subset( eps2, indices_global_outer);
             vec w_outer      = titanlib::subset( w, indices_global_outer);
+            vec t_outer      = titanlib::subset( t, indices_global_outer);
             
             // Debug for indices
             if(debug) {
@@ -313,7 +324,7 @@ ivec titanlib::sct_dual( const Points& points,
  
             // -~- SCT_dual on a selection of observations to test in the inner circle
             bool set_flag0 = iteration > 0;
-            res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, set_flag0, thrown_out, flags); 
+            res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, t_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, set_flag0, thrown_out, flags); 
             // thrown_out is reset every new iteration
 
             // problems during the matrix inversion
@@ -429,6 +440,7 @@ ivec titanlib::sct_dual( const Points& points,
         vec lats_outer   = titanlib::subset( lats, indices_global_outer);
         vec eps2_outer   = titanlib::subset( eps2, indices_global_outer);
         vec w_outer      = titanlib::subset( w, indices_global_outer);
+        vec t_outer      = titanlib::subset( t, indices_global_outer);
 
         // -~- If all observations in the outer circle belongs to the same class then all are good
 
@@ -445,7 +457,7 @@ ivec titanlib::sct_dual( const Points& points,
 
         // -~- SCT_dual on a selection of observations to test in the inner circle
 
-        res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, flags); 
+        res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, t_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, flags); 
 
         // problems during the matrix inversion
         if ( !res) {
@@ -542,6 +554,7 @@ ivec titanlib::sct_dual( const Points& points,
         vec lats_outer   = titanlib::subset( lats, indices_global_outer);
         vec eps2_outer   = titanlib::subset( eps2, indices_global_outer);
         vec w_outer      = titanlib::subset( w, indices_global_outer);
+        vec t_outer      = titanlib::subset( t, indices_global_outer);
 
         // Debug for indices
         if(debug) {
@@ -595,7 +608,7 @@ ivec titanlib::sct_dual( const Points& points,
 
         // -~- SCT_dual within the inner circle
         // note that the only observation to test is curr
-        res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, flags); 
+        res = sct_dual_core( lats_outer, lons_outer, elevs_outer, w_outer, t_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, flags); 
 
         // problems during the matrix inversion
         if ( !res) {
@@ -663,6 +676,7 @@ bool sct_dual_core( const vec& lats,
                     const vec& lons, 
                     const vec& elevs, 
                     const vec& w, 
+                    const vec& t, 
                     float Dh_min, 
                     float Dh_max, 
                     int kth_close, 
@@ -701,11 +715,20 @@ bool sct_dual_core( const vec& lats,
  a bad buddy may cause a good observation to be misjudged as bad. For this reason
  we allow for the rejection of just one bad observation at a time. We reject the 
  one where the mismatch between actual value and best guess is the worst.
- To quantify the mismatches, we use the relative information content between 
- w0_idiv and w1_idiv:
-  I = w1_idiv * log( w1_idiv / w0_idiv)
+
+ To quantify the mismatches, we use the relative information content of 
+ w1_idiv with respect to w0_idiv (and viceversa I(0wrt1)):
+  I(1wrt0) = w1_idiv * log( w1_idiv / w0_idiv)
  (see e.g. page 12 of Tarantola's Book "Inverse problem theory" (2005).)
+ which is equivalent to defining the distance between w1_idiv and w0_idiv not
+ through difference but in a more complicated way. 
+ Note than I(...) is called "z" in the code.
  If no mismatches are found, then all observations are good ones.
+ 
+ In areas of transition between "yes" and "no" regions, a good observation can be 
+ mistaken for a bad one. For this reason, the user is allowed to set a threshold "t"
+ for the relative information content and an observation is flagged as bad only if
+ the relative information content I is larger than the threshold.
 
  Note that if both w1_idiv and w0_idiv are small numbers (close to zero), then
  we are dealing with an observation that is rather distant from its buddies.
@@ -891,7 +914,7 @@ bool sct_dual_core( const vec& lats,
 
     float zmx = na;
     int mmx = na;
-    if(debug) std::cout << "z_test - i w w1_idiv w0_idiv" << std::endl;
+    if(debug) std::cout << "z_test - i lon lat w w1_idiv w0_idiv" << std::endl;
     for(int m=0; m<p_test; m++) {
         int i = indices_outer_test[m];
         int i0 = indices_outer_w0[i];
@@ -910,18 +933,22 @@ bool sct_dual_core( const vec& lats,
         }
         if ( i1 != na) {
           w1_idiv = 1. - Sinv_d_w1(i1) / Sinv_w1(i1, i1);
+          if (w1_idiv < w_idiv_min) w1_idiv = w_idiv_min;
         } else {
           w0_idiv = 1. - Sinv_d_w0(i0) / Sinv_w0(i0, i0);
+          if (w0_idiv < w_idiv_min) w0_idiv = w_idiv_min;
         }
         float z = na;
+        float z0wrt1 = w0_idiv * log( w0_idiv / w1_idiv);
+        float z1wrt0 = w1_idiv * log( w1_idiv / w0_idiv);
         // verify that the observation has buddies nearby
         if ( w1_idiv >= w_idiv_min || w0_idiv >= w_idiv_min) {
             // candidate bad if w=1 but the neighbours consider more likely w=0
-            if ( w[i] == 1 && w0_idiv > w1_idiv) {
-                z = w0_idiv * log( w0_idiv / w1_idiv);
+            if ( w[i] == 1 && w0_idiv > w1_idiv && z0wrt1 > t[i]) {
+                z = z0wrt1;
             // candidate bad if w=0 but the neighbours consider more likely w=1
-            } else if ( w[i] == 0 && w1_idiv > w0_idiv) {
-                z = w1_idiv * log( w1_idiv / w0_idiv);
+            } else if ( w[i] == 0 && w1_idiv > w0_idiv && z1wrt0 > t[i]) {
+                z = z1wrt0;
             }
             // real bad is the observation with larger z
             if ( z != na)  {
@@ -934,7 +961,7 @@ bool sct_dual_core( const vec& lats,
                 }
             }
         }
-        if(debug) std::cout << i << " " << w[i] << " " << w1_idiv << " " << w0_idiv << " " << z << " " << zmx << " " << mmx << std::endl;
+        if(debug) std::cout << i << " " << w[i] << " " << lons[i] << " " << lats[i] << " " << w1_idiv << " " << w0_idiv << " " << z1wrt0 << " " << z0wrt1 << " " << z << " " << zmx << " " << mmx << std::endl;
     }
     
     // Take a decision

@@ -168,6 +168,7 @@ namespace titanlib {
      *  @param max_horizontal_scale Maximum horizontal decorrelation length [m]
      *  @param kth_closest_obs_horizontal_scale Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
      *  @param vertical_scale Vertical decorrelation length [m]
+     *  @param test_thresholds observation-dependent trhesholds used in the SCT dual tests. The threshold is for the relative information content and it should tipically be a number between 0-1
      *  @param debug Verbose output
      *  @return flags
      */
@@ -185,6 +186,7 @@ namespace titanlib {
                    float max_horizontal_scale,
                    int kth_closest_obs_horizontal_scale,
                    float vertical_scale,
+                   const vec& test_thresholds,
                    bool debug);
 
      /** First Guess Test (FGT) - simplified (without OI) SCT
