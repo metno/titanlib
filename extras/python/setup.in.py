@@ -7,7 +7,7 @@ from distutils.core import setup, Extension
 from setuptools import setup, Extension
 import glob
 import itertools
-import os
+import numpy
 
 __version__ = '${PROJECT_VERSION}'
 
@@ -32,16 +32,12 @@ class CustomInstall(install):
 
 module = Extension('_titanlib',
         sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['src/titanlibPYTHON_wrap.cxx'],
-        libraries=["gsl", "gslcblas", "proj"],
-        library_dirs=["/usr/lib/x86_64-linux-gnu/"],
-        extra_compile_args="${CMAKE_CXX_FLAGS}".split(),
-        extra_link_args="${CMAKE_CXX_FLAGS}".split(),
-        include_dirs=['./include']
+        libraries=["gsl", "gslcblas", "armadillo"],
+        extra_compile_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}".split(),
+        extra_link_args="${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}".split(),
+        library_dirs=["/usr/lib64"],
+        include_dirs=['./include', numpy.get_include()]
 )
-
-here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
 
 setup (
     name='titanlib',
@@ -52,8 +48,7 @@ setup (
     version=__version__,
 
     description='A quality control toolbox',
-    long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description="Titanlib is a library of automatic quality control routines for weather observations. It emphases spatial checks and is suitable for use with dense observation networks, such as citizen weather observations. It is written in C++ and has bindings for python and R. The library consists of a set of functions that perform tests on data.",
 
     # The project's main homepage.
     url='https://github.com/metno/titanlib',
@@ -101,7 +96,7 @@ setup (
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy>=1.7', 'scipy', 'six', 'future'],
+    install_requires=['numpy>=1.7'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -115,7 +110,7 @@ setup (
 
     test_suite="titanlib.tests",
     ext_modules = [module],
-    py_modules = ["titanlib"],
+    py_modules=['titanlib'],
     # cmdclass={'build': build},
     cmdclass={'build': CustomBuild, 'install': CustomInstall},
 
