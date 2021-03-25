@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['point_2ecpp',['point.cpp',['../point_8cpp.html',1,'']]],
-  ['points_2ecpp',['points.cpp',['../points_8cpp.html',1,'(Global Namespace)'],['../temp_2points_8cpp.html',1,'(Global Namespace)']]]
+  ['lag_5freduction_5ffilter_2ecpp',['lag_reduction_filter.cpp',['../lag__reduction__filter_8cpp.html',1,'']]]
 ];

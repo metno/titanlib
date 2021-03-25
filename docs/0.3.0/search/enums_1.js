@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['extrapolation',['Extrapolation',['../namespacegridpp.html#a874f509d3b9c062842ed23de0e6e5f85',1,'gridpp']]]
+  ['coordinatetype',['CoordinateType',['../namespacegridpp.html#a2ad8e1533595470eee173fed2301446d',1,'gridpp::CoordinateType()'],['../namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84deb',1,'titanlib::CoordinateType()']]],
+  ['correctiontype',['CorrectionType',['../namespacegridpp.html#aca92081b4647f72000e19e814b99ad10',1,'gridpp']]]
 ];

@@ -91,15 +91,23 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aec2a276b83f39f6d6d75bf17963f75f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3f3f8cf1d0d07fc33f801010a864d1f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#aa3f3f8cf1d0d07fc33f801010a864d1f">Dataset</a> (<a class="el" href="classtitanlib_1_1Points.html">Points</a> <a class="el" href="classtitanlib_1_1Dataset.html#a18eda648e1ddcad6895544e3d3b48c7e">points</a>, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> ivalues)</td></tr>
 <tr class="separator:aa3f3f8cf1d0d07fc33f801010a864d1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29e35bb0ad480f4f057bd32b7ae429ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#a29e35bb0ad480f4f057bd32b7ae429ff">isolation_check</a> (int num_min, float radius, float vertical_radius)</td></tr>
-<tr class="separator:a29e35bb0ad480f4f057bd32b7ae429ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaf05aff47df46ec0f641a16d0921e24"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#abaf05aff47df46ec0f641a16d0921e24">dem_check</a> (const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;dem, float max_elev_diff)</td></tr>
+<tr class="separator:abaf05aff47df46ec0f641a16d0921e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed547a445915ee4b2946111d152d7ccf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#aed547a445915ee4b2946111d152d7ccf">duplicate_check</a> (float radius, float vertical_range=<a class="el" href="namespacetitanlib.html#ad39249ad6e76c3eb684857ece927ed2d">titanlib::MV</a>, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
+<tr class="separator:aed547a445915ee4b2946111d152d7ccf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5d7c34af43d9710b9df8e2d3979f812"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#aa5d7c34af43d9710b9df8e2d3979f812">external_check</a> (const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;<a class="el" href="classtitanlib_1_1Dataset.html#a6e44ae92a5fd35de3b67d3f39cf989f2">flags</a>)</td></tr>
+<tr class="separator:aa5d7c34af43d9710b9df8e2d3979f812"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad21f1895d78f9fa03cc7e14b414472af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#ad21f1895d78f9fa03cc7e14b414472af">isolation_check</a> (int num_min, float radius, float vertical_radius, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
+<tr class="separator:ad21f1895d78f9fa03cc7e14b414472af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54bfb2adf875e4d06b91f7ffd857c2c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#a54bfb2adf875e4d06b91f7ffd857c2c4">metadata_check</a> (bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
+<tr class="separator:a54bfb2adf875e4d06b91f7ffd857c2c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5fa7355ec35c8e1f0729635bce1c9e4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#a5fa7355ec35c8e1f0729635bce1c9e4f">range_check</a> (const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;min, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;max, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
 <tr class="memdesc:a5fa7355ec35c8e1f0729635bce1c9e4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform the range check on the dataset.  <a href="#a5fa7355ec35c8e1f0729635bce1c9e4f">More...</a><br /></td></tr>
 <tr class="separator:a5fa7355ec35c8e1f0729635bce1c9e4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4a647be496cb2d8c0baff4cf7f44cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#ab4a647be496cb2d8c0baff4cf7f44cbd">range_check_climatology</a> (int unixtime, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;pos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;neg, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
 <tr class="separator:ab4a647be496cb2d8c0baff4cf7f44cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d9083582a63241a90da66301dc143a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#a0d9083582a63241a90da66301dc143a3">sct</a> (int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;t2pos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;t2neg, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;sct, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;rep, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
-<tr class="separator:a0d9083582a63241a90da66301dc143a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2519446ca7a9f2ea8b85ce6a2ebefe76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtitanlib_1_1Dataset.html#a2519446ca7a9f2ea8b85ce6a2ebefe76">sct</a> (int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;t2pos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;t2neg, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;prob_gross_error, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;rep, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
+<tr class="separator:a2519446ca7a9f2ea8b85ce6a2ebefe76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -288,8 +296,88 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a29e35bb0ad480f4f057bd32b7ae429ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29e35bb0ad480f4f057bd32b7ae429ff">&#9670;&nbsp;</a></span>isolation_check()</h2>
+<a id="abaf05aff47df46ec0f641a16d0921e24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaf05aff47df46ec0f641a16d0921e24">&#9670;&nbsp;</a></span>dem_check()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void titanlib::Dataset::dem_check </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
+          <td class="paramname"><em>dem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>max_elev_diff</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aed547a445915ee4b2946111d152d7ccf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed547a445915ee4b2946111d152d7ccf">&#9670;&nbsp;</a></span>duplicate_check()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void titanlib::Dataset::duplicate_check </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>radius</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>vertical_range</em> = <code><a class="el" href="namespacetitanlib.html#ad39249ad6e76c3eb684857ece927ed2d">titanlib::MV</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em> = <code><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa5d7c34af43d9710b9df8e2d3979f812"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5d7c34af43d9710b9df8e2d3979f812">&#9670;&nbsp;</a></span>external_check()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void titanlib::Dataset::external_check </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
+          <td class="paramname"><em>flags</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad21f1895d78f9fa03cc7e14b414472af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad21f1895d78f9fa03cc7e14b414472af">&#9670;&nbsp;</a></span>isolation_check()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -310,7 +398,59 @@ Public Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>vertical_radius</em>&#160;</td>
+          <td class="paramname"><em>vertical_radius</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em> = <code><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a54bfb2adf875e4d06b91f7ffd857c2c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54bfb2adf875e4d06b91f7ffd857c2c4">&#9670;&nbsp;</a></span>metadata_check()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void titanlib::Dataset::metadata_check </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>check_lat</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>check_lon</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>check_elev</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>check_laf</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
+          <td class="paramname"><em>indices</em> = <code><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -404,8 +544,8 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a0d9083582a63241a90da66301dc143a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d9083582a63241a90da66301dc143a3">&#9670;&nbsp;</a></span>sct()</h2>
+<a id="a2519446ca7a9f2ea8b85ce6a2ebefe76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2519446ca7a9f2ea8b85ce6a2ebefe76">&#9670;&nbsp;</a></span>sct()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -486,7 +626,7 @@ Public Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>sct</em>, </td>
+          <td class="paramname"><em>prob_gross_error</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -602,7 +742,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Dec 12 2020 09:47:50 for Titanlib 0.3.0-dev3 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Mar 25 2021 21:00:35 for Titanlib 0.3.0-dev3 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

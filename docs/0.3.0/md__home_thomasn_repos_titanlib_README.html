@@ -117,14 +117,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Here is an example using the buddy check, which has the following function signature: </p><div class="fragment"><div class="line">buddy_check(lats, lons, elevs, values, radius, num_min, threshold, max_elev_diff, elev_gradient, min_std, num_iterations)</div></div><!-- fragment --><p>The test reveals that the last observation (-111) is likely faulty:</p>
 <div class="fragment"><div class="line">import titanlib</div><div class="line">flags = titanlib.buddy_check([60,60.1,60.2],[10,10,10],[0,0,0],[0, 1, -111], [50000],[2],2,200,0,1,2)</div><div class="line">print(flags)</div></div><!-- fragment --><h2>R example</h2>
 <p>Run the following code in R from the build directory, or if you want to run from any other directory, just put in the proper paths for rtitanlib and titanlib.R</p>
-<div class="fragment"><div class="line">dyn.load(paste(&quot;extras/SWIG/R/titanlib&quot;, .Platform$dynlib.ext, sep=&quot;&quot;))</div><div class="line">source(&quot;extras/SWIG/R/titanlib.R&quot;)</div><div class="line">cacheMetaData(1)</div><div class="line"></div><div class="line">sct(c(60,60.1,60.2), c(10,10,10), c(0,0,0), c(0,1,-111),50000,2,2,100,0,1,2)</div></div><!-- fragment --><h2>Copyright and license</h2>
+<div class="fragment"><div class="line">dyn.load(paste(&quot;extras/SWIG/R/titanlib&quot;, .Platform$dynlib.ext, sep=&quot;&quot;))</div><div class="line">source(&quot;extras/SWIG/R/titanlib.R&quot;)</div><div class="line">cacheMetaData(1)</div><div class="line"></div><div class="line">sct(c(60,60.1,60.2), c(10,10,10), c(0,0,0), c(0,1,-111),50000,2,2,100,0,1,2)</div></div><!-- fragment --><p>See also the <em>Installation tips and tricks</em> on the <a href="https://github.com/metno/titanlib/wiki/R-interface">wiki</a> .</p>
+<h2>Copyright and license</h2>
 <p>Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General Public License (LGPL). See LICENSE file.</p>
 <h2>Contact</h2>
 <p>E-mail: Thomas Nipen (<a href="#" onclick="location.href='mai'+'lto:'+'tho'+'ma'+'sn@'+'me'+'t.n'+'o'; return false;">thoma<span style="display: none;">.nosp@m.</span>sn@m<span style="display: none;">.nosp@m.</span>et.no</a>) </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Dec 12 2020 09:47:50 for Titanlib 0.3.0-dev3 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Mar 25 2021 21:00:35 for Titanlib 0.3.0-dev3 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
