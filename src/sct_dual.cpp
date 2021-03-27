@@ -254,11 +254,11 @@ ivec titanlib::sct_dual( const Points& points,
                 continue; 
             }
 
-            if( p_inner < 2) {
-                flags[curr] = 11;
-                if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
-                continue;
-            }
+//            if( p_inner < 2) {
+//                flags[curr] = 11;
+//                if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
+//                continue;
+//            } 
             
             // -~- Vectors on the outer circle
 
@@ -427,11 +427,11 @@ ivec titanlib::sct_dual( const Points& points,
             continue; 
         }
 
-        if( p_inner < 2) {
-            flags[curr] = 11;
-            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
-            continue;
-        }
+//        if( p_inner < 2) {
+//            flags[curr] = 11;
+//            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
+//            continue;
+//        }
             
         // -~- Vectors on the outer circle
 
@@ -541,11 +541,11 @@ ivec titanlib::sct_dual( const Points& points,
             continue; 
         }
 
-        if( p_inner < 2) {
-            flags[curr] = 11;
-            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
-            continue;
-        }
+//        if( p_inner < 2) {
+//            flags[curr] = 11;
+//            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
+//            continue;
+//        }
             
         // -~- Set vectors on the outer circle
 
@@ -756,7 +756,7 @@ bool sct_dual_core( const vec& lats,
     /* observations where leave-one-out IDIs are both small are difficult to judge
        because they do not have close-enough buddies
        we skip them. This is the threshold */
-    float w_idiv_min = 0.01;
+    float w_idiv_min = 0.45;
  
     /* two more indices 
       ... w0[i] = na when w[i] = 1;  w0[i] = j for the j-th element of w where w = 0
@@ -933,10 +933,12 @@ bool sct_dual_core( const vec& lats,
         }
         if ( i1 != na) {
           w1_idiv = 1. - Sinv_d_w1(i1) / Sinv_w1(i1, i1);
-          if (w1_idiv < w_idiv_min) w1_idiv = w_idiv_min;
+//          if (w1_idiv < w_idiv_min) w1_idiv = w_idiv_min;
+          if (w1_idiv <= 0) w1_idiv = 0.001;
         } else {
           w0_idiv = 1. - Sinv_d_w0(i0) / Sinv_w0(i0, i0);
-          if (w0_idiv < w_idiv_min) w0_idiv = w_idiv_min;
+//          if (w0_idiv < w_idiv_min) w0_idiv = w_idiv_min;
+          if (w0_idiv <= 0) w0_idiv = 0.001;
         }
         float z = na;
         float z0wrt1 = w0_idiv * log( w0_idiv / w1_idiv);
