@@ -338,13 +338,12 @@ ivec titanlib::sct_dual( const Points& points,
 
         }  // end loop over observations
 
-        std::cout << "SCT_dual loop - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
         double e_time0 = titanlib::clock();
-        std::cout << e_time0 - s_time0 << " secs" << std::endl;
+        if (debug) std::cout << "SCT_dual loop - Removing " << thrown_out << " observations. Number of OI " << count_oi << " time=" << e_time0 - s_time0 << " secs" << std::endl;
         if(thrown_out == 0) {
             if ( iteration == 0) set_all_good = true;
             if(iteration + 1 < num_iterations)
-                std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
+                if (debug) std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
     
@@ -470,9 +469,9 @@ ivec titanlib::sct_dual( const Points& points,
 
     }  // end loop over observations
 
-    std::cout << "QC missing - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
     double e_time0 = titanlib::clock();
-    std::cout << e_time0 - s_time0 << " secs" << std::endl;
+    if (debug) std::cout << "QC missing - Removing " << thrown_out << " observations. Number of OI " << count_oi << " time=" << e_time0 - s_time0 << " secs" << std::endl;
+
 
     /* final check on the bad observations
        it may happen that a good observation is flagged as a bad one because of the order
@@ -621,9 +620,8 @@ ivec titanlib::sct_dual( const Points& points,
 
     }  // end loop over observations
 
-    std::cout << "Re-check bad obs - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
     e_time0 = titanlib::clock();
-    std::cout << e_time0 - s_time0 << " secs" << std::endl;
+    if (debug) std::cout << "Re-check bad obs - Removing " << thrown_out << " observations. Number of OI " << count_oi << "time = " << e_time0 - s_time0 << " secs" << std::endl;
 
     //
     if(debug) {
@@ -660,7 +658,7 @@ ivec titanlib::sct_dual( const Points& points,
     }
     //
     
-    std::cout << ">> Total Time " << e_time0 - s_time << "secs" << std::endl;
+    if(debug) std::cout << ">> Total Time " << e_time0 - s_time << "secs" << std::endl;
 
     //
     return flags;
