@@ -124,6 +124,7 @@ namespace titanlib {
      *  @param tpos SCT-score threshold. Positive deviation allowed
      *  @param tneg SCT-score threshold. Negative deviation allowed
      *  @param debug Verbose output
+     *  @param basic Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced
      *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
@@ -151,6 +152,7 @@ namespace titanlib {
                         const vec& tpos,
                         const vec& tneg,
                         bool debug,
+                        bool basic,
                         vec& scores);
 
     /**  Spatial Consistency Test for dichotomous (yes/no) variables
@@ -210,6 +212,7 @@ namespace titanlib {
      *  @param tpos FGT-score threshold. Positive deviation allowed
      *  @param tneg FGT-score threshold. Negative deviation allowed
      *  @param debug Verbose output
+     *  @param basic Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced
      *  @param scores FGT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
@@ -233,6 +236,7 @@ namespace titanlib {
               const vec& tpos,
               const vec& tneg,
               bool debug,
+              bool basic,
               vec& scores);
 
     /** Range check. Checks observation is within the ranges given

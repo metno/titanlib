@@ -86,7 +86,7 @@ ivec titanlib::sct(const Points& points,
 
 
     for(int iteration = 0; iteration < num_iterations; iteration++) {
-        double s_time0 = titanlib::clock();
+        // double s_time0 = titanlib::clock();
 
         int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
 
@@ -273,7 +273,7 @@ ivec titanlib::sct(const Points& points,
             break;
         }
         // std::cout << "Removing " << thrown_out << " Number of OI " << count_oi << std::endl;
-        double e_time0 = titanlib::clock();
+        // double e_time0 = titanlib::clock();
         // std::cout << e_time0 - s_time0 << std::endl;
     }
 

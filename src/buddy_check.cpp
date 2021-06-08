@@ -126,7 +126,7 @@ ivec titanlib::buddy_check(const Points& points,
                         std::cout << "variance: " << variance << '\n';
                     }
 
-                    float std = sqrt(variance);
+//                    float std = sqrt(variance);
                     float std_adjusted = sqrt(variance + variance / n_buddies);
                     if(std_adjusted < min_std) {
                         std_adjusted = min_std;
