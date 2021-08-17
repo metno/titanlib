@@ -55,6 +55,7 @@ add_subdirectory(extras/python)
 
 # Documentation
 option(BUILD_DOC "Build documentation" ON)
+if (BUILD_DOC)
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/config.in)
@@ -70,5 +71,6 @@ if (DOXYGEN_FOUND)
         VERBATIM )
 else()
     message(STATUS "Documentation generation disabled. Doxygen needs to be installed to generate documentation.")
+endif()
 endif()
 
