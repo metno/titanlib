@@ -20,6 +20,9 @@ if(APPLE)
        SUFFIX ".so"
        INSTALL_RPATH"@loader_path;@loader_path/../../${PROJECT_NAME}/.libs"
        )
+     set_property(TARGET _titanlib APPEND PROPERTY
+       LINK_FLAGS "-flat_namespace -undefined suppress"
+       )
 endif()
 #set_property(TARGET _pytitanlib PROPERTY OUTPUT_NAME titanlib)
 
