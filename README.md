@@ -81,7 +81,7 @@ make install-python-user
 ```
 
 This installs the python bindings in
-`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings system-wide, use `sudo make install-python` instead.
+`~/local/lib/python3.6/site-packages/titanlib.py`. To install the python bindings system-wide (or into whatever virtual environment you have loaded), use `sudo make install-python` instead.
 
 6. Install the R bindings
 

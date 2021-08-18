@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+            python-version: '3.7'
+      - name: dependencies
+        run: sudo apt update -qq && sudo apt install swig doxygen r-base-core libboost-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
+      - name: configure
+        run: mkdir build && cd build && cmake ..
+      - name: build
+        run: cd build && make && sudo make install-python
+      - name: test
+        run: nosetests3
