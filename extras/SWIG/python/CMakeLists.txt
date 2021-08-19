@@ -87,21 +87,21 @@ configure_file(${SETUP_PY_IN} ${SETUP_PY_OUT})
 # Install target to call setup.py
 add_custom_target(install-python
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} install)
+        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} install)
 
 add_custom_target(install-python-user
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} install --user)
+        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} install --user)
 
 add_custom_target(build-python
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} build)
+        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} build)
 
 add_custom_target(develop-python
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} develop)
+        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} develop)
 
 add_custom_target(develop-python-user
         DEPENDS _titanlib
-        COMMAND python3 ${SETUP_PY_OUT} develop --user)
+        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} develop --user)
 
