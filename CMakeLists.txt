@@ -7,9 +7,19 @@ string(REGEX REPLACE "^.+define TITANLIB_VERSION \"([^\n]+)\".+" "\\1" PROJECT_V
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Boost 1.75 and above requires c++14 for the geometry library. For creating the python packages on
+# CentOS5, c++11 is more readily available, so this is preferred.
+find_package(Boost REQUIRED)
+find_package(GSL REQUIRED)
+if(${Boost_MINOR_VERSION} GREATER 74)
+    set(CMAKE_CXX_STANDARD 14)
+else()
+    set(CMAKE_CXX_STANDARD 11)
+endif()
+
 # Set compiler flags
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 14)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 if (NOT CMAKE_BUILD_TYPE)
@@ -44,8 +54,6 @@ include_directories(./include)
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
 add_library(titanlib ${SOURCES})
 set_target_properties(titanlib PROPERTIES PUBLIC_HEADER "include/titanlib.h")
-find_package(Boost REQUIRED)
-find_package(GSL REQUIRED)
 target_link_libraries(titanlib "${Boost_LIBRARIES}")
 target_link_libraries(titanlib "${GSL_LIBRARIES}")
 target_include_directories(titanlib PUBLIC "${Boost_INCLUDE_DIRS}")
