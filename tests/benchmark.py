@@ -7,7 +7,7 @@ import titanlib
 def main():
     parser = argparse.ArgumentParser(description='Runs titanlib benchmarks for processing performance')
     parser.add_argument('-j', type=int, help='Do a scaling test, by running on multiple cores (>= 2)', dest='num_cores')
-    parser.add_argument('-s', type=int, default=1, help='Enlarge the inputs by this scaling factor to run a bigger test', dest='scaling')
+    parser.add_argument('-s', type=float, default=1, help='Enlarge the inputs by this scaling factor to run a bigger test', dest='scaling')
     parser.add_argument('-n', type=int, default=1, help='Number of iterations to average over', dest='iterations')
     parser.add_argument('-t', help='Run only this function', dest="function")
 
@@ -23,16 +23,16 @@ def main():
 
     N = 10000
     for i in [1000, N]:
-        input[i] = np.random.rand(i * args.scaling)*3
+        input[i] = np.random.rand(int(i * args.scaling))*3
     for i in [1000, N]:
         # points[i] = titanlib.Points(np.linspace(0, 1, i * args.scaling), np.linspace(0, 1, i * args.scaling), np.zeros(i * args.scaling))
-        points[i] = titanlib.Points(np.random.rand(i * args.scaling) * args.scaling,
-                np.random.rand(i * args.scaling) * args.scaling, np.random.rand(i * args.scaling))
+        points[i] = titanlib.Points(np.random.rand(int(i * args.scaling)) * args.scaling,
+                np.random.rand(int(i * args.scaling)) * args.scaling, np.random.rand(int(i * args.scaling)))
     run = dict()
     radius = 10000
-    run[(titanlib.Points, "1e6")] = {"expected": 0.82, "args":(np.linspace(0, 1, int(1e6) * args.scaling), np.linspace(0, 1, int(1e6) * args.scaling), np.zeros(int(1e6) * args.scaling))}
+    run[(titanlib.Points, "1e6")] = {"expected": 0.82, "args":(np.linspace(0, 1, int(1e6 * args.scaling)), np.linspace(0, 1, int(1e6 * args.scaling)), np.zeros(int(1e6 * args.scaling)))}
     run[(titanlib.buddy_check, "1e4")] = {"expected": 0.71, "args":(points[N], input[N],
-        np.full(N * args.scaling, radius, float), np.ones(N * args.scaling, int) * 10, 0.3, 100.0, 0.0, 1.0, 1)}
+        np.full(int(N * args.scaling), radius, float), np.ones(int(N * args.scaling), int) * 10, 0.3, 100.0, 0.0, 1.0, 1)}
     run[(titanlib.isolation_check, "1e4")] = {"expected": 0.71, "args":(points[N], 15, 3000)}
     num_min = 10
     num_max = 50
@@ -46,8 +46,8 @@ def main():
     Nsct = 1000
     run[(titanlib.sct, "1000 in 100 km2")] = {"expected": 3.37, "args":(points[Nsct], input[Nsct], num_min, num_max,
         inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
-        min_horizontal_scale, vertical_scale, np.full(Nsct * args.scaling, 4), np.full(Nsct *
-            args.scaling, 4), np.full(Nsct * args.scaling, 0.5))}
+        min_horizontal_scale, vertical_scale, np.full(int(Nsct * args.scaling), 4), np.full(int(Nsct *
+            args.scaling), 4), np.full(int(Nsct * args.scaling), 0.5))}
 
     print("Titanlib benchmark (expected results from Intel i7 3.40 Ghz)")
     print("Titanlib version %s" % titanlib.version())
