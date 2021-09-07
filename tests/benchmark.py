@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import argparse
-import sys
+import collections
 import titanlib
 
 def main():
@@ -14,8 +14,7 @@ def main():
     args = parser.parse_args()
 
     if args.num_cores is not None and args.num_cores < 2:
-        print("Error: Number of cores must be 2 or more")
-        sys.exit(1)
+        raise Exception("Error: Number of cores must be 2 or more")
 
     input = dict()
     points = dict()
@@ -28,12 +27,12 @@ def main():
         # points[i] = titanlib.Points(np.linspace(0, 1, i * args.scaling), np.linspace(0, 1, i * args.scaling), np.zeros(i * args.scaling))
         points[i] = titanlib.Points(np.random.rand(int(i * args.scaling)) * args.scaling,
                 np.random.rand(int(i * args.scaling)) * args.scaling, np.random.rand(int(i * args.scaling)))
-    run = dict()
     radius = 10000
-    run[(titanlib.Points, "1e6")] = {"expected": 0.82, "args":(np.linspace(0, 1, int(1e6 * args.scaling)), np.linspace(0, 1, int(1e6 * args.scaling)), np.zeros(int(1e6 * args.scaling)))}
-    run[(titanlib.buddy_check, "1e4")] = {"expected": 0.71, "args":(points[N], input[N],
+    run = collections.OrderedDict()
+    run[("Points", "1e6")] = {"expected": 0.82, "args":(np.linspace(0, 1, int(1e6 * args.scaling)), np.linspace(0, 1, int(1e6 * args.scaling)), np.zeros(int(1e6 * args.scaling)))}
+    run[("buddy_check", "1e4")] = {"expected": 0.71, "args":(points[N], input[N],
         np.full(int(N * args.scaling), radius, float), np.ones(int(N * args.scaling), int) * 10, 0.3, 100.0, 0.0, 1.0, 1)}
-    run[(titanlib.isolation_check, "1e4")] = {"expected": 0.71, "args":(points[N], 15, 3000)}
+    run[("isolation_check", "1e4")] = {"expected": 0.71, "args":(points[N], 15, 3000)}
     num_min = 10
     num_max = 50
     inner_radius = 5000
@@ -44,7 +43,7 @@ def main():
     min_horizontal_scale = 10000
     vertical_scale = 200
     Nsct = 1000
-    run[(titanlib.sct, "1000 in 100 km2")] = {"expected": 3.37, "args":(points[Nsct], input[Nsct], num_min, num_max,
+    run[("sct", "1000 in 100 km2")] = {"expected": 3.37, "args":(points[Nsct], input[Nsct], num_min, num_max,
         inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
         min_horizontal_scale, vertical_scale, np.full(int(Nsct * args.scaling), 4), np.full(int(Nsct *
             args.scaling), 4), np.full(int(Nsct * args.scaling), 0.5))}
@@ -59,29 +58,35 @@ def main():
     if args.num_cores is not None:
         num_cores += [args.num_cores]
     for key in run.keys()       :
-        timings = dict()
-        for num_core in num_cores:
-            timings[num_core] = 0
+        try:
+            timings = dict()
+            for num_core in num_cores:
+                timings[num_core] = 0
 
-        if isinstance(key, tuple):
-            name = key[0].__name__ + " " + str(key[1])
-            func = key[0]
-        else:
-            name = key.__name__
-            func = key
-        if args.function is not None:
-            if func.__name__ != args.function:
-                continue
-        for num_core in num_cores:
-            titanlib.set_omp_threads(num_core)
-            for it in range(args.iterations):
-                s_time = time.time()
-                results = func(*run[key]["args"])
-                e_time = time.time()
-                # print(np.mean(results))
-                curr_time = e_time - s_time
-                timings[num_core] += curr_time
-                # print("%s() Expected: %.2f s Time: %.2f s" % (func.__name__, run[key]["expected"], e_time - s_time))
+            if isinstance(key, tuple):
+                name = key[0] + " " + str(key[1])
+                func = eval("titanlib." + key[0])
+            else:
+                name = key
+                func = eval("titanlib." + key)
+            if args.function is not None:
+                if func.__name__ != args.function:
+                    continue
+
+            # Allow functions to fail (useful when benchmarking older versions of gridpp
+            # where functions may not be defined).
+            for num_core in num_cores:
+                titanlib.set_omp_threads(num_core)
+                for it in range(args.iterations):
+                    s_time = time.time()
+                    func(*run[key]["args"])
+                    e_time = time.time()
+                    curr_time = e_time - s_time
+                    timings[num_core] += curr_time
+        except Exception as e:
+            print("Could not run", key, e)
+            continue
+
         for num_core in num_cores:
             timings[num_core] /= args.iterations
 
