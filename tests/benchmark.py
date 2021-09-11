@@ -48,10 +48,14 @@ def main():
         min_horizontal_scale, vertical_scale, np.full(int(Nsct * args.scaling), 4), np.full(int(Nsct *
             args.scaling), 4), np.full(int(Nsct * args.scaling), 0.5))}
 
-    print("Titanlib benchmark (expected results from Intel i7 3.40 Ghz)")
-    print("Titanlib version %s" % titanlib.version())
-    if args.num_cores is not None and args.num_cores != 1:
-        print("Function                             Expected     Time     Diff    Scaling")
+    if args.num_cores is not None:
+        print("Titanlib parallelization test (titanlib version %s)" % titanlib.version())
+    else:
+        print("Titanlib benchmark (titanlib version %s)" % titanlib.version())
+        print("Expected results from Intel i7 3.40 Ghz")
+    print("-----------------------------------------------------------------")
+    if args.num_cores is not None:
+        print("Function                               1 core %2d cores  Scaling" % args.num_cores)
     else:
         print("Function                             Expected     Time     Diff")
     num_cores = [1]
@@ -90,17 +94,17 @@ def main():
         for num_core in num_cores:
             timings[num_core] /= args.iterations
 
-        diff = (timings[1] - run[key]["expected"] * args.scaling) / (run[key]["expected"]  * args.scaling) * 100
-        string = "%-36s %8.2f %8.2f %8.2f %%" % (name, run[key]["expected"] * args.scaling, timings[1], diff)
-        if args.num_cores is not None:
+        if args.num_cores is None:
+            diff = (timings[1] - run[key]["expected"] * args.scaling) / (run[key]["expected"]  * args.scaling) * 100
+            string = "%-36s %8.2f %8.2f %8.2f %%" % (name, run[key]["expected"] * args.scaling, timings[1], diff)
+        else:
             scaling = timings[1] / timings[args.num_cores] / args.num_cores
             expected = timings[1] / args.num_cores
             scaling = 1 - (timings[args.num_cores] - expected) / (timings[1] - expected)
             # scaling = (1 - timings[args.num_cores] / timings[1]) * (args.num_cores + 1)
 
-            string += " %8.2f %%" % (scaling * 100)
+            string = "%-36s %8.2f %8.2f %8.2f %%" % (name, timings[1], timings[args.num_cores], scaling * 100)
         print(string)
-    # gridpp.neighbourhood(input, radius, gridpp.Mean)
 
 
 if __name__ == "__main__":
