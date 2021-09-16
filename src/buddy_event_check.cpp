@@ -60,6 +60,7 @@ ivec titanlib::buddy_event_check(const Points& points,
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != s;
 
+    int num_removed_last_iteration = 0;
     for(int it = 0; it < num_iterations; it++) {
         #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
@@ -68,7 +69,7 @@ ivec titanlib::buddy_event_check(const Points& points,
             int d_i = (radius.size() == s) ? i : 0;
             if(flags[i] != 0)
                 continue;
-            if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
+            if(check_all || obs_to_check[i] == 1) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
                     std::cout << ", and min buddies: " << num_min[b_i];
@@ -161,6 +162,22 @@ ivec titanlib::buddy_event_check(const Points& points,
                 }
             }
         }
+        // Check if we need to stop early
+        int num_removed = 0;
+        for(int i = 0; i < s; i++) {
+            if(flags[i] != 0)
+                num_removed++;
+        }
+        int num_removed_curr_iteration = num_removed - num_removed_last_iteration;
+        if(debug) {
+            std::cout << "iteration, number of bad observations: " << it + 1 << ", " << num_removed_curr_iteration << '\n';
+        }
+        if(num_removed_curr_iteration == 0) {
+            if(debug)
+                std::cout << "Stopping early after iteration " << it + 1 << std::endl;
+            break;
+        }
+        num_removed_last_iteration = num_removed_curr_iteration;
     }
 
     return flags;

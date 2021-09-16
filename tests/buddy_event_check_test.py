@@ -16,6 +16,7 @@ ut = 1546300800
 class BuddyEventCheckTest(unittest.TestCase):
     def test_1(self):
         """Check that the test doesn't fail"""
+        """
         lats, lons, elevs, values = util.summer_temperature_example()
         points = titanlib.Points(lats, lons, elevs)
         I = slice(0, len(lats))
@@ -32,6 +33,24 @@ class BuddyEventCheckTest(unittest.TestCase):
         e_time = time.time()
         print(e_time - s_time)
         print("Fraction of stations removed: %.1f %%" % (np.mean(flags) * 100))
+        """
+
+    def test_2(self):
+        N = 10
+        lats = [60]*N
+        lons = np.linspace(60, 60.001, N)
+        points = titanlib.Points(lats, lons)
+        values = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+        radius = [10000]
+        num_min = [1]
+        event_threshold = 0.05
+        threshold = 0.2
+        elev_gradient = 0
+        max_elev_diff = -1
+        num_iterations = 1
+        flags = titanlib.buddy_event_check(points, values, radius, num_min, event_threshold, threshold,
+                max_elev_diff, elev_gradient, num_iterations)
+        np.testing.assert_array_equal(flags, [0]*8 + [1]*2)
 
 
 if __name__ == '__main__':
