@@ -17,5 +17,13 @@ class UtilTest(unittest.TestCase):
         ovalues = titanlib.interpolate_to_points(ilats, ilons, ivalues, olats, olons)
         np.testing.assert_almost_equal(list(ovalues), [80.8, 80], 4)
 
+    def test_is_valid(self):
+        self.assertFalse(titanlib.is_valid(np.nan))
+        self.assertFalse(titanlib.is_valid(np.inf))
+        self.assertFalse(titanlib.is_valid(float('nan')))
+        self.assertTrue(titanlib.is_valid(0))
+        self.assertTrue(titanlib.is_valid(1))
+        self.assertTrue(titanlib.is_valid(-1))
+
 if __name__ == '__main__':
     unittest.main()

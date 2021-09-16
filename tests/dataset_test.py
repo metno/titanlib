@@ -25,6 +25,14 @@ class DatasetTest(unittest.TestCase):
         dataset.range_check([-100], [-100], [1, 2, 4])
         self.assertListEqual([i for i in dataset.flags], [1, 1, 1, 0, 1])
 
+    def test_indices(self):
+        points = titanlib.Points([0, 0, 0, 0], [0, 0.1, 0.2, 0.3], [0, 0, 0, 0])
+        values = np.random.randn(3) * 6;
+        dataset = titanlib.Dataset(points, values);
+
+        dataset.isolation_check(10, 10, 10000, [0, 3])
+        np.testing.assert_array_almost_equal(dataset.flags, [1, 0, 0, 1])
+
 
 if __name__ == '__main__':
     unittest.main()
