@@ -32,7 +32,7 @@ def main():
     run[("Points", "1e6")] = {"expected": 0.82, "args":(np.linspace(0, 1, int(1e6 * args.scaling)), np.linspace(0, 1, int(1e6 * args.scaling)), np.zeros(int(1e6 * args.scaling)))}
     run[("buddy_check", "1e4")] = {"expected": 0.71, "args":(points[N], input[N],
         np.full(int(N * args.scaling), radius, float), np.ones(int(N * args.scaling), int) * 10, 0.3, 100.0, 0.0, 1.0, 1)}
-    run[("isolation_check", "1e4")] = {"expected": 0.71, "args":(points[N], 15, 3000)}
+    run[("isolation_check", "1e4")] = {"expected": 0.57, "args":(points[N], 15, 3000)}
     num_min = 10
     num_max = 50
     inner_radius = 5000

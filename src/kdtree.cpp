@@ -1,4 +1,5 @@
 #include "titanlib.h"
+#include <boost/function_output_iterator.hpp>
 
 using namespace titanlib;
 
@@ -16,8 +17,30 @@ titanlib::KDTree::KDTree(vec lats, vec lons, CoordinateType type) {
 }
 
 int titanlib::KDTree::get_num_neighbours(float lat, float lon, float radius, bool include_match) const {
+#if 0
+    // This doesn't seem to be any faster
+    float x, y, z;
+    titanlib::KDTree::convert_coordinates(lat, lon, x, y, z);
+    size_t cardinality = 0;
+    auto count_only = boost::make_function_output_iterator([&cardinality] (boost::geometry::index::rtree< value, boost::geometry::index::quadratic<16> >::value_type const&) { ++cardinality; });
+
+    point p(x, y, z);
+    within_radius r(p, radius);
+
+    if(!include_match) {
+        // Include match search
+        is_not_equal s(p);
+        mTree.query(boost::geometry::index::satisfies(r) && boost::geometry::index::satisfies(s), count_only);
+    }
+    else {
+        mTree.query(boost::geometry::index::satisfies(r), count_only);
+    }
+    int num = cardinality;
+    return num;
+#else
     ivec indices = get_neighbours(lat, lon, radius, include_match);
     return indices.size();
+#endif
 }
 
 ivec titanlib::KDTree::get_neighbours_with_distance(float lat, float lon, float radius, vec& distances, bool include_match) const {
