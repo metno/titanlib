@@ -9,11 +9,9 @@ ivec titanlib::metadata_check(const Points& points, bool check_lat, bool check_l
     const vec& elevs = points.get_elevs();
     const vec& lafs = points.get_lafs();
 
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || lafs.size() != s ) {
-        throw std::runtime_error("Dimension mismatch");
-    }
-
     ivec flags(s, 0);
+
+    #pragma omp parallel for
     for(int i = 0; i < s; i++) {
         if(check_lat && !titanlib::is_valid(lats[i]))
             flags[i] = 1;

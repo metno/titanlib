@@ -30,10 +30,10 @@ ivec titanlib::buddy_check(const Points& points,
     else if(radius.size() != s && radius.size() != 1) {
         throw std::invalid_argument("Radius has an invalid length");
     }
-    if((num_min.size() != s && num_min.size() != 1)) {
+    if(num_min.size() != s && num_min.size() != 1) {
         throw std::invalid_argument("'num_min' has an invalid length");
     }
-    if((obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0)) {
+    if(obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) {
         throw std::invalid_argument("'obs_to_check' has an invalid length");
     }
 
@@ -52,17 +52,17 @@ ivec titanlib::buddy_check(const Points& points,
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != s;
 
+    int num_removed_last_iteration = 0;
     for(int it = 0; it < num_iterations; it++) {
-        int count_bad = 0;
-        // TODO: Can this really be parallelized? Loop dependencies: flags.
-        // #pragma omp parallel for
-        for(int i = 0; i < values.size(); i++) {
+        ivec flags_prev = flags;
+        #pragma omp parallel for
+        for(int i = 0; i < s; i++) {
             // is this one we are supposed to check?
             int b_i = (num_min.size() == s) ? i : 0;
             int d_i = (radius.size() == s) ? i : 0;
             if(flags[i] != 0)
                 continue;
-            if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
+            if(check_all || obs_to_check[i] == 1) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
                     std::cout << ", and min buddies: " << num_min[b_i];
@@ -80,7 +80,7 @@ ivec titanlib::buddy_check(const Points& points,
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
                         // don't use ones that differ too much in height (max_elev_diff)
-                        if(flags[neighbour_indices[j]] == 0) {
+                        if(flags_prev[neighbour_indices[j]] == 0) {
                             if(max_elev_diff > 0) {
                                 float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
                                 if(elev_diff <= max_elev_diff) {
@@ -133,16 +133,28 @@ ivec titanlib::buddy_check(const Points& points,
                     }
                     float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
-                        count_bad ++;
                         flags[i] = 1;
                     }
                 }
             } // end if observation is to check
         } // end loop over values
-        if(debug) {
-            std::cout << "iteration, number of bad observations: " << it << ", " << count_bad << '\n';
+
+        // Check if we need to stop early
+        int num_removed = 0;
+        for(int i = 0; i < s; i++) {
+            if(flags[i] != 0)
+                num_removed++;
         }
-        if(count_bad == 0) break;
+        int num_removed_curr_iteration = num_removed - num_removed_last_iteration;
+        if(debug) {
+            std::cout << "iteration, number of bad observations: " << it + 1 << ", " << num_removed_curr_iteration << '\n';
+        }
+        if(num_removed_curr_iteration == 0) {
+            if(debug)
+                std::cout << "Stopping early after iteration " << it + 1 << std::endl;
+            break;
+        }
+        num_removed_last_iteration = num_removed_curr_iteration;
     } // end loop over num_iterations
 
     return flags;
