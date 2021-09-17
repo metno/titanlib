@@ -25,5 +25,11 @@ class UtilTest(unittest.TestCase):
         self.assertTrue(titanlib.is_valid(1))
         self.assertTrue(titanlib.is_valid(-1))
 
+    def test_subset(self):
+        array = [0, 1, 2]
+        indices = [1]
+        np.testing.assert_almost_equal(titanlib.subset(array, indices), [1])
+        np.testing.assert_almost_equal(titanlib.subset([], indices), [])
+
 if __name__ == '__main__':
     unittest.main()

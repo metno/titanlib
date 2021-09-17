@@ -533,6 +533,8 @@ namespace titanlib {
             ivec flags;
         private:
             template <class T> T subset(const T& array, const ivec& indices) {
+                if(array.size() == 0)
+                    return array;
                 T indices0 = indices;
                 if(indices0.size() == 0) {
                     indices0.resize(array.size());
