@@ -62,13 +62,15 @@ ivec titanlib::buddy_event_check(const Points& points,
 
     int num_removed_last_iteration = 0;
     for(int it = 0; it < num_iterations; it++) {
+        ivec flags_prev = flags;
         #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
             int b_i = (num_min.size() == s) ? i : 0;
             int d_i = (radius.size() == s) ? i : 0;
-            if(flags[i] != 0)
+            if(flags_prev[i] != 0)
                 continue;
+
             if(check_all || obs_to_check[i] == 1) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
@@ -86,6 +88,9 @@ ivec titanlib::buddy_event_check(const Points& points,
                     // loop over everything that was near enough
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
+                        if(flags_prev[neighbour_indices[j]] != 0)
+                            continue;
+
                         // don't use ones that differ too much in height (max_elev_diff)
                         if(max_elev_diff > 0) {
                             float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
