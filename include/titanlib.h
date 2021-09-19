@@ -321,7 +321,37 @@ namespace titanlib {
     float compute_quantile(double quantile, const vec& array);
     float find_k_closest(const vec& array, int k);
     vec subset(const vec& array, const ivec& indices);
+    ivec subset(const ivec& array, const ivec& indices);
     Points subset(const Points& input, const ivec& indices);
+    template <class T> T subset(const T& array, const ivec& indices) {
+        if(array.size() == 0)
+            return array;
+        T indices0 = indices;
+        if(indices0.size() == 0) {
+            indices0.resize(array.size());
+            for(int i = 0; i < array.size(); i++)
+                indices0[i] = i;
+        }
+        if(array.size() == 1) {
+            T new_array = array;
+            return new_array;
+        }
+        else {
+            T new_array(indices0.size());
+            for(int i = 0; i < indices0.size(); i++) {
+                new_array[i] = array[indices0[i]];
+            }
+            return new_array;
+        }
+    }
+    template <class T> void unsubset(const T& array, T& orig_array, const ivec& indices) {
+        orig_array.clear();
+        orig_array.resize(indices.size());
+        assert(array.size() == indices.size());
+        for(int i = 0; i < indices.size(); i++) {
+            orig_array[indices[i]] = array[i];
+        }
+    }
 
 
     /** Background (first guess) calculations at observation locations
@@ -532,26 +562,30 @@ namespace titanlib {
             vec values;
             ivec flags;
         private:
+            /* Get a subset of array where flags=0 and for indices
+             * @param array Vector of values
+             * @param indices Vector of indices
+             * @return Vector of values
+            */
             template <class T> T subset(const T& array, const ivec& indices) {
-                if(array.size() == 0)
+                if(array.size() == 1 && flags.size() > 1) {
+                    // In this case, array is meant to be broadcast
                     return array;
-                T indices0 = indices;
+                }
+                ivec indices0 = indices;
                 if(indices0.size() == 0) {
                     indices0.resize(array.size());
                     for(int i = 0; i < array.size(); i++)
                         indices0[i] = i;
                 }
-                if(array.size() == 1) {
-                    T new_array = array;
-                    return new_array;
+                T new_array;
+                new_array.reserve(indices0.size());
+                for(int i = 0; i < indices0.size(); i++) {
+                    int index = indices0[i];
+                    if(flags[index] == 0)
+                        new_array.push_back(array[index]);
                 }
-                else {
-                    T new_array(indices0.size());
-                    for(int i = 0; i < indices0.size(); i++) {
-                        new_array[i] = array[indices0[i]];
-                    }
-                    return new_array;
-                }
+                return new_array;
             }
             template <class T> void unsubset(const T& array, T& orig_array, const ivec& indices) {
                 orig_array.clear();
@@ -561,9 +595,12 @@ namespace titanlib {
                     orig_array[indices[i]] = array[i];
                 }
             }
+            /* Integrate the flags into the objects flags. If existing flags are 1 but new_flags are
+             * 0, the existing flags are not updated.
+             * @param new_flags Vector of new flags
+             * @param indices The location indices that flags are valid for
+            */
             void merge(const ivec& new_flags, const ivec& indices);
-            vec subset(const vec& array, const ivec& indices, ivec& new_indices);
-            vec subset(const vec& array, const ivec& indices);
             ivec subset(const ivec& indices);
             Points subset(const Points& input, const ivec& indices);
     };

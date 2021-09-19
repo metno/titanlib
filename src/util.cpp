@@ -170,6 +170,11 @@ float titanlib::compute_quantile(double quantile, const vec& array) {
 }
 
 vec titanlib::subset(const vec& input, const ivec& indices) {
+    if(input.size() <= 1)
+        return input;
+    if(indices.size() == 0)
+        return input;
+
     vec output(indices.size());
     int size = indices.size();
     for(int i=0; i < size; i++) {
@@ -180,7 +185,28 @@ vec titanlib::subset(const vec& input, const ivec& indices) {
     return output;
 }
 
+ivec titanlib::subset(const ivec& input, const ivec& indices) {
+    if(input.size() <= 1)
+        return input;
+    if(indices.size() == 0)
+        return input;
+
+    ivec output(indices.size());
+    int size = indices.size();
+    for(int i=0; i < size; i++) {
+        int index = indices[i];
+        assert(index < input.size());
+        output[i] = input[index];
+    }
+    return output;
+}
+
 Points titanlib::subset(const Points& input, const ivec& indices) {
+    if(input.size() <= 1)
+        return input;
+    if(indices.size() == 0)
+        return input;
+
     int size = indices.size();
     vec ilats = input.get_lats();
     vec ilons = input.get_lons();
