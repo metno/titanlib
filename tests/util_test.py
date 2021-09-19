@@ -29,7 +29,7 @@ class UtilTest(unittest.TestCase):
         array = [0, 1, 2]
         indices = [1]
         np.testing.assert_almost_equal(titanlib.subset(array, indices), [1])
-        np.testing.assert_almost_equal(titanlib.subset([], indices), [])
+        np.testing.assert_almost_equal(titanlib.subset(array, []), array)
 
 if __name__ == '__main__':
     unittest.main()

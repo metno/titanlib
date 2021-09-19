@@ -43,6 +43,19 @@ class SctTest(unittest.TestCase):
                 vertical_scale, pos, neg, eps2)
         np.testing.assert_array_equal(flags, [0, 0, 1])
 
+    def test_simple_dataset(self):
+        elevs0 = [0, 0, 0]
+        values0 = [0, 1, 100]
+        points0 = titanlib.Points(lats, lons, elevs0)
+
+        dataset = titanlib.Dataset(points0, values0)
+
+        sct, rep = dataset.sct(num_min, num_max, inner_radius,
+                outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
+                vertical_scale, pos, neg, eps2)
+        np.testing.assert_array_equal(dataset.flags, [0, 0, 1])
+
+
     def test_time(self):
         s_time = time.time()
 

@@ -19,19 +19,11 @@ class DatasetTest(unittest.TestCase):
         lons = np.random.randn(N) * 10000;
         elevs = np.random.rand(N) * 100;
         points = titanlib.Points(lats, lons, elevs)
-        values = np.random.randn(N) * 6;
+        values = np.zeros(N);
         dataset = titanlib.Dataset(points, values);
         dataset.range_check([-100], [-100], [0, 1, 2])
         dataset.range_check([-100], [-100], [1, 2, 4])
         self.assertListEqual([i for i in dataset.flags], [1, 1, 1, 0, 1])
-
-    def test_indices(self):
-        points = titanlib.Points([0, 0, 0, 0], [0, 0.1, 0.2, 0.3], [0, 0, 0, 0])
-        values = np.random.randn(3) * 6;
-        dataset = titanlib.Dataset(points, values);
-
-        dataset.isolation_check(10, 10, 10000, [0, 3])
-        np.testing.assert_array_almost_equal(dataset.flags, [1, 0, 0, 1])
 
 
 if __name__ == '__main__':

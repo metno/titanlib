@@ -25,10 +25,8 @@ num_iterations = 2
 
 class BuddyCheckTest(unittest.TestCase):
     def test_1(self):
-        print(values)
         flags = titanlib.buddy_check(points, values, radius, num_min, threshold,
                 max_elev_diff, elev_gradient, min_std, num_iterations)
-        print(flags)
         np.testing.assert_array_equal(flags, [0]*8 + [1]*2)
 
     def test_min_std(self):
@@ -47,7 +45,7 @@ class BuddyCheckTest(unittest.TestCase):
         np.testing.assert_array_equal(flags, [0]*N)
 
     def test_num_iterations(self):
-        """Check that min_iterations affects the flags"""
+        """Check that num_iterations affects the flags"""
         flags = titanlib.buddy_check(points, values, radius, num_min, threshold,
                 max_elev_diff, elev_gradient, min_std, 1)
         np.testing.assert_array_equal(flags, [0]*9 + [1])

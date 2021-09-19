@@ -43,7 +43,7 @@ class BuddyEventCheckTest(unittest.TestCase):
         values = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
         radius = [10000]
         num_min = [1]
-        event_threshold = 0.05
+        event_threshold = 0.5
         threshold = 0.2
         elev_gradient = 0
         max_elev_diff = -1
