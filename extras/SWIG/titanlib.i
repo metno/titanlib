@@ -61,3 +61,6 @@
 %}
 
 %include "titanlib.h"
+
+%template(subset) titanlib::subset<titanlib::ivec>;
+%template(subset) titanlib::subset<titanlib::vec>;

@@ -169,40 +169,8 @@ float titanlib::compute_quantile(double quantile, const vec& array) {
     return exact_q;
 }
 
-vec titanlib::subset(const vec& input, const ivec& indices) {
-    if(input.size() <= 1)
-        return input;
-    if(indices.size() == 0)
-        return input;
-
-    vec output(indices.size());
-    int size = indices.size();
-    for(int i=0; i < size; i++) {
-        int index = indices[i];
-        assert(index < input.size());
-        output[i] = input[index];
-    }
-    return output;
-}
-
-ivec titanlib::subset(const ivec& input, const ivec& indices) {
-    if(input.size() <= 1)
-        return input;
-    if(indices.size() == 0)
-        return input;
-
-    ivec output(indices.size());
-    int size = indices.size();
-    for(int i=0; i < size; i++) {
-        int index = indices[i];
-        assert(index < input.size());
-        output[i] = input[index];
-    }
-    return output;
-}
-
 Points titanlib::subset(const Points& input, const ivec& indices) {
-    if(input.size() <= 1)
+    if(input.size() == 0)
         return input;
     if(indices.size() == 0)
         return input;
@@ -329,4 +297,3 @@ float titanlib::find_k_closest(const vec& array, int k) {
     float value = array_copy[k];
     return value;
 }
-
