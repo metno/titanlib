@@ -25,16 +25,24 @@ ivec titanlib::buddy_check(const Points& points,
     const int s = points.size();
     // assert that the arrays we expect are of size s
     if(values.size() != s) {
-        throw std::invalid_argument("Points and values dimension mismatch");
+        std::stringstream ss;
+        ss <<"'values' (" << values.size() << ") does not have the same length as points (" << s << ")" << std::endl;
+        throw std::invalid_argument(ss.str());
     }
     else if(radius.size() != s && radius.size() != 1) {
-        throw std::invalid_argument("Radius has an invalid length");
+        std::stringstream ss;
+        ss <<"'radius' (" << radius.size() << ") does not have the same length as points (" << s << ")" << std::endl;
+        throw std::invalid_argument(ss.str());
     }
     if(num_min.size() != s && num_min.size() != 1) {
-        throw std::invalid_argument("'num_min' has an invalid length");
+        std::stringstream ss;
+        ss <<"'num_min' (" << num_min.size() << ") does not have the same length as points (" << s << ")" << std::endl;
+        throw std::invalid_argument(ss.str());
     }
     if(obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) {
-        throw std::invalid_argument("'obs_to_check' has an invalid length");
+        std::stringstream ss;
+        ss <<"'obs_to_check' (" << obs_to_check.size() << ") does not have the same length as points (" << s << ")" << std::endl;
+        throw std::invalid_argument(ss.str());
     }
 
     // Check that buddies min is more than 0
@@ -60,8 +68,9 @@ ivec titanlib::buddy_check(const Points& points,
             // is this one we are supposed to check?
             int b_i = (num_min.size() == s) ? i : 0;
             int d_i = (radius.size() == s) ? i : 0;
-            if(flags[i] != 0)
+            if(flags_prev[i] != 0)
                 continue;
+
             if(check_all || obs_to_check[i] == 1) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
@@ -80,32 +89,33 @@ ivec titanlib::buddy_check(const Points& points,
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
                         // don't use ones that differ too much in height (max_elev_diff)
-                        if(flags_prev[neighbour_indices[j]] == 0) {
-                            if(max_elev_diff > 0) {
-                                float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
-                                if(elev_diff <= max_elev_diff) {
-                                    // correction for the elevation differences (add or subtract -0.0065 degC/m)
-                                    // m difference from point in question
-                                    float elev_diff = elevs[i] - elevs[neighbour_indices[j]];
-                                    //std::cout << "height diff: " << elev_diff;
-                                    float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
-                                    //std::cout << ", adjusted value: " << adjusted_value;
-                                    //std::cout << '\n';
-                                    list_buddies.push_back(adjusted_value);
-                                    n_buddies++;
-                                }
-                                else {
-                                    if(debug) {
-                                        std::cout << "too much height difference: " << elev_diff << '\n';
-                                    }
-                                }
-                            }
-                            // if max_elev_diff is negative then don't check elevation difference
-                            else {
-                                // can use this station
-                                list_buddies.push_back(values[neighbour_indices[j]]);
+                        if(flags_prev[neighbour_indices[j]] != 0)
+                            continue;
+
+                        if(max_elev_diff > 0) {
+                            float elev_diff = fabs(elevs[neighbour_indices[j]] - elevs[i]);
+                            if(elev_diff <= max_elev_diff) {
+                                // correction for the elevation differences (add or subtract -0.0065 degC/m)
+                                // m difference from point in question
+                                float elev_diff = elevs[i] - elevs[neighbour_indices[j]];
+                                //std::cout << "height diff: " << elev_diff;
+                                float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
+                                //std::cout << ", adjusted value: " << adjusted_value;
+                                //std::cout << '\n';
+                                list_buddies.push_back(adjusted_value);
                                 n_buddies++;
                             }
+                            else {
+                                if(debug) {
+                                    std::cout << "too much height difference: " << elev_diff << '\n';
+                                }
+                            }
+                        }
+                        // if max_elev_diff is negative then don't check elevation difference
+                        else {
+                            // can use this station
+                            list_buddies.push_back(values[neighbour_indices[j]]);
+                            n_buddies++;
                         }
                     }
 
