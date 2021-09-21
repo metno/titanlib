@@ -82,7 +82,7 @@ ivec titanlib::buddy_event_check(const Points& points,
                 ivec neighbour_indices = points.get_neighbours(lats[i], lons[i], radius[d_i], false);
 
                 int n_buddies = 0;
-                vec list_buddies;
+                std::vector<bool> buddy_events;
                 // based on tree do have enough neighbours? 
                 if(neighbour_indices.size() >= num_min[b_i]) {
                     // loop over everything that was near enough
@@ -102,11 +102,9 @@ ivec titanlib::buddy_event_check(const Points& points,
                                 float adjusted_value = values[neighbour_indices[j]] + (elev_diff * elev_gradient);
                                 //std::cout << ", adjusted value: " << adjusted_value;
                                 //std::cout << '\n';
-                                float event_value = 0;
-                                if(adjusted_value < event_threshold)
-                                    event_value = 1;
+                                bool is_event = adjusted_value < event_threshold;
 
-                                list_buddies.push_back(event_value);
+                                buddy_events.push_back(is_event);
                                 n_buddies++;
                             }
                             else {
@@ -118,7 +116,8 @@ ivec titanlib::buddy_event_check(const Points& points,
                         // if max_elev_diff is negative then don't check elevation difference
                         else {
                             // can use this station
-                            list_buddies.push_back(values[neighbour_indices[j]]);
+                            int is_event = values[neighbour_indices[j]] < event_threshold;
+                            buddy_events.push_back(is_event);
                             n_buddies++;
                         }
                     }
@@ -129,40 +128,36 @@ ivec titanlib::buddy_event_check(const Points& points,
                 }
                 if(n_buddies >= num_min[b_i]) {
                     // compute the average and standard deviation of the values
-                    boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc;
-                    int count = 0;
-                    int count_below = 0;
-                    for(int k = 0; k < list_buddies.size(); k++) {
-                        acc(list_buddies[k]);
-                        if(list_buddies[k] < event_threshold)
-                            count_below++;
-                        count++;
+                    int count_event = 0;
+                    for(int k = 0; k < buddy_events.size(); k++) {
+                        if(buddy_events[k] == 1)
+                            count_event++;
                     }
-                    float mean = boost::accumulators::mean(acc);
-                    float fraction = float(count_below) / count;
-                    bool curr_event = values[i] < event_threshold;
+                    float fraction_event = float(count_event) / buddy_events.size();
+                    bool is_event = values[i] < event_threshold;
 
                     if(threshold < 1) {
-                        if(curr_event && fraction <= threshold)
+                        if(is_event && fraction_event <= threshold)
                             flags[i] = 1;
-                        else if(!curr_event && (1 - fraction) <= threshold)
+                        else if(!is_event && (1 - fraction_event) <= threshold)
                             flags[i] = 1;
                     }
                     else {
-                        if(curr_event && count_below <= threshold)
+                        if(is_event && count_event <= threshold)
                             flags[i] = 1;
-                        else if(!curr_event && (count - count_below <= threshold))
+                        else if(!is_event && (buddy_events.size() - count_event <= threshold))
                             flags[i] = 1;
                     }
-                    if(debug && values[i] > 40) {
+                    if(debug && flags[i] == 1) {
                         std::cout << "value: " << values[i] << '\n';
-                        std::cout << "curr_value: " << curr_event << '\n';
+                        std::cout << "is_event: " << is_event << '\n';
                         std::cout << "event_threshold: " << event_threshold << '\n';
                         std::cout << "threshold: " << threshold << '\n';
-                        std::cout << "count: " << count << '\n';
-                        std::cout << "count_below: " << count_below << '\n';
-                        std::cout << "fraction: " << fraction << '\n';
+                        std::cout << "count: " << buddy_events.size() << '\n';
+                        std::cout << "count_event: " << count_event << '\n';
+                        std::cout << "fraction_event: " << fraction_event << '\n';
                         std::cout << "flag: " << flags[i] << '\n';
+                        std::cout << '\n';
                     }
                 }
             }
