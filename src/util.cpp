@@ -48,6 +48,12 @@ void titanlib::set_omp_threads(int num) {
 #endif
 }
 
+int titanlib::get_omp_threads() {
+#ifdef _OPENMP
+    return omp_get_max_threads();
+#endif
+    return 0;
+}
 double titanlib::clock() {
     timeval t;
     gettimeofday(&t, NULL);

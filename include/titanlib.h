@@ -12,7 +12,7 @@
     #include <omp.h>
 #endif
 
-#define TITANLIB_VERSION "0.3.2"
+#define TITANLIB_VERSION "0.3.3.dev1"
 #define __version__ TITANLIB_VERSION
 
 namespace titanlib {
@@ -275,6 +275,9 @@ namespace titanlib {
      * *****************************************/ /**@{*/
     /** Set the number of OpenMP threads to use. Overwrides OMP_NUM_THREAD env variable. */
     void set_omp_threads(int num);
+
+    /** Get the number of OpenMP threads currently set */
+    int get_omp_threads();
 
     /** Sets the number of OpenMP threads to 1 if OMP_NUM_THREADS undefined */
     void initialize_omp();
