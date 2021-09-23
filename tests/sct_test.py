@@ -33,6 +33,22 @@ eps2 = np.ones(N) * 0.5;
 
 
 class SctTest(unittest.TestCase):
+    def test_invalid_arguments(self):
+        points = titanlib.Points(lats, lons, elevs)
+        N = 3
+        args0 = [points, values, num_min, num_max, inner_radius,
+                outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
+                vertical_scale, pos, neg, eps2]
+        invalid_arguments = [(2, -1), (3, -1), (4, -1000),
+                             (5, -1000), (6, -1), (7, -1), (8, -1), (9, -1),
+                             (10, -1), (11, [-1] * N), (12, [-1] * N), (13, [-1] * N), (13, [0] * N)]
+        for invalid_argument in invalid_arguments:
+            with self.subTest(argument=invalid_argument[0]):
+                with self.assertRaises(ValueError):
+                    args = args0
+                    args[invalid_argument[0]] = invalid_argument[1]
+                    titanlib.sct(*args)
+
     def test_simple(self):
         elevs0 = [0, 0, 0]
         values0 = [0, 1, 100]

@@ -68,6 +68,14 @@ ivec titanlib::sct(const Points& points,
         throw std::invalid_argument("inner_radius must be >= 0");
     if(outer_radius < inner_radius)
         throw std::invalid_argument("outer_radius must be >= inner_radius");
+    for(int i = 0; i < eps2.size(); i++) {
+        if(eps2[i] <= 0)
+            throw std::invalid_argument("All eps2 values must be > 0");
+        if(pos[i] < 0)
+            throw std::invalid_argument("All pos values must be >= 0");
+        if(neg[i] < 0)
+            throw std::invalid_argument("All neg values must be >= 0");
+    }
 
     ivec flags(s, 0);
     prob_gross_error.clear();
