@@ -13,7 +13,7 @@ using namespace titanlib;
 ivec titanlib::buddy_event_check(const Points& points,
         const vec& values,
         const vec& radius,
-        const ivec& buddies_min,
+        const ivec& num_min,
         float event_threshold,
         float threshold,
         float max_elev_diff,
@@ -25,21 +25,29 @@ ivec titanlib::buddy_event_check(const Points& points,
     const int s = values.size();
     // assert that the arrays we expect are of size s
     if(values.size() != s) {
-        throw std::invalid_argument("Points and values dimension mismatch");
+        std::stringstream ss;
+        ss << "Points (" << points.size() << ") and values (" << s << ") are not the same size";
+        throw std::invalid_argument(ss.str());
     }
     if(radius.size() != s && radius.size() != 1) {
-        throw std::invalid_argument("Radius has an invalid length");
+        std::stringstream ss;
+        ss << "Radius (" << radius.size() << ") and values (" << s << ") are not the same size";
+        throw std::invalid_argument(ss.str());
     }
-    if((buddies_min.size() != s && buddies_min.size() != 1)) {
-        throw std::runtime_error("'buddies_min' has an invalid length");
+    if(num_min.size() != s && num_min.size() != 1) {
+        std::stringstream ss;
+        ss << "'num_min' (" << num_min.size() << ") and values (" << s << ") are not the same size";
+        throw std::invalid_argument(ss.str());
     }
-    if((obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0)) {
-        throw std::invalid_argument("'obs_to_check' has an invalid length");
+    if(obs_to_check.size() != s && obs_to_check.size() != 1 && obs_to_check.size() !=0) {
+        std::stringstream ss;
+        ss << "'obs_to_check' (" << obs_to_check.size() << ") and values (" << s << ") are not the same size";
+        throw std::invalid_argument(ss.str());
     }
 
     // Check that buddies min is more than 0
-    for(int i = 0; i < buddies_min.size(); i++) {
-        if(buddies_min[i] <= 0)
+    for(int i = 0; i < num_min.size(); i++) {
+        if(num_min[i] <= 0)
             throw std::runtime_error("Buddies_min must be > 0");
     }
 
@@ -52,18 +60,19 @@ ivec titanlib::buddy_event_check(const Points& points,
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != s;
 
+    int num_removed_last_iteration = 0;
     for(int it = 0; it < num_iterations; it++) {
         #pragma omp parallel for
         for(int i = 0; i < values.size(); i++) {
             // is this one we are supposed to check?
-            int b_i = (buddies_min.size() == s) ? i : 0;
+            int b_i = (num_min.size() == s) ? i : 0;
             int d_i = (radius.size() == s) ? i : 0;
             if(flags[i] != 0)
                 continue;
-            if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
+            if(check_all || obs_to_check[i] == 1) {
                 if(debug) {
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
-                    std::cout << ", and min buddies: " << buddies_min[b_i];
+                    std::cout << ", and min buddies: " << num_min[b_i];
                     std::cout << '\n';
                 }
 
@@ -73,7 +82,7 @@ ivec titanlib::buddy_event_check(const Points& points,
                 int n_buddies = 0;
                 vec list_buddies;
                 // based on tree do have enough neighbours? 
-                if(neighbour_indices.size() >= buddies_min[b_i]) {
+                if(neighbour_indices.size() >= num_min[b_i]) {
                     // loop over everything that was near enough
                     // count buddies and make list of values (adjusting for height diff if needed)
                     for(int j = 0; j < neighbour_indices.size(); j++) {
@@ -113,7 +122,7 @@ ivec titanlib::buddy_event_check(const Points& points,
                 if(debug) {
                     std::cout << "buddies: " << n_buddies << '\n';
                 }
-                if(n_buddies >= buddies_min[b_i]) {
+                if(n_buddies >= num_min[b_i]) {
                     // compute the average and standard deviation of the values
                     boost::accumulators::accumulator_set<float, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance> > acc;
                     int count = 0;
@@ -124,7 +133,7 @@ ivec titanlib::buddy_event_check(const Points& points,
                             count_below++;
                         count++;
                     }
-//                    float mean = boost::accumulators::mean(acc);
+                    float mean = boost::accumulators::mean(acc);
                     float fraction = float(count_below) / count;
                     bool curr_event = values[i] < event_threshold;
 
@@ -155,6 +164,22 @@ ivec titanlib::buddy_event_check(const Points& points,
                 }
             }
         }
+        // Check if we need to stop early
+        int num_removed = 0;
+        for(int i = 0; i < s; i++) {
+            if(flags[i] != 0)
+                num_removed++;
+        }
+        int num_removed_curr_iteration = num_removed - num_removed_last_iteration;
+        if(debug) {
+            std::cout << "iteration, number of bad observations: " << it + 1 << ", " << num_removed_curr_iteration << '\n';
+        }
+        if(num_removed_curr_iteration == 0) {
+            if(debug)
+                std::cout << "Stopping early after iteration " << it + 1 << std::endl;
+            break;
+        }
+        num_removed_last_iteration = num_removed_curr_iteration;
     }
 
     return flags;
