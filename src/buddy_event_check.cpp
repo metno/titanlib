@@ -150,6 +150,8 @@ ivec titanlib::buddy_event_check(const Points& points,
                         std::cout << "fraction: " << fraction << '\n';
                         std::cout << "flag: " << flags[i] << '\n';
                     }
+                } else {
+                  flags[i] = 11;
                 }
             }
         }

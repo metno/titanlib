@@ -64,6 +64,7 @@ ivec titanlib::buddy_check(const Points& points,
                 continue;
             if( ((!check_all && obs_to_check[i] == 1) || check_all) ) {
                 if(debug) {
+                    std::cout << "-----------------------------------: " << '\n';
                     std::cout << "point: " << lats[i] << " " << lons[i] << " " << elevs[i];
                     std::cout << ", and min buddies: " << num_min[b_i];
                     std::cout << '\n';
@@ -128,14 +129,28 @@ ivec titanlib::buddy_check(const Points& points,
 
 //                    float std = sqrt(variance);
                     float std_adjusted = sqrt(variance + variance / n_buddies);
+                    if(debug) {
+                        std::cout << "std_adjusted before: " << std_adjusted << '\n';
+                        std::cout << "min_std: " << min_std << '\n';
+                    }
                     if(std_adjusted < min_std) {
                         std_adjusted = min_std;
+                      if(debug) {
+                          std::cout << "std_adjusted after: " << std_adjusted << '\n';
+                      }
                     }
                     float pog = fabs(values[i] - mean)/std_adjusted;
                     if(pog > threshold) {
                         count_bad ++;
                         flags[i] = 1;
                     }
+                    if(debug) {
+                        std::cout << "value: " << values[i] << '\n';
+                        std::cout << "pog: " << pog << '\n';
+                        std::cout << "flag: " << flags[i] << '\n';
+                    }
+                } else {
+                    flags[i] = 11;
                 }
             } // end if observation is to check
         } // end loop over values
