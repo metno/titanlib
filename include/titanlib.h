@@ -252,6 +252,17 @@ namespace titanlib {
             float radius,
             float vertical_radius=MV);
 
+    /** Isolation check, vectorized version.
+     *  @param num_min required number of observations
+     *  @param radius search radius [m]
+     *  @param vertical_radius Vertical search radius [m]. Use empty array to disable.
+     *  @param flags vector of return flags
+     */
+    ivec isolation_check(const Points& points,
+            const ivec& num_min,
+            const vec& radius,
+            const vec& vertical_radius=vec());
+
     /** Duplicate check. Checks Flags duplicate stations. Keeps the first one when duplicates.
      *  @param radius Stations within this radius are considered duplicates [m]
      *  @param vertical_range Stations must also be within this vertical range to be considered duplicates [m]. Disable if MV.
@@ -543,6 +554,7 @@ namespace titanlib {
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec());
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec());
             void isolation_check(int num_min, float radius, float vertical_radius, const ivec& indices=ivec());
+            void isolation_check(const ivec& num_min, const vec& radius, const vec& vertical_radius=vec(), const ivec& indices=ivec());
             void duplicate_check(float radius, float vertical_range=titanlib::MV, const ivec& indices=ivec());
             void dem_check(const vec& dem, float max_elev_diff);
             void external_check(const ivec& flags);

@@ -48,6 +48,10 @@ void titanlib::Dataset::isolation_check(int num_min, float radius, float vertica
     ivec new_flags = titanlib::isolation_check(subset(points, indices), num_min, radius, vertical_radius);
     merge(new_flags, subset(indices));
 }
+void titanlib::Dataset::isolation_check(const ivec& num_min, const vec& radius, const vec& vertical_radius, const ivec& indices) {
+    ivec new_flags = titanlib::isolation_check(subset(points, indices), subset(num_min, indices), subset(radius, indices), subset(vertical_radius, indices));
+    merge(new_flags, subset(indices));
+}
 void titanlib::Dataset::duplicate_check(float radius, float vertical_range, const ivec& indices) {
     ivec new_flags = titanlib::duplicate_check(subset(points, indices), radius, vertical_range);
     merge(new_flags, subset(indices));
