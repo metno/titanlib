@@ -17,7 +17,7 @@
 using namespace titanlib;
 
 // helpers
-void remove_flagged(ivec& indices, vec& distances, ivec flags);
+void remove_flagged(ivec& indices, vec& distances, const ivec& flags);
 vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
 double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data);
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma);
@@ -43,15 +43,28 @@ ivec titanlib::sct(const Points& points,
         const vec& neg,
         const vec& eps2,
         vec& prob_gross_error,
-        vec& rep) {
+        vec& rep,
+        const ivec& obs_to_check) {
 
     const vec& lats = points.get_lats();
     const vec& lons = points.get_lons();
     const vec& elevs = points.get_elevs();
 
     const int s = values.size();
-    if( lats.size() != s || lons.size() != s || elevs.size() != s || values.size() != s || pos.size() != s || neg.size() != s || eps2.size() != s)
-        throw std::runtime_error("Dimension mismatch");
+    if(lats.size() != s)
+        throw std::runtime_error("Lats does not have same size as values");
+    if(lons.size() != s)
+        throw std::runtime_error("Lons does not have same size as values");
+    if(elevs.size() != s)
+        throw std::runtime_error("Elevs does not have same size as values");
+    if(pos.size() != s)
+        throw std::runtime_error("Pos does not have same size as values");
+    if(neg.size() != s || eps2.size() != s)
+        throw std::runtime_error("Neg does not have same size as values");
+    if(eps2.size() != s)
+        throw std::runtime_error("Eps2 does not have same size as values");
+    if(obs_to_check.size() > 0 && obs_to_check.size() != s)
+        throw std::invalid_argument("obs_to_check must empty or have the same size as values");
     if(num_min < 2)
         throw std::invalid_argument("num_min must be > 1");
     if(num_max < num_min)
@@ -101,6 +114,11 @@ ivec titanlib::sct(const Points& points,
         ivec checked(s, 0);  // Keep track of which observations have been checked
         int count_oi = 0;
         for(int curr=0; curr < s; curr++) {
+            if(obs_to_check.size() == s && obs_to_check[curr] != 1) {
+                checked[curr] = 1;
+                continue;
+            }
+
             // break out if station already flagged
             if(flags[curr] != 0) {
                 checked[curr] = 1;
@@ -260,6 +278,10 @@ ivec titanlib::sct(const Points& points,
             int ccount = 0;
             for(int i = 0; i < s_box; i++) {
                 int index = neighbour_indices[i];
+                if(obs_to_check.size() == s && obs_to_check[index] != 1) {
+                    checked[curr] = 1;
+                    continue;
+                }
                 float dist = distances[i];
                 if(dist <= inner_radius) {
                     float pog = cvres(i) * ares(i) / sig2o;
@@ -463,7 +485,7 @@ vec vertical_profile(const int n, const double *elevs, const double t0, const do
 //----------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 
-void remove_flagged(ivec& indices, vec& distances, ivec flags) {
+void remove_flagged(ivec& indices, vec& distances, const ivec& flags) {
     ivec indices_new;
     vec distances_new;
     indices_new.reserve(indices.size());

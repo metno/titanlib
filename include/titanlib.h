@@ -12,7 +12,7 @@
     #include <omp.h>
 #endif
 
-#define TITANLIB_VERSION "0.3.3.dev1"
+#define TITANLIB_VERSION "0.3.3.dev2"
 #define __version__ TITANLIB_VERSION
 
 namespace titanlib {
@@ -72,6 +72,7 @@ namespace titanlib {
      *  @param eps2
      *  @param prob_gross_error Probability of gross error for each observation
      *  @param rep Coefficient of representativity
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @return flags
      */
     ivec sct(const Points& points,
@@ -89,7 +90,8 @@ namespace titanlib {
             const vec& neg,
             const vec& eps2,
             vec& prob_gross_error,
-            vec& rep);
+            vec& rep,
+            const ivec& obs_to_check=ivec());
 
     /** Spatial Consistency Test (SCT) - resistant to outliers
      *  @param points Input points

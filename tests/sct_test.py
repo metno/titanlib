@@ -88,5 +88,17 @@ class SctTest(unittest.TestCase):
 
         print("%.1fs" % (time.time() - s_time))
 
+    def test_obs_to_check(self):
+        elevs0 = [0, 0, 0, 0, 0, 0]
+        values0 = [0, 1, 1, 1, 100, 100]
+        points0 = titanlib.Points(lats*2, lons*2, elevs0)
+        obs_to_check0 = [0, 1, 1, 1, 1, 0]
+
+        flags, sct, rep = titanlib.sct(points0, values0, num_min, num_max, inner_radius,
+                outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale,
+                vertical_scale, np.ones(6), np.ones(6), 0.5 * np.ones(6), obs_to_check0)
+        np.testing.assert_array_equal(flags, [0, 0, 0, 0, 1, 0])
+
+
 if __name__ == '__main__':
     unittest.main()
