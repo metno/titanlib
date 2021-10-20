@@ -4,10 +4,11 @@ include_directories(${PYTHON_INCLUDE_PATH})
 
 if(SWIG_VERSION GREATER_EQUAL 4)
     set(CMAKE_SWIG_FLAGS "-doxygen")
+    # Note: -keyword cannot be used with overload functions, so it is a bit pointless to use here
+    # set(CMAKE_SWIG_FLAGS "-keyword")
 endif()
 set_source_files_properties(../${PROJECT_NAME}.i PROPERTIES CPLUSPLUS ON)
 include_directories(../../include)
-#set_property(SOURCE foo.i PROPERTY SWIG_MODULE_NAME pytitanlib)
 
 # Get Numpy include directory
 # http://mad.web.cern.ch/mad/releases/madng/madng-git/lib/nlopt-2.6.1/cmake/FindNumPy.cmake
@@ -57,7 +58,8 @@ include_directories(${NUMPY_INCLUDE_DIRS})
 # Add swig module
 #set(CMAKE_SWIG_FLAGS -interface _pytitanlib)
 swig_add_library(titanlib TYPE SHARED LANGUAGE python SOURCES ../${PROJECT_NAME}.i)
-swig_link_libraries(titanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
+#swig_link_libraries(titanlib ${PROJECT_NAME} ${PYTHON_LIBRARIES})
+swig_link_libraries(titanlib titanlib ${PYTHON_LIBRARIES})
 if(APPLE)
     set_property(TARGET _titanlib PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
     set_target_properties(_titanlib PROPERTIES
@@ -68,7 +70,6 @@ if(APPLE)
        LINK_FLAGS "-flat_namespace -undefined suppress"
        )
 endif()
-#set_property(TARGET _pytitanlib PROPERTY OUTPUT_NAME titanlib)
 
 # Files to install with Python
 set(PYTHON_INSTALL_FILES
@@ -105,3 +106,13 @@ add_custom_target(develop-python-user
         DEPENDS _titanlib
         COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} develop --user)
 
+if (ENABLE_TESTS)
+    # Copy the test programs to be next to the titanlib.py package
+    add_custom_target(tests-data
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_BINARY_DIR}/tests)
+
+    add_custom_target(tests COMMAND ${PYTHON_EXECUTABLE} -m nose -e memory)
+    add_dependencies(tests tests-data build-python)
+endif()

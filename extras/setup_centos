@@ -1,9 +1,0 @@
-#!/bin/bash
-mkdir build
-cd build
-module load cmake
-module load gsl/2.5
-module load Python/3.7.3
-module load R
-# cmake .. -DBUILD_R=off -DGSL_INCLUDE_DIR=/modules/centos7/gsl/2.5/include -DGSL_LIBRARY=/modules/centos7/gsl/2.5/lib -DGSL_CBLAS_LIBRARY=/modules/centos7/gsl/2.5/lib
-cmake .. -DGSL_INCLUDE_DIR=/modules/centos7/gsl/2.5/include -DGSL_LIBRARY=/modules/centos7/gsl/2.5/lib -DGSL_CBLAS_LIBRARY=/modules/centos7/gsl/2.5/lib

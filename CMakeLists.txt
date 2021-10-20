@@ -68,7 +68,7 @@ install(TARGETS titanlib
 # Documentation
 option(BUILD_DOC "Build documentation" ON)
 if (BUILD_DOC)
-find_package(Doxygen)
+    find_package(Doxygen)
     if (DOXYGEN_FOUND)
         set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/config.in)
         set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
@@ -86,7 +86,5 @@ find_package(Doxygen)
     endif()
 endif()
 
-# SWIG subdirectory
-file(GLOB SWIG_INTERFACE "extras/SWIG/titanlib.i")
-add_subdirectory(extras/SWIG)
-add_subdirectory(extras/python)
+file(GLOB SWIG_INTERFACE "swig/titanlib.i")
+add_subdirectory(swig)
