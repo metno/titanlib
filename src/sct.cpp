@@ -172,7 +172,7 @@ ivec titanlib::sct(const Points& points,
             }
             else {
                 double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
-                vp.resize(s_box, -999);
+                vp.resize(s_box, titanlib::MV);
                 for(int l = 0; l < s_box; l++) {
                     vp[l] = meanT;
                 }
@@ -428,7 +428,7 @@ double basic_vertical_profile_optimizer_function(const gsl_vector *v, void *data
 }
 
 vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma) {
-    vec t_out(n, -999);
+    vec t_out(n, titanlib::MV);
     for(int i=0; i<n; i++)
         t_out[i] = t0 + gamma*elevs[i];
     return t_out;
@@ -462,20 +462,16 @@ vec vertical_profile(const int n, const double *elevs, const double t0, const do
     double h1 = h0 + fabs(h1i); // h1<-h0+abs(h1i)
     // loop over the array of elevations
     vec t_out;
-    t_out.resize(n, -999);
+    t_out.resize(n, titanlib::MV);
 
     for(int i=0; i<n; i++) {
-        // define some bools
-        bool z_le_h0 = elevs[i] <= h0; // z.le.h0<-which(z<=h0)
-        bool z_ge_h1 = elevs[i] >= h1; // z.ge.h1<-which(z>=h1)
-        bool z_in = (elevs[i]>h0 && elevs[i]<h1); // z.in<-which(z>h0 & z<h1)
-        if(z_le_h0) {
+        if(elevs[i] <= h0) {
             t_out[i] = t0-gamma*elevs[i]-a;
         }
-        if(z_ge_h1) {
+        else if(elevs[i] >= h1) {
             t_out[i] = t0-gamma*elevs[i];
         }
-        if(z_in) {
+        else {
             t_out[i] = t0-gamma*elevs[i]-a/2*(1+cos(M_PI*(elevs[i]-h0)/(h1-h0)));
         }
     }
