@@ -172,15 +172,15 @@ ivec titanlib::sct(const Points& points,
             }
             else {
                 double meanT = std::accumulate(values_box.begin(), values_box.end(), 0.0) / values_box.size();
-                vp.resize(s, -999);
-                for(int l = 0; l < s; l++) {
+                vp.resize(s_box, -999);
+                for(int l = 0; l < s_box; l++) {
                     vp[l] = meanT;
                 }
             }
 
-            boost::numeric::ublas::matrix<float> disth(s, s);
-            boost::numeric::ublas::matrix<float> distz(s, s);
-            boost::numeric::ublas::vector<float> Dh(s);
+            boost::numeric::ublas::matrix<float> disth(s_box, s_box);
+            boost::numeric::ublas::matrix<float> distz(s_box, s_box);
+            boost::numeric::ublas::vector<float> Dh(s_box);
 
             for(int i=0; i < s_box; i++) {
                 vec Dh_vector(s_box);
@@ -285,6 +285,7 @@ ivec titanlib::sct(const Points& points,
                 float dist = distances[i];
                 if(dist <= inner_radius) {
                     float pog = cvres(i) * ares(i) / sig2o;
+                    assert(titanlib::is_valid(pog));
                     prob_gross_error[index] = std::max(pog, prob_gross_error[index]);
                     if((cvres(i) < 0 && pog > pos[index]) || (cvres(i) >= 0 && pog > neg[index])) {
                         flags[index] = 1;
