@@ -598,6 +598,25 @@ namespace titanlib {
             /*  Same as T subset, except for Points */
             Points subset(const Points& input, const ivec& indices);
 
+            ivec get_unflagged_indices();
+
+            // Create a vector with results, but only for locations that have not been flagged
+            // To broadcase the values to point, use a singleton array
+            template <class T> T get_unflagged(const T& array) {
+                ivec indices = get_unflagged_indices();
+                T output(indices.size());
+                for(int i = 0; i < indices.size(); i++) {
+                    if(array.size() > 1) {
+                        int index = indices[i];
+                        output[i] = array[index];
+                    }
+                    else
+                        output[i] = array[0];
+                }
+                return output;
+            }
+            Points get_unflagged_points();
+
             /* Same as T subset, except the subsetted indices are returned */
             ivec subset(const ivec& indices);
 
@@ -606,7 +625,8 @@ namespace titanlib {
              * @param new_flags Vector of new flags
              * @param indices The location indices that flags are valid for
             */
-            void merge(const ivec& new_flags, const ivec& indices);
+            void merge(const ivec& new_flags, ivec indices);
+            void merge_simple(const ivec& new_flags, ivec indices);
     };
     class not_implemented_exception: public std::logic_error
     {
