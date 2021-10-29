@@ -80,40 +80,36 @@ void titanlib::Dataset::metadata_check(bool check_lat, bool check_lon, bool chec
     merge(new_flags, subset(indices));
 }
 void titanlib::Dataset::merge(const ivec& new_flags, const ivec& indices) {
-    if(indices.size() == 0) {
-        if(new_flags.size() != flags.size()) {
-            throw std::invalid_argument("new_flags must be the same size as flags");
-        }
-        flags = new_flags;
+    if(new_flags.size() != indices.size()) {
+        std::stringstream ss;
+        ss  << "new_flags (" << new_flags.size() << ") must be the same size as indices (" << indices.size() << ")";
+        throw std::invalid_argument(ss.str());
     }
-    else {
-        if(new_flags.size() != indices.size())
-            throw std::invalid_argument("new_flags and indices must be the same length");
 
-        const int s = new_flags.size();
-        for(int i = 0; i < s; i++) {
-            if(new_flags[i] > 0) {
-                int index = indices[i];
-                // std::cout << i << " " << index << " " << flags[i] << std::endl;
-                if(index >= flags.size() || index < 0)
-                    throw std::runtime_error("One or more indices are invalid");
-                flags[index] = new_flags[i];
-            }
+    const int s = new_flags.size();
+    for(int i = 0; i < s; i++) {
+        if(new_flags[i] > 0) {
+            int index = indices[i];
+            // std::cout << i << " " << index << " " << flags[i] << std::endl;
+            if(index >= flags.size() || index < 0)
+                throw std::runtime_error("One or more indices are invalid");
+            flags[index] = new_flags[i];
         }
     }
 }
 
 ivec titanlib::Dataset::subset(const ivec& indices) {
-    ivec indices0 = indices;
-    if(indices0.size() == 0) {
+    if(indices.size() == 1 && indices[0] == -1) {
+        ivec indices0;
         indices0.resize(flags.size());
         for(int i = 0; i < flags.size(); i++)
             indices0[i] = i;
+        return indices0;
     }
     ivec results;
-    results.reserve(indices0.size());
-    for(int i = 0; i < indices0.size(); i++) {
-        int index = indices0[i];
+    results.reserve(indices.size());
+    for(int i = 0; i < indices.size(); i++) {
+        int index = indices[i];
         if(flags[index] == 0) {
             results.push_back(index);
         }
@@ -122,14 +118,10 @@ ivec titanlib::Dataset::subset(const ivec& indices) {
 }
 
 Points titanlib::Dataset::subset(const Points& input, const ivec& indices) {
-    ivec indices0 = indices;
-    if(indices0.size() == 0) {
-        indices0.resize(points.size());
-        for(int i = 0; i < points.size(); i++)
-            indices0[i] = i;
+    if(indices.size() == 1 && indices[0] == -1) {
+        return input;
     }
-
-    int size = indices0.size();
+    int size = indices.size();
     vec ilats = input.get_lats();
     vec ilons = input.get_lons();
     vec ielevs = input.get_elevs();
@@ -144,7 +136,7 @@ Points titanlib::Dataset::subset(const Points& input, const ivec& indices) {
     lafs.reserve(size);
 
     for(int i=0; i < size; i++) {
-        int index = indices0[i];
+        int index = indices[i];
         assert(index < flags.size());
         if(flags[index] == 0) {
             lats.push_back(ilats[index]);

@@ -548,19 +548,19 @@ namespace titanlib {
         public:
             Dataset(Points points, vec ivalues);
             /** Perform the range check on the dataset
-             *  @param indices Only perform the test on these indices
+             *  @param indices Only perform the test on these indices. Use ivec(1, -1) to indicate all stations
              */
-            void range_check(const vec& min, const vec& max, const ivec& indices=ivec());
-            void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec());
-            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& prob_gross_error, vec& rep, const ivec& indices=ivec());
-            void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec());
-            void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec());
-            void isolation_check(int num_min, float radius, float vertical_radius, const ivec& indices=ivec());
-            void isolation_check(const ivec& num_min, const vec& radius, const vec& vertical_radius=vec(), const ivec& indices=ivec());
-            void duplicate_check(float radius, float vertical_range=titanlib::MV, const ivec& indices=ivec());
+            void range_check(const vec& min, const vec& max, const ivec& indices=ivec(1, -1));
+            void range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices=ivec(1, -1));
+            void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& prob_gross_error, vec& rep, const ivec& indices=ivec(1, -1));
+            void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
+            void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
+            void isolation_check(int num_min, float radius, float vertical_radius, const ivec& indices=ivec(1, -1));
+            void isolation_check(const ivec& num_min, const vec& radius, const vec& vertical_radius=vec(), const ivec& indices=ivec(1, -1));
+            void duplicate_check(float radius, float vertical_range=titanlib::MV, const ivec& indices=ivec(1, -1));
             void dem_check(const vec& dem, float max_elev_diff);
             void external_check(const ivec& flags);
-            void metadata_check(bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true, const ivec& indices=ivec());
+            void metadata_check(bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true, const ivec& indices=ivec(1, -1));
 
             vec lats;
             vec lons;
