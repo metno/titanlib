@@ -90,7 +90,7 @@ void titanlib::Dataset::external_check(const ivec& flags) {
 }
 void titanlib::Dataset::metadata_check(bool check_lat, bool check_lon, bool check_elev, bool check_laf, const ivec& indices) {
     ivec new_flags = titanlib::metadata_check(get_unflagged_points(), check_lat, check_lon, check_elev, check_laf);
-    merge(new_flags, indices);
+    merge_simple(new_flags, subset(indices));
 }
 
 void titanlib::Dataset::merge(const ivec& new_flags, ivec indices) {
@@ -128,6 +128,9 @@ void titanlib::Dataset::merge_simple(const ivec& new_flags, ivec indices) {
         return;
     }
 
+    std::cout << new_flags.size() << " " << indices.size() << std::endl;
+    assert(new_flags.size() == indices.size());
+
     for(int i = 0; i < indices.size(); i++) {
         int index = indices[i];
         if(index >= flags.size() || index < 0)
@@ -137,6 +140,8 @@ void titanlib::Dataset::merge_simple(const ivec& new_flags, ivec indices) {
 }
 
 ivec titanlib::Dataset::subset(const ivec& indices) {
+    if(indices.size() == 0)
+        return ivec();
     ivec indices0 = indices;
     if(indices.size() == 1 && indices[0] == -1) {
         indices0.clear();
@@ -188,6 +193,8 @@ Points titanlib::Dataset::get_unflagged_points() {
 }
 
 Points titanlib::Dataset::subset(const Points& input, const ivec& indices) {
+    if(indices.size() == 0)
+        return Points(vec(), vec(), vec(), vec());
     ivec indices0 = indices;
     if(indices.size() == 1 && indices[0] == -1) {
         indices0.clear();

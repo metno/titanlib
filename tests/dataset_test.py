@@ -30,10 +30,21 @@ class DatasetTest(unittest.TestCase):
         dataset.range_check([-100], [-100], [1, 2, 4])
         self.assertListEqual([i for i in dataset.flags], [1, 1, 1, 0, 1])
 
+    def test_merge(self):
+        dataset = self.get_dataset()
+        dataset.isolation_check(3, 1000000000, 0)
+        self.assertListEqual([i for i in dataset.flags], [0, 0, 0, 0, 0])
+
     def test_empty_indices(self):
         dataset = self.get_dataset()
         dataset.range_check([-100], [-100], [])
         self.assertListEqual([i for i in dataset.flags], [0, 0, 0, 0, 0])
+
+    def test_subset(self):
+        dataset = self.get_dataset()
+        N = len(dataset.values)
+        dataset.range_check([-100] * N, [-100] * N, [])
+
 
 
 if __name__ == '__main__':

@@ -576,22 +576,33 @@ namespace titanlib {
              * @return Vector of values
             */
             template <class T> T subset(const T& array, const ivec& indices) {
-                if(array.size() == 1 && flags.size() > 1) {
-                    // In this case, array is meant to be broadcast
-                    return array;
+                if(array.size() != 1 && array.size() != flags.size()) {
+                    std::stringstream ss;
+                    ss << "Array (" << array.size() << ") must be either size 1 or the same as dataset size (" << flags.size() << ")";
+                    throw std::invalid_argument(ss.str());
                 }
+                if(indices.size() == 0)
+                    return T();
+
                 ivec indices0 = indices;
-                if(indices0.size() == 0) {
-                    indices0.resize(array.size());
-                    for(int i = 0; i < array.size(); i++)
+                if(indices.size() == 1 && indices[0] == -1) {
+                    // Use all indices
+                    indices0.clear();
+                    indices0.resize(flags.size());
+                    for(int i = 0; i < flags.size(); i++)
                         indices0[i] = i;
                 }
                 T new_array;
                 new_array.reserve(indices0.size());
                 for(int i = 0; i < indices0.size(); i++) {
                     int index = indices0[i];
-                    if(flags[index] == 0)
-                        new_array.push_back(array[index]);
+                    if(flags[index] == 0) {
+                        if(array.size() == 1)
+                            // Array is broadcast
+                            new_array.push_back(array[0]);
+                        else
+                            new_array.push_back(array[index]);
+                    }
                 }
                 return new_array;
             }
@@ -602,12 +613,17 @@ namespace titanlib {
 
             // Create a vector with results, but only for locations that have not been flagged
             // To broadcase the values to point, use a singleton array
+            // An empty array will return an empty array
             template <class T> T get_unflagged(const T& array) {
+                if(array.size() == 0)
+                    return array;
+
                 ivec indices = get_unflagged_indices();
                 T output(indices.size());
                 for(int i = 0; i < indices.size(); i++) {
                     if(array.size() > 1) {
                         int index = indices[i];
+                        assert(index < array.size());
                         output[i] = array[index];
                     }
                     else

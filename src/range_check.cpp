@@ -22,7 +22,9 @@ ivec titanlib::range_check(const vec& values,
     const int s = values.size();
     // assert that the max and min are either both size 1 or the size of values 
     if( (min.size() != s && min.size() != 1) || (max.size() != s && max.size() != 1) ) {
-        throw std::runtime_error("Range check: Min/max arrays must either be length 1 or the same length as values");
+        std::stringstream ss;
+        ss << "Range check: Min (" << min.size() << ")/max(" << max.size() << ") arrays must either be length 1 or the same length as values (" << s << ")";
+        throw std::runtime_error(ss.str());
     }
 
     ivec flags(s, 0);
