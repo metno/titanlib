@@ -61,6 +61,10 @@ class KDTreeTest(unittest.TestCase):
         self.assertEqual(tree.get_num_neighbours(0, 0, 120000, False), 2)
         self.assertEqual(tree.get_num_neighbours(0, 0, 120000, True), 3)
 
+    def test_empty_constructor(self):
+        tree = titanlib.KDTree()
+        self.assertEqual(tree.get_coordinate_type(), titanlib.Geodetic)
+
 
 if __name__ == '__main__':
     unittest.main()

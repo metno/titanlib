@@ -418,7 +418,7 @@ namespace titanlib {
             KDTree(vec lats, vec lons, CoordinateType type=Geodetic);
             KDTree& operator=(KDTree other);
             KDTree(const KDTree& other);
-            KDTree() {};
+            KDTree(CoordinateType type=Geodetic) {mType=type;};
 
             /** Find single nearest points
              *  @param lat Latitude of lookup-point
