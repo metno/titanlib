@@ -147,12 +147,20 @@ float titanlib::compute_quantile(double quantile, const vec& array) {
     if(n == 0) {
         throw std::runtime_error("Cannot compute quantile on empty array");
     }
-    vec array_copy(n);
+    vec array_copy;
+    array_copy.reserve(n);
     // make a copy of the vector
-    for(int i = 0; i < n; i++)
-        array_copy[i] = array[i];
+    for(int i = 0; i < n; i++) {
+        if(titanlib::is_valid(array[i]))
+            array_copy.push_back(array[i]);
+    }
     float exact_q;
     std::sort(array_copy.begin(), array_copy.end());
+    n = array_copy.size();
+    if(n == 0) {
+        throw std::runtime_error("Cannot compute quantile on empty array");
+    }
+
     // get the quantile from sorted array
     int lowerIndex = floor(quantile * (n-1));
     int upperIndex = ceil(quantile * (n-1));
@@ -172,6 +180,7 @@ float titanlib::compute_quantile(double quantile, const vec& array) {
         exact_q = lowerValue + (upperValue - lowerValue) * f;
     }
 
+    assert(titanlib::is_valid(exact_q));
     return exact_q;
 }
 

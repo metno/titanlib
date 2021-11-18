@@ -359,6 +359,15 @@ namespace titanlib {
     double clock();
     bool is_valid(float value);
 
+    /** Compute a vertical profile based on input data
+     *  @param elevs vector of input elevations [m]
+     *  @param oelevs vector of output elevatios [m]
+     *  @param values observation vector [degrees C]
+     *  @param num_min_prof minimum number of observations needed to do a full profile
+     *  @param min_elev_diff use no elevation profile if elevation difference among stations is less than this [m]
+     */
+    vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
+
     /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
      *  @param lats vector of latitudes [deg]
      *  @param lons vector of longitudes [deg]
