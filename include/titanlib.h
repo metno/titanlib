@@ -365,8 +365,11 @@ namespace titanlib {
      *  @param values observation vector [degrees C]
      *  @param num_min_prof minimum number of observations needed to do a full profile
      *  @param min_elev_diff use no elevation profile if elevation difference among stations is less than this [m]
+     *  @param debug If true, print debug messages
      */
-    vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff);
+    vec compute_vertical_profile(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug=false);
+
+    vec compute_vertical_profile_Theil_Sen(const vec& elevs, const vec& oelevs, const vec& values, int num_min_prof, double min_elev_diff, bool debug);
 
     /** Convert lat/lons to 3D cartesian coordinates with the centre of the earth as the origin
      *  @param lats vector of latitudes [deg]
