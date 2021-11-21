@@ -635,7 +635,7 @@ namespace titanlib {
              * @param indices Vector of indices
              * @return Vector of values
             */
-            template <class T> T subset(const T& array, const ivec& indices) {
+            template <class T> T subset_valid(const T& array, const ivec& indices) {
                 if(array.size() != 1 && array.size() != flags.size()) {
                     std::stringstream ss;
                     ss << "Array (" << array.size() << ") must be either size 1 or the same as dataset size (" << flags.size() << ")";
@@ -660,14 +660,16 @@ namespace titanlib {
                         if(array.size() == 1)
                             // Array is broadcast
                             new_array.push_back(array[0]);
-                        else
+                        else {
+                            assert(index < array.size());
                             new_array.push_back(array[index]);
+                        }
                     }
                 }
                 return new_array;
             }
-            /*  Same as T subset, except for Points */
-            Points subset(const Points& input, const ivec& indices);
+            /*  Same as T subset_valid, except for Points */
+            Points subset_valid(const Points& input, const ivec& indices);
 
             ivec get_unflagged_indices();
 
@@ -693,8 +695,8 @@ namespace titanlib {
             }
             Points get_unflagged_points();
 
-            /* Same as T subset, except the subsetted indices are returned */
-            ivec subset(const ivec& indices);
+            /* Same as T subset_valid, except the subsetted indices are returned */
+            ivec subset_valid(const ivec& indices);
 
             /* Integrate the flags into the objects flags. If existing flags are 1 but new_flags are
              * 0, the existing flags are not updated.

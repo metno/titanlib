@@ -5,6 +5,11 @@
 using namespace titanlib;
 
 titanlib::Dataset::Dataset(Points points, vec ivalues) {
+    if(points.size() != ivalues.size()) {
+        std::stringstream ss;
+        ss << "Points (" << points.size() << ") have a different size than values (" << ivalues.size() <<")";
+        throw std::invalid_argument(ss.str());
+    }
     this->points = points;
     lats = points.get_lats();
     lons = points.get_lons();
@@ -17,20 +22,24 @@ titanlib::Dataset::Dataset(Points points, vec ivalues) {
 // function:
 // Scenario 1: The test for a specific station does not depend on other stations. In this case, we
 //             only want to run the test on stations in indices and that are not already flagged.
-//             Run subset on all arrays and then use merge_simple to merge flags
+//             Run subset_valid on all arrays and then use merge_simple to merge flags
 // Scenario 2: The test for a specific station does depend on other stations. In this case, we
 //             want to run the test on all non-flagged stations (even those not in indices) and then
 //             only merge in those specified by indices. Run get_flagged* functions on all arrays, 
 //             and use the merge function to merge flags.
 
 void titanlib::Dataset::range_check(const vec& min, const vec& max, const ivec& indices) {
-    ivec new_flags = titanlib::range_check(subset(values, indices), subset(min, indices), subset(max, indices));
-    merge_simple(new_flags, subset(indices));
+    vec v1 = subset_valid(values, indices);
+    vec v2 = subset_valid(min, indices);
+    vec v3 = subset_valid(max, indices);
+    ivec new_flags = titanlib::range_check(v1, v2, v3);
+    // ivec new_flags = titanlib::range_check(subset_valid(values, indices), subset_valid(min, indices), subset_valid(max, indices));
+    merge_simple(new_flags, subset_valid(indices));
 }
 
 void titanlib::Dataset::range_check_climatology(int unixtime, const vec& pos, const vec& neg, const ivec& indices) {
-    ivec new_flags = titanlib::range_check_climatology(subset(points, indices), subset(values, indices), unixtime, pos, neg);
-    merge_simple(new_flags, subset(indices));
+    ivec new_flags = titanlib::range_check_climatology(subset_valid(points, indices), subset_valid(values, indices), unixtime, pos, neg);
+    merge_simple(new_flags, subset_valid(indices));
 }
 void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations,
             int num_min_prof,
@@ -90,7 +99,7 @@ void titanlib::Dataset::external_check(const ivec& flags) {
 }
 void titanlib::Dataset::metadata_check(bool check_lat, bool check_lon, bool check_elev, bool check_laf, const ivec& indices) {
     ivec new_flags = titanlib::metadata_check(get_unflagged_points(), check_lat, check_lon, check_elev, check_laf);
-    merge_simple(new_flags, subset(indices));
+    merge_simple(new_flags, subset_valid(indices));
 }
 
 void titanlib::Dataset::merge(const ivec& new_flags, ivec indices) {
@@ -139,7 +148,7 @@ void titanlib::Dataset::merge_simple(const ivec& new_flags, ivec indices) {
     }
 }
 
-ivec titanlib::Dataset::subset(const ivec& indices) {
+ivec titanlib::Dataset::subset_valid(const ivec& indices) {
     if(indices.size() == 0)
         return ivec();
     ivec indices0 = indices;
@@ -181,18 +190,21 @@ Points titanlib::Dataset::get_unflagged_points() {
     vec lons(indices.size());
     vec elevs(indices.size());
     vec lafs(indices.size());
-    indices.reserve(indices.size());
     for(int i = 0; i < indices.size(); i++) {
         int index = indices[i];
+        assert(index < ilats.size());
+        assert(index < ilons.size());
+        assert(index < ielevs.size());
+        assert(index < ilafs.size());
         lats[i] = ilats[index];
         lons[i] = ilons[index];
-        elevs[i] = elevs[index];
+        elevs[i] = ielevs[index];
         lafs[i] = ilafs[index];
     }
     return Points(lats, lons, elevs, lafs);
 }
 
-Points titanlib::Dataset::subset(const Points& input, const ivec& indices) {
+Points titanlib::Dataset::subset_valid(const Points& input, const ivec& indices) {
     if(indices.size() == 0)
         return Points(vec(), vec(), vec(), vec());
     ivec indices0 = indices;

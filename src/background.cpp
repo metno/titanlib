@@ -234,6 +234,9 @@ namespace {
         double *dpelevs = p[1];
         double *dpvalues = p[2];
 
+        if(n == 0)
+            throw std::runtime_error("Cannot optimize basic vertical profile without any data");
+
         // the parameters to mess with
         double meanT = gsl_vector_get(v,0);
         double gamma = gsl_vector_get(v,1);
@@ -254,7 +257,7 @@ namespace {
     }
 
     vec basic_vertical_profile(const int n, const double *elevs, const double t0, const double gamma) {
-        vec t_out(n, -999);
+        vec t_out(n, titanlib::MV);
         for(int i=0; i<n; i++)
             t_out[i] = t0 + gamma*elevs[i];
         return t_out;
