@@ -69,5 +69,13 @@ class BuddyCheckTest(unittest.TestCase):
                 1, elev_gradient, min_std, num_iterations)
         np.testing.assert_array_equal(flags, [0]*8 + [1, 0])
 
+    def test_missing(self):
+        values0 = np.copy(values)
+        values0[0] = np.nan
+        # Check that NaNs are still flagged, eventhough they are not checked
+        flags = titanlib.buddy_check(points, values0, radius, num_min, 0.0001,
+                1, elev_gradient, min_std, num_iterations)
+        np.testing.assert_array_equal(flags, [1]*10)
+
 if __name__ == '__main__':
     unittest.main()

@@ -57,6 +57,11 @@ ivec titanlib::buddy_event_check(const Points& points,
 
     // resize the flags and set them to 0
     ivec flags(s, 0);
+    for(int i = 0; i < num_min.size(); i++) {
+        if(!titanlib::is_valid(values[i]))
+            flags[i] = 1;
+    }
+
     // if obs_to_check is empty then check all
     bool check_all = obs_to_check.size() != s;
 
