@@ -615,7 +615,7 @@ namespace titanlib {
             void sct(int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const vec& t2pos, const vec& t2neg, const vec& eps2, vec& prob_gross_error, vec& rep, const ivec& indices=ivec(1, -1));
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations, const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
-            void isolation_check(int num_min, float radius, float vertical_radius, const ivec& indices=ivec(1, -1));
+            void isolation_check(int num_min, float radius, float vertical_radius=MV, const ivec& indices=ivec(1, -1));
             void isolation_check(const ivec& num_min, const vec& radius, const vec& vertical_radius=vec(), const ivec& indices=ivec(1, -1));
             void duplicate_check(float radius, float vertical_range=titanlib::MV, const ivec& indices=ivec(1, -1));
             void dem_check(const vec& dem, float max_elev_diff);
@@ -635,7 +635,7 @@ namespace titanlib {
              * @param indices Vector of indices
              * @return Vector of values
             */
-            template <class T> T subset_valid(const T& array, const ivec& indices) {
+            template <class T> T subset_valid(const T& array, const ivec& indices=ivec(1, -1)) {
                 if(array.size() != 1 && array.size() != flags.size()) {
                     std::stringstream ss;
                     ss << "Array (" << array.size() << ") must be either size 1 or the same as dataset size (" << flags.size() << ")";
@@ -669,7 +669,7 @@ namespace titanlib {
                 return new_array;
             }
             /*  Same as T subset_valid, except for Points */
-            Points subset_valid(const Points& input, const ivec& indices);
+            Points subset_valid(const Points& input, const ivec& indices=ivec(1, -1));
 
             ivec get_unflagged_indices();
 
@@ -679,6 +679,10 @@ namespace titanlib {
             template <class T> T get_unflagged(const T& array) {
                 if(array.size() == 0)
                     return array;
+
+                if(array.size() > 1 && array.size() < flags.size()) {
+                    throw std::invalid_argument("Array is shorter than flags");
+                }
 
                 ivec indices = get_unflagged_indices();
                 T output(indices.size());

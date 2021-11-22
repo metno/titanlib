@@ -32,7 +32,12 @@ class DatasetTest(unittest.TestCase):
 
     def test_merge(self):
         dataset = self.get_dataset()
-        dataset.isolation_check(3, 1000000000, 0)
+        dataset.isolation_check(3, 1000000000)
+        self.assertListEqual([i for i in dataset.flags], [0, 0, 0, 0, 0])
+
+        dataset = self.get_dataset()
+        N = dataset.points.size()
+        dataset.isolation_check(3 * np.ones(N), 1000000000 * np.ones(N))
         self.assertListEqual([i for i in dataset.flags], [0, 0, 0, 0, 0])
 
     def test_empty_indices(self):
@@ -45,6 +50,25 @@ class DatasetTest(unittest.TestCase):
         N = len(dataset.values)
         dataset.range_check([-100] * N, [-100] * N, [])
 
+    def test_buddy_check(self):
+        N = 10
+        lats = [60]*N
+        lons = np.linspace(60, 60.001, N)
+        elevs = [0]*10
+        points = titanlib.Points(lats, lons, elevs)
+        values = [0, 0, 0, 0, 0, 0, 0, 0, 0.1, 1]
+        N = len(lats)
+        radius = [10000]
+        num_min = [1]
+        threshold = 1
+        elev_gradient = -0.0065
+        max_elev_diff = 200
+        min_std = 0.01
+        num_iterations = 2
+        dataset = titanlib.Dataset(points, values)
+        dataset.buddy_check(radius, num_min, threshold,
+                max_elev_diff, elev_gradient, min_std, num_iterations)
+        np.testing.assert_array_equal(dataset.flags, [0]*8 + [1]*2)
 
 
 if __name__ == '__main__':
