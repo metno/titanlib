@@ -57,7 +57,15 @@ ivec titanlib::isolation_check(const Points& points,
 
     #pragma omp parallel for
     for(int i = 0; i < s; i++) {
+        if(!titanlib::is_valid(lats[i]) || !titanlib::is_valid(lons[i])) {
+            flags[i] = 1;
+            continue;
+        }
         if(vertical_radius.size() > 0 && titanlib::is_valid(vertical_radius[i])) {
+            if(!titanlib::is_valid(elevs[i])) {
+                flags[i] = 1;
+                continue;
+            }
             ivec indices = points.get_neighbours(lats[i], lons[i], radius[i], false);
             int num = 0;
             for(int j = 0; j < indices.size(); j++) {
