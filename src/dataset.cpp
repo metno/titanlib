@@ -137,7 +137,6 @@ void titanlib::Dataset::merge_simple(const ivec& new_flags, ivec indices) {
         return;
     }
 
-    std::cout << new_flags.size() << " " << indices.size() << std::endl;
     assert(new_flags.size() == indices.size());
 
     for(int i = 0; i < indices.size(); i++) {
