@@ -38,42 +38,63 @@ class BulkTest(unittest.TestCase):
         """Check that the test doesn't fail"""
         alldata = self.load(filename)
         for i, data in enumerate(alldata):
+            base_args = []
+            base_test = None
+            if "base_args" in data:
+                base_args = data["base_args"]
+            if "base_test" in data:
+                base_test = data["base_test"]
+
             for j, test in enumerate(data["tests"]):
                 description = data["description"] if "description" in data else ""
-                with self.subTest(filename=filename, dataset=i, test=test['type'], test_index=j, description=description):
+                test_type = test['type'] if base_test is None else base_test
+                with self.subTest(filename=filename, dataset=i, test=test_type, test_index=j, description=description):
                     dataset = self.get_dataset(data["dataset"])
                     # Get args
                     needs_points = True
                     needs_values = True
-                    test_type = test['type']
                     func = getattr(titanlib, test_type)
                     func_dataset = getattr(dataset, test_type)
                     optional_args = []
-                    if test['type'] == 'range_check':
+                    if test_type == 'range_check':
                         required_args = ['min', 'max']
                         needs_points = False
-                    elif test['type'] == "isolation_check":
+                    elif test_type == 'range_check_climatology':
+                        required_args = ['unixtime', 'pos', 'neg']
+                    elif test_type == "isolation_check":
                         required_args = ['num_min', 'radius']
                         optional_args = ['vertical_radius']
                         needs_values = False
-                    elif test['type'] == 'metadata_check':
+                    elif test_type == 'metadata_check':
                         optional_args = ['check_lat', 'check_lon', 'check_elev', 'check_laf']
                         needs_values = False
-                    elif test['type'] == 'duplicate_check':
+                    elif test_type == 'duplicate_check':
                         required_args = ['radius']
                         optional_args = ['vertical_range']
                         needs_values = False
+                    elif test_type == 'buddy_check':
+                        required_args = ['radius', 'num_min', 'threshold', 'max_elev_diff', 'elev_gradient', 'min_std', 'num_iterations']
+                        optional_args = ['obs_to_check']
+                    elif test_type == 'buddy_event_check':
+                        required_args = ['radius', 'num_min', 'event_threshold', 'threshold', 'max_elev_diff', 'elev_gradient', 'num_iterations']
+                        optional_args = ['obs_to_check']
                     else:
                         raise NotImplementedError
                     dataset_args = list()
+
                     for arg in required_args:
-                        if arg not in test['args']:
+                        if 'args' in test and arg in test['args']:
+                            dataset_args += [test['args'][arg]]
+                        elif arg in base_args:
+                            dataset_args += [base_args[arg]]
+                        else:
                             raise Exception("Test '%s' requires argument '%s'" % (test_type, arg))
-                        dataset_args += [test['args'][arg]]
 
                     for arg in optional_args:
-                        if arg in test['args']:
+                        if 'args' in test and arg in test['args']:
                             dataset_args += [test['args'][arg]]
+                        elif arg in base_args:
+                            dataset_args += [base_args[arg]]
 
                     # Check expected using the dataset interface
                     func_dataset(*dataset_args)
