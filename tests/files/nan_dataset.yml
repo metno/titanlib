@@ -1,0 +1,17 @@
+- description: All NaN dataset
+  dataset:
+     lats: [.NAN]
+     lons: [.NAN]
+     elevs: [.NAN]
+     values: [.NAN]
+  tests:
+      - type: range_check
+        args:
+            min: [0]
+            max: [0.5]
+        expected: [1]
+      - type: isolation_check
+        args:
+            num_min: 1
+            radius: 160000
+        expected: [1]

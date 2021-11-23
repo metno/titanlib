@@ -1,0 +1,42 @@
+- description: Normal dataset
+  dataset:
+     lats: [0, 1, 2, .NAN, .NAN, 5, 6, 7, 8]
+     lons: [0, 1, 2, 3, 4, .NAN, .NAN, 7, 8]
+     elevs: [0, 1, 2, 3, 4, 5, 6, .NAN, .NAN]
+     values: [0, 1, .NAN, 0, .NAN, 1, .NAN, 1, .NAN]
+  tests:
+      - type: isolation_check
+        args:
+            num_min: 1
+            radius: 160000
+        expected: [0, 0, 0, 1, 1, 1, 1, 0, 0]
+      - type: isolation_check
+        args:
+            num_min: 1
+            radius: 160000
+            vertical_radius: 100
+        expected: [0, 0, 0, 1, 1, 1, 1, 1, 1]
+- description: All empty dataset
+  dataset:
+     lats: []
+     lons: []
+     elevs: []
+     values: []
+  tests:
+      - type: isolation_check
+        args:
+            num_min: 1
+            radius: 160000
+        expected: []
+- description: All NaN positions
+  dataset:
+     lats: [.NAN, .NAN, .NAN]
+     lons: [.NAN, .NAN, .NAN]
+     elevs: [.NAN, .NAN, .NAN]
+     values: [0, 1, 2]
+  tests:
+      - type: isolation_check
+        args:
+            num_min: 1
+            radius: 160000
+        expected: [1, 1, 1]

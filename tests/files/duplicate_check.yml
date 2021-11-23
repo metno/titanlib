@@ -1,0 +1,44 @@
+- description: Normal dataset
+  dataset:
+     lats: [0, 0, 0, 0, 1, 1.001, 1]
+     lons: [0, 0, 0, 1, 1, 1.001, 0]
+     elevs: [0, 0, 1, 0, 0, 0, 0]
+     values: [0, 1, 2, 3, 4, 5, 6]
+  tests:
+      - type: duplicate_check
+        args:
+            radius: 10000
+        expected: [0, 1, 1, 0, 0, 1, 0]
+      - type: duplicate_check
+        args:
+            radius: 1
+        expected: [0, 1, 1, 0, 0, 0, 0]
+      - type: duplicate_check
+        args:
+            radius: 10000
+            vertical_range: 0
+        expected: [0, 1, 0, 0, 0, 1, 0]
+- description: Check that missing elevations are removed
+  dataset:
+     lats: [0, 0, 0, 1, 1, 1]
+     lons: [0, 0, 0, 1, 1, 1]
+     elevs: [.NAN, 0, 100, 0, .NAN, 100]
+     values: [0, 1, 2, 3, 4, 5]
+  tests:
+      - type: duplicate_check
+        args:
+            radius: 10000
+            vertical_range: 50
+        expected: [1, 0, 0, 0, 1, 0]
+- description: Check that missing lats/lons are unaffected
+  dataset:
+     lats: [0, .NAN, 0, 1, 1, 1]
+     lons: [0, 0, 0, 1, 1, .NAN]
+     elevs: [0, 0, 0, 0, 0, 0]
+     values: [0, 1, 2, 3, 4, 5]
+  tests:
+      - type: duplicate_check
+        args:
+            radius: 10000
+            vertical_range: 50
+        expected: [0, 0, 1, 0, 1, 0]
