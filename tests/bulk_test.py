@@ -27,11 +27,21 @@ class BulkTest(unittest.TestCase):
         args = [dataset["lats"], dataset["lons"]]
         if "elevs" in dataset:
             args += [dataset["elevs"]]
+        if "lafs" in dataset:
+            if "elevs" not in dataset:
+                args += [np.nan * np.zeros(len(dataset["lafs"]))]
+            args += [dataset["lafs"]]
+        assert(len(args) <= 4)
+
         return titanlib.Points(*args)
 
     def get_dataset(self, dataset):
         points = self.get_points(dataset)
-        dataset = titanlib.Dataset(points, dataset["values"])
+        if "values" in dataset:
+            values = dataset["values"]
+        else:
+            values = np.nan * np.zeros(points.size())
+        dataset = titanlib.Dataset(points, values)
         return dataset
 
     def run_checks(self, filename):
@@ -56,6 +66,7 @@ class BulkTest(unittest.TestCase):
                     func = getattr(titanlib, test_type)
                     func_dataset = getattr(dataset, test_type)
                     optional_args = []
+                    required_args = []
                     if test_type == 'range_check':
                         required_args = ['min', 'max']
                         needs_points = False

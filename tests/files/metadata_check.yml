@@ -1,0 +1,25 @@
+- dataset:
+      lats: [60, .NAN, 62, 63, 64]
+      lons: [10, 11, .NAN, 13, 14]
+      elevs: [0, 0, 0, .NAN, 0]
+      lafs: [0, 0, 0, 0, .NAN]
+  base_test: metadata_check
+  base_args:
+      check_lat: True
+      check_lon: True
+      check_elev: True
+      check_laf: True
+  tests:
+      - expected: [0, 1, 1, 1, 1]
+      - args:
+            check_lat: False
+        expected: [0, 0, 1, 1, 1]
+      - args:
+            check_lon: False
+        expected: [0, 1, 0, 1, 1]
+      - args:
+            check_elev: False
+        expected: [0, 1, 1, 0, 1]
+      - args:
+            check_laf: False
+        expected: [0, 1, 1, 1, 0]
