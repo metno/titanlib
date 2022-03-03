@@ -622,9 +622,10 @@ namespace titanlib {
             void external_check(const ivec& flags);
             void metadata_check(bool check_lat=true, bool check_lon=true, bool check_elev=true, bool check_laf=true, const ivec& indices=ivec(1, -1));
 
-            vec lats;
-            vec lons;
-            vec elevs;
+            Points get_points() const;
+            vec get_values() const;
+            ivec get_flags() const;
+
             Points points;
             vec values;
             ivec flags;
@@ -702,13 +703,19 @@ namespace titanlib {
             /* Same as T subset_valid, except the subsetted indices are returned */
             ivec subset_valid(const ivec& indices);
 
-            /* Integrate the flags into the objects flags. If existing flags are 1 but new_flags are
+            /* Merge the flags into the objects flags. If existing flags are 1 but new_flags are
+             * 0, the existing flags are not updated.
+             * @param new_flags Vector of new flags
+             * @param indices The location indices that flags are valid for
+            */
+            void merge_simple(const ivec& new_flags, ivec indices);
+
+            /* Merge new flags into the object's flags. If existing flags are 1 but new_flags are
              * 0, the existing flags are not updated.
              * @param new_flags Vector of new flags
              * @param indices The location indices that flags are valid for
             */
             void merge(const ivec& new_flags, ivec indices);
-            void merge_simple(const ivec& new_flags, ivec indices);
     };
     class not_implemented_exception: public std::logic_error
     {

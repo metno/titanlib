@@ -11,11 +11,8 @@ titanlib::Dataset::Dataset(Points points, vec ivalues) {
         throw std::invalid_argument(ss.str());
     }
     this->points = points;
-    lats = points.get_lats();
-    lons = points.get_lons();
-    elevs = points.get_elevs();
     values = ivalues;
-    flags.resize(lats.size(), 0);
+    flags.resize(points.size(), 0);
 }
 
 // NOTE: There are two ways to deal with 'indicies', which depends on the kind of quality control
@@ -33,7 +30,6 @@ void titanlib::Dataset::range_check(const vec& min, const vec& max, const ivec& 
     vec v2 = subset_valid(min, indices);
     vec v3 = subset_valid(max, indices);
     ivec new_flags = titanlib::range_check(v1, v2, v3);
-    // ivec new_flags = titanlib::range_check(subset_valid(values, indices), subset_valid(min, indices), subset_valid(max, indices));
     merge_simple(new_flags, subset_valid(indices));
 }
 
@@ -52,9 +48,6 @@ void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float 
             vec& prob_gross_error, vec& rep, const ivec& indices) {
     // Only keep flags that are not flagged
     ivec new_flags = titanlib::sct(get_unflagged_points(), get_unflagged(values), num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale , vertical_scale, get_unflagged(t2pos), get_unflagged(t2neg), get_unflagged(eps2), prob_gross_error, rep);
-    // ivec new_indices = get_unflagged_indices();
-    // ivec new_flags2 = titanlib::subset(new_flags, new_indices);
-    // merge_simple(new_flags2, new_indices);
     merge(new_flags, indices);
 }
 
@@ -238,4 +231,15 @@ Points titanlib::Dataset::subset_valid(const Points& input, const ivec& indices)
         }
     }
     return Points(lats, lons, elevs, lafs);
+}
+
+vec titanlib::Dataset::get_values() const {
+    return values;
+}
+
+ivec titanlib::Dataset::get_flags() const {
+    return flags;
+}
+Points titanlib::Dataset::get_points() const {
+    return points;
 }
