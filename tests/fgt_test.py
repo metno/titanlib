@@ -82,10 +82,14 @@ class SctResistantTest(unittest.TestCase):
         values_minv = values - 1 * np.ones(N)
         values_maxv = values + 1 * np.ones(N)
         debug = False
+        basic = False
         flags = np.ones(N) * (-999.)
         background_uncertainties = np.ones(N)
         points = titanlib.Points(lats, lons, elevs)
-        flags, score = titanlib.fgt(points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
+        flags, score = titanlib.fgt(points, values, obs_to_check, background_values,
+                background_uncertainties, background_elab_type, num_min_outer, num_max_outer,
+                inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
+                values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug, basic)
 
         print("%.1fs" % (time.time() - s_time))
 
