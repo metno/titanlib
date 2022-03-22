@@ -20,7 +20,7 @@ using namespace titanlib;
 
 // FGT within the inner circle
 
-bool fgt_core( const vec& lats, const vec& lons, const vec& yo, const vec& yb, const vec& sigma_b, float minp, float maxp, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
+bool fgt_core( const vec& lats, const vec& lons, const vec& yo, const vec& yb, const vec& sigma_b, float minp, float maxp, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, bool basic, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
 
 
 //=============================================================================
@@ -46,6 +46,7 @@ ivec titanlib::fgt(const Points& points,
                     const vec& tpos,
                     const vec& tneg,
                     bool debug,
+                    bool basic,
                     vec& scores) {
 /*
 
@@ -342,7 +343,7 @@ ivec titanlib::fgt(const Points& points,
  
             // -~- FGT on a selection of observations to test in the inner circle
             bool set_flag0 = iteration > 0;
-            res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, set_flag0, thrown_out, scores, flags);
+            res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, set_flag0, thrown_out, scores, flags);
             // thrown_out is reset every new iteration
 
             // problems during the matrix inversion
@@ -486,7 +487,7 @@ ivec titanlib::fgt(const Points& points,
 
         // -~- FGT on a selection of observations to test in the inner circle
 
-        res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
+        res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -654,7 +655,7 @@ ivec titanlib::fgt(const Points& points,
 
         // -~- FGT within the inner circle
         // note that the only observation to test is curr
-        res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
+        res = fgt_core( lats_outer, lons_outer, values_outer, bvalues_outer, sigmab_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -738,6 +739,7 @@ bool fgt_core( const vec& lats,
                const ivec& indices_outer_test, 
                const ivec& indices_inner_test, 
                bool debug, 
+               bool basic, 
                float na, 
                bool set_flag0, 
                int& thrown_out,
@@ -754,10 +756,13 @@ bool fgt_core( const vec& lats,
  FGT scores:
  chi = abs( observation - background) / uncertainty of the background 
  The background uncertainty is optional, when not provided it is set to 1.
- z = (chi - mu) / (sigma + sigma_mu)
-   mu = median( chi(*))
-   sigma = inter-quartile range of chi(*)
-   sigma_mu = sigma / sqrt(n(*))
+ basic mode:
+   z = chi
+ advanced (non basic) mode:
+   z = (chi - mu) / (sigma + sigma_mu)
+     mu = median( chi(*))
+     sigma = inter-quartile range of chi(*)
+     sigma_mu = sigma / sqrt(n(*))
  (*) statistics based on the n observations that are within the inner circle
  and with a background within the range of admissible values.
 
@@ -845,22 +850,25 @@ bool fgt_core( const vec& lats,
     }
 
     // chi summary statistics
-    float mu = titanlib::compute_quantile( 0.5, chi_stat);
-    float sigma = titanlib::compute_quantile( 0.75, chi_stat) - titanlib::compute_quantile( 0.25, chi_stat);
-    float sigma_alt = titanlib::compute_quantile( 0.75, chi_stat_alt) - titanlib::compute_quantile( 0.25, chi_stat_alt);
-    if (sigma_alt > sigma) sigma = sigma_alt;
+    float mu=0., sigma=0., sigma_mu=0.;
+    if (!basic) {
+        mu = titanlib::compute_quantile( 0.5, chi_stat);
+        sigma = titanlib::compute_quantile( 0.75, chi_stat) - titanlib::compute_quantile( 0.25, chi_stat);
+        float sigma_alt = titanlib::compute_quantile( 0.75, chi_stat_alt) - titanlib::compute_quantile( 0.25, chi_stat_alt);
+        if (sigma_alt > sigma) sigma = sigma_alt;
  
-    if(sigma == 0) {
-        if(debug) std::cout << "sigma = 0, not possible to perform the spatial check " << std::endl;
-        return true;       
-    }
-    float sigma_mu = sigma / std::sqrt( chi_stat.size());
+        if(sigma == 0) {
+            if(debug) std::cout << "sigma = 0, not possible to perform the spatial check " << std::endl;
+            return true;       
+        }
+        sigma_mu = sigma / std::sqrt( chi_stat.size());
 
-    if(debug) {
-        std::cout << " chi_stat, dim = " << chi_stat.size() << std::endl;
-        for(int l=0; l<chi_stat.size(); l++) 
-            std::cout << std::setprecision(6) << chi_stat[l] << std::endl;
-        std::cout << std::setprecision(6) << " mu sigma sigma_mu " << mu << " " << sigma << " " << sigma_mu << std::endl;
+        if(debug) {
+            std::cout << " chi_stat, dim = " << chi_stat.size() << std::endl;
+            for(int l=0; l<chi_stat.size(); l++) 
+                std::cout << std::setprecision(6) << chi_stat[l] << std::endl;
+            std::cout << std::setprecision(6) << " mu sigma sigma_mu " << mu << " " << sigma << " " << sigma_mu << std::endl;
+        }
     }
    
     // z = ( chi - mu ) / ( sigma + sigma_mu )
@@ -870,7 +878,12 @@ bool fgt_core( const vec& lats,
     for(int m=0; m<p_test; m++) {
         int i = indices_outer_test[m];
         int l = indices_inner_test[m];
-        float z = (chi_inner(l) - mu) / (sigma + sigma_mu);
+        float z;
+        if (basic) {
+            z = chi_inner(l);
+        } else {
+            z = (chi_inner(l) - mu) / (sigma + sigma_mu);
+        }
         if (z > zmx && (yb[i] < minv[i] || yb[i] > maxv[i])) {
           zmx = z;
           mmx = m;

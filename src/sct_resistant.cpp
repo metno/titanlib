@@ -18,7 +18,7 @@ using namespace titanlib;
 
 // SCT within the inner circle
 
-bool sct_core( const vec& lats, const vec& lons, const vec& elevs, const vec& yo, const vec& yb, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, float minp, float maxp, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
+bool sct_core( const vec& lats, const vec& lons, const vec& elevs, const vec& yo, const vec& yb, float Dh_min, float Dh_max, int kth_close, float Dz, const vec& eps2, float minp, float maxp, const vec& mina, const vec& maxa, const vec& minv, const vec& maxv, const vec& tpos, const vec& tneg, const ivec& indices_global_test, const ivec& indices_outer_inner, const ivec& indices_outer_test, const ivec& indices_inner_test, bool debug, bool basic, float na, bool set_flag0, int& thrown_out, vec& scores, ivec& flags);
 
 //=============================================================================
 
@@ -47,6 +47,7 @@ ivec titanlib::sct_resistant( const Points& points,
                               const vec& tpos,
                               const vec& tneg,
                               bool debug,
+                              bool basic,
                               vec& scores) {
 /*
 
@@ -354,7 +355,7 @@ ivec titanlib::sct_resistant( const Points& points,
  
             // -~- SCT on a selection of observations to test in the inner circle
             bool set_flag0 = iteration > 0;
-            res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, set_flag0, thrown_out, scores, flags);
+            res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, set_flag0, thrown_out, scores, flags);
             // thrown_out is reset every new iteration
 
             // problems during the matrix inversion
@@ -368,13 +369,12 @@ ivec titanlib::sct_resistant( const Points& points,
 
         }  // end loop over observations
 
-        std::cout << "SCT loop - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
         double e_time0 = titanlib::clock();
-        std::cout << e_time0 - s_time0 << " secs" << std::endl;
+        if (debug) std::cout << "SCT loop - Removing " << thrown_out << " observations. Number of OI " << count_oi << " time=" << e_time0 - s_time0 << " secs" << std::endl;
         if(thrown_out == 0) {
             if ( iteration == 0) set_all_good = true;
             if(iteration + 1 < num_iterations)
-                std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
+                if (debug) std::cout << "Stopping early after " << iteration + 1<< " iterations" << std::endl;
             break;
         }
     
@@ -505,7 +505,7 @@ ivec titanlib::sct_resistant( const Points& points,
 
         // -~- SCT on a selection of observations to test in the inner circle
 
-        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
+        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -518,9 +518,8 @@ ivec titanlib::sct_resistant( const Points& points,
 
     }  // end loop over observations
 
-    std::cout << "QC missing - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
     double e_time0 = titanlib::clock();
-    std::cout << e_time0 - s_time0 << " secs" << std::endl;
+    if (debug) std::cout << "QC missing - Removing " << thrown_out << " observations. Number of OI " << count_oi << " time=" << e_time0 - s_time0 << " secs" << std::endl;
 
     /* final check on the bad observations
        it may happen that a good observation is flagged as a bad one because of the order
@@ -679,7 +678,7 @@ ivec titanlib::sct_resistant( const Points& points,
 
         // -~- SCT within the inner circle
         // note that the only observation to test is curr
-        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, na, true, thrown_out, scores, flags);
+        res = sct_core( lats_outer, lons_outer, elevs_outer, values_outer, bvalues_outer, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, eps2_outer, value_minp, value_maxp, mina_outer, maxa_outer, minv_outer, maxv_outer, tpos_outer, tneg_outer, indices_global_test, indices_outer_inner, indices_outer_test, indices_inner_test, debug, basic, na, true, thrown_out, scores, flags);
 
         // problems during the matrix inversion
         if ( !res) {
@@ -692,9 +691,8 @@ ivec titanlib::sct_resistant( const Points& points,
 
     }  // end loop over observations
 
-    std::cout << "Re-check bad obs - Removing " << thrown_out << " observations. Number of OI " << count_oi << std::endl;
     e_time0 = titanlib::clock();
-    std::cout << e_time0 - s_time0 << " secs" << std::endl;
+    if (debug) std::cout << "Re-check bad obs - Removing " << thrown_out << " observations. Number of OI " << count_oi << "time = " << e_time0 - s_time0 << " secs" << std::endl;
 
     //
     if(debug) {
@@ -731,7 +729,7 @@ ivec titanlib::sct_resistant( const Points& points,
     }
     //
     
-    std::cout << ">> Total Time " << e_time0 - s_time << "secs" << std::endl;
+    if(debug) std::cout << ">> Total Time " << e_time0 - s_time << "secs" << std::endl;
 
     //
     return flags;
@@ -766,6 +764,7 @@ bool sct_core( const vec& lats,
                const ivec& indices_outer_test, 
                const ivec& indices_inner_test, 
                bool debug, 
+               bool basic, 
                float na, 
                bool set_flag0, 
                int& thrown_out,
@@ -791,10 +790,13 @@ bool sct_core( const vec& lats,
  chi = sqrt( analysis_residual * cvanalysis_residual) 
    analysis residual   = yo - ya
    cvanalysis residual = yo - yav
- z = (chi - mu) / (sigma + sigma_mu)
-   mu = median( chi(*))
-   sigma = inter-quartile range of chi(*)
-   sigma_mu = sigma / sqrt(n(*))
+ basic mode:
+   z = chi
+ advanced (non basic) mode:
+   z = (chi - mu) / (sigma + sigma_mu)
+     mu = median( chi(*))
+     sigma = inter-quartile range of chi(*)
+     sigma_mu = sigma / sqrt(n(*))
  (*) statistics based on the n observations that are within the inner circle
  and with a cvanalysis within the range of admissible values.
 
@@ -964,22 +966,25 @@ bool sct_core( const vec& lats,
     }
 
     // chi summary statistics
-    float mu = titanlib::compute_quantile( 0.5, chi_stat);
-    float sigma = titanlib::compute_quantile( 0.75, chi_stat) - titanlib::compute_quantile( 0.25, chi_stat);
-    float sigma_alt = titanlib::compute_quantile( 0.75, chi_stat_alt) - titanlib::compute_quantile( 0.25, chi_stat_alt);
-    if (sigma_alt > sigma) sigma = sigma_alt;
+    float mu=0., sigma=0., sigma_mu=0.;
+    if (!basic) {
+        mu = titanlib::compute_quantile( 0.5, chi_stat);
+        sigma = titanlib::compute_quantile( 0.75, chi_stat) - titanlib::compute_quantile( 0.25, chi_stat);
+        float sigma_alt = titanlib::compute_quantile( 0.75, chi_stat_alt) - titanlib::compute_quantile( 0.25, chi_stat_alt);
+        if (sigma_alt > sigma) sigma = sigma_alt;
  
-    if(sigma == 0) {
-        if(debug) std::cout << "sigma = 0, not possible to perform the spatial check " << std::endl;
-        return true;       
-    }
-    float sigma_mu = sigma / std::sqrt( chi_stat.size());
+        if(sigma == 0) {
+            if(debug) std::cout << "sigma = 0, not possible to perform the spatial check " << std::endl;
+            return true;       
+        }
+        sigma_mu = sigma / std::sqrt( chi_stat.size());
 
-    if(debug) {
-        std::cout << " chi_stat, dim = " << chi_stat.size() << std::endl;
-        for(int l=0; l<chi_stat.size(); l++) 
-            std::cout << std::setprecision(6) << chi_stat[l] << std::endl;
-        std::cout << std::setprecision(6) << " mu sigma sigma_mu " << mu << " " << sigma << " " << sigma_mu << std::endl;
+        if(debug) {
+            std::cout << " chi_stat, dim = " << chi_stat.size() << std::endl;
+            for(int l=0; l<chi_stat.size(); l++) 
+                std::cout << std::setprecision(6) << chi_stat[l] << std::endl;
+            std::cout << std::setprecision(6) << " mu sigma sigma_mu " << mu << " " << sigma << " " << sigma_mu << std::endl;
+        }
     }
    
     // z = ( chi - mu ) / ( sigma + sigma_mu )
@@ -989,7 +994,12 @@ bool sct_core( const vec& lats,
     for(int m=0; m<p_test; m++) {
         int i = indices_outer_test[m];
         int l = indices_inner_test[m];
-        float z = (chi_inner(l) - mu) / (sigma + sigma_mu);
+        float z;
+        if (basic) {
+            z = chi_inner(l);
+        } else {
+            z = (chi_inner(l) - mu) / (sigma + sigma_mu);
+        }
         if (z > zmx && (yav(l) < minv[i] || yav(l) > maxv[i])) {
           zmx = z;
           mmx = m;

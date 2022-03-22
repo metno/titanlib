@@ -53,6 +53,14 @@ namespace titanlib {
         MedianOuterCircle = 3,
         External = 4,
     };
+ 
+    enum ConditionType {
+        Eq = 0,
+        Gt = 1,
+        Geq = 2,
+        Lt = 3,
+        Leq = 4,
+    };
 
     class Points;
 
@@ -118,6 +126,7 @@ namespace titanlib {
      *  @param tpos SCT-score threshold. Positive deviation allowed
      *  @param tneg SCT-score threshold. Negative deviation allowed
      *  @param debug Verbose output
+     *  @param basic Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced
      *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
@@ -145,7 +154,44 @@ namespace titanlib {
                         const vec& tpos,
                         const vec& tneg,
                         bool debug,
+                        bool basic,
                         vec& scores);
+
+    /**  Spatial Consistency Test for dichotomous (yes/no) variables
+     *  @param points Input points
+     *  @param values observed values to check (and/or to use)
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
+     *  @param event_thresholds event thresholds (not used if background_elab_type!=external)
+     *  @param condition one of: Eq, Gt, Geq, Lt, Leq
+     *  @param num_min_outer Minimum number of observations inside the outer circle to compute SCT
+     *  @param num_max_outer Maximum number of observations inside the outer circle used
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param num_iterations Number of SCT iterations
+     *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     *  @param max_horizontal_scale Maximum horizontal decorrelation length [m]
+     *  @param kth_closest_obs_horizontal_scale Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
+     *  @param vertical_scale Vertical decorrelation length [m]
+     *  @param test_thresholds observation-dependent trhesholds used in the SCT dual tests. The threshold is for the relative information content and it should tipically be a number between 0-1
+     *  @param debug Verbose output
+     *  @return flags
+     */
+    ivec sct_dual( const Points& points,
+                   const vec& values,
+                   const ivec& obs_to_check,
+                   const vec& event_thresholds,
+                   ConditionType condition,
+                   int num_min_outer,
+                   int num_max_outer,
+                   float inner_radius,
+                   float outer_radius,
+                   int num_iterations,
+                   float min_horizontal_scale,
+                   float max_horizontal_scale,
+                   int kth_closest_obs_horizontal_scale,
+                   float vertical_scale,
+                   const vec& test_thresholds,
+                   bool debug);
 
      /** First Guess Test (FGT) - simplified (without OI) SCT
      *  @param points Input points
@@ -168,6 +214,7 @@ namespace titanlib {
      *  @param tpos FGT-score threshold. Positive deviation allowed
      *  @param tneg FGT-score threshold. Negative deviation allowed
      *  @param debug Verbose output
+     *  @param basic Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced
      *  @param scores FGT-score. The higher the score, the more likely is the presence of a gross measurement error
      *  @return flags
      */
@@ -191,6 +238,7 @@ namespace titanlib {
               const vec& tpos,
               const vec& tneg,
               bool debug,
+              bool basic,
               vec& scores);
 
     /** Range check. Checks observation is within the ranges given
