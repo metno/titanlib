@@ -70,6 +70,27 @@ class DatasetTest(unittest.TestCase):
                 max_elev_diff, elev_gradient, min_std, num_iterations)
         np.testing.assert_array_equal(dataset.flags, [0]*8 + [1]*2)
 
+    def test_get_values(self):
+        N = 10
+        lats = [60]*N
+        lons = np.linspace(60, 60.001, N)
+        elevs = [0]*10
+        points = titanlib.Points(lats, lons, elevs)
+        values = [0, 0, 0, 0, 0, 0, 0, 0, 0.1, 1]
+        N = len(lats)
+        radius = [10000]
+        num_min = [1]
+        threshold = 1
+        elev_gradient = -0.0065
+        max_elev_diff = 200
+        min_std = 0.01
+        num_iterations = 2
+        dataset = titanlib.Dataset(points, values)
+        dataset.values[:] = [1]
+        print(dataset.get_values())
+        dataset.points = points
+
+
 
 if __name__ == '__main__':
     unittest.main()

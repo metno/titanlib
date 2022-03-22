@@ -243,3 +243,12 @@ ivec titanlib::Dataset::get_flags() const {
 Points titanlib::Dataset::get_points() const {
     return points;
 }
+void titanlib::Dataset::set_values(vec ivalues) {
+    values = ivalues;
+}
+void titanlib::Dataset::set_flags(ivec ivalues) {
+    flags = ivalues;
+}
+void titanlib::Dataset::set_points(Points ipoints) {
+    points = ipoints;
+}

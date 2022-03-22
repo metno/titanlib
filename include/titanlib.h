@@ -625,6 +625,9 @@ namespace titanlib {
             Points get_points() const;
             vec get_values() const;
             ivec get_flags() const;
+            void set_values(vec ivalues);
+            void set_flags(ivec ivalues);
+            void set_points(Points ipoints);
 
             Points points;
             vec values;

@@ -108,35 +108,42 @@ class BulkTest(unittest.TestCase):
                             dataset_args += [base_args[arg]]
 
                     # Check expected using the dataset interface
-                    func_dataset(*dataset_args)
-                    flags = [int(i) for i in dataset.flags]
-                    np.testing.assert_array_almost_equal(flags, test['expected'])
+                    with self.subTest(interface="function"):
+                        func_dataset(*dataset_args)
+                        flags = [int(i) for i in dataset.flags]
+                        np.testing.assert_array_almost_equal(flags, test['expected'])
 
                     # Check expected using the function interface
-                    args = list()
-                    if needs_points:
-                        args += [dataset.points]
-                    if needs_values:
-                        args += [[float(i) for i in dataset.values]]
-                    args += dataset_args
-                    func(*args)
-                    np.testing.assert_array_almost_equal(flags, test['expected'])
+                    with self.subTest(interface="dataset"):
+                        args = list()
+                        if needs_points:
+                            args += [dataset.points]
+                        if needs_values:
+                            args += [[float(i) for i in dataset.values]]
+                        args += dataset_args
+                        func(*args)
+                        np.testing.assert_array_almost_equal(flags, test['expected'])
 
     def test_run_all(self):
         directory = os.path.join(os.path.dirname(__file__))
         filenames = glob.glob('%sfiles/*.yml' % directory)
-        for filename in filenames:
-            with self.subTest(filename=filename):
-                self.run_checks(filename)
+        ncores = [1, 2, 8]
+        for ncore in ncores:
+            for filename in filenames:
+                titanlib.set_omp_threads(ncore)
+                with self.subTest(filename=filename, ncores=ncore):
+                    self.run_checks(filename)
 
 
-def is_numeric(value):
-    try:
-        ret = float(value)
-        return True
-    except Exception as e:
-        return False
+# Custom test class, to count the total number of subtests run
+# Taken from: https://stackoverflow.com/questions/45007346/count-subtests-in-python-unittests-separately
+class NumbersTestResult(unittest.TextTestResult):
+    def addSubTest(self, test, subtest, outcome):
+        # handle failures calling base class
+        super(NumbersTestResult, self).addSubTest(test, subtest, outcome)
+        # add to total number of tests run
+        self.testsRun += 1
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=unittest.TextTestRunner(resultclass=NumbersTestResult))
