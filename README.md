@@ -95,15 +95,19 @@ Currently, the R package is not installed centrally, but instead is placed in `e
 
 Here is an example using the buddy check, which has the following function signature:
 ```python
-buddy_check(lats, lons, elevs, values, radius, num_min, threshold, max_elev_diff, elev_gradient, min_std, num_iterations)
+buddy_check(points, values, radius, num_min, threshold, max_elev_diff, elev_gradient, min_std, num_iterations)
 ```
 
 The test reveals that the last observation (-111) is likely faulty:
 
 ```python
 import titanlib
-flags = titanlib.buddy_check([60,60.1,60.2],[10,10,10],[0,0,0],[0, 1, -111], [50000],[2],2,200,0,1,2)
+flags = titanlib.buddy_check(titanlib.Points([60,60.1,60.2],[10,10,10],[0,0,0]),[0, 1, -111], [50000],[2],2,200,0,1,2)
 print(flags)
+```
+
+```
+[0 0 1]
 ```
 
 ## R example
