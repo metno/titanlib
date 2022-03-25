@@ -1,7 +1,7 @@
-titanlib_path <- "../build/extras"
+titanlib_path <- "../build"
 dyn.load( file.path( titanlib_path, 
-                     paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep="")))
-source(   file.path( titanlib_path,"SWIG/R/titanlib.R"))
+                     paste("swig/R/titanlib", .Platform$dynlib.ext, sep="")))
+source(   file.path( titanlib_path,"swig/R/titanlib.R"))
 
 #---------------------------------------------------------------
 # Test with small vectors

@@ -1,6 +1,6 @@
-titanlib_path <- "../build/extras"
-dyn.load( file.path( titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep="")))
-source( file.path( titanlib_path,"SWIG/R/titanlib.R"))
+titanlib_path <- "../build"
+dyn.load( file.path( titanlib_path, paste("swig/R/titanlib", .Platform$dynlib.ext, sep="")))
+source( file.path( titanlib_path,"swig/R/titanlib.R"))
 #---------------------------------------------------------------
 # Test with small vectors
 lats = c(60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60)
@@ -30,8 +30,14 @@ values_maxa = values + 20
 values_minv = values - 1
 values_maxv = values + 1
 debug = T
+basic = T
 points = Points(lats, lons, elevs)
-res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
+res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug, basic)
+# flags
+print( res[[1]])
+# scores
+print( res[[2]])
+
 # check the results of sct woth the following OI
 #  first create the data_inner.txt file from sct output with debug=T
 #d<-read.table(file="data_inner.txt",header=F,stringsAsFactors=F,strip.white=T)
@@ -95,7 +101,7 @@ kth_closest_obs_horizontal_scale = 3
 points = Points(lats, lons, elevs)
 #
 t0<-Sys.time()
-res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug)
+res<-fgt( points, values, obs_to_check, background_values, background_uncertainties, background_elab_type, num_min_outer, num_max_outer, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, values_mina, values_maxa, values_minv, values_maxv, tpos, tneg, debug, basic)
 t1<-Sys.time()-t0
 print( paste( "total time=", round(t1,3), attr(t1,"units")))
 flags<-res[[1]]
