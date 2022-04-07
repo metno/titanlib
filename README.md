@@ -89,7 +89,7 @@ This installs the python bindings in
 make build-r
 ```
 
-Currently, the R package is not installed centrally, but instead is placed in `extras/SWIG/R/titanlib.R` in the build directory.
+Currently, the R package is not installed centrally, but instead is placed in `swig/R/titanlib.R` in the build directory.
 
 ## Python example
 
