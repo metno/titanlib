@@ -52,10 +52,6 @@ elevs = [0,0,0]
 obs = [0, 1, -111]
 points = titanlib.Points(lats, lons, elevs)
 
-# Set up
-radius = 
-num_min = 
-
 flags = titanlib.buddy_check(points,
    obs,
    [50000], # radius
