@@ -51,21 +51,17 @@ obs = [0, 1, -111]
 points = titanlib.Points(lats, lons, elevs)
 radius = 50000
 num_min = 2
-threshold = 2
-max_elev_diff = 200
-elev_gradient = 0
-min_std = 1
-num_iterations = 2
 
 flags = titanlib.buddy_check(points,
    obs,
    [radius],
    [num_min],
-   threshold,
-   max_elev_diff,
-   elev_gradient,
-   min_std,
-   num_iterations)
+   2,  # threshold
+   200,  # max_elev_diff
+   0,  # elev_gradient
+   1,  # min_std
+   2,  # num_iterations
+)
 
 print(flags)
 
