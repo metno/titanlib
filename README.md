@@ -52,6 +52,7 @@ elevs = [0,0,0]
 obs = [0, 1, -111]
 points = titanlib.Points(lats, lons, elevs)
 
+# Run the buddy check on the data
 flags = titanlib.buddy_check(points,
    obs,
    [50000], # radius
