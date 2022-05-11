@@ -127,7 +127,7 @@ See also the _Installation tips and tricks_ on the [wiki](https://github.com/met
 
 ## Copyright and license
 
-Copyright © 2019-2020 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
+Copyright © 2019-2022 Norwegian Meteorological Institute. Titanlib is licensed under The GNU Lesser General
 Public License (LGPL). See LICENSE file.
 
 ## Contact
