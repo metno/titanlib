@@ -57,7 +57,16 @@ elev_gradient = 0
 min_std = 1
 num_iterations = 2
 
-flags = titanlib.buddy_check(points, obs, [radius], [num_min],threshold, max_elev_diff, elev_gradient, min_std, num_iterations)
+flags = titanlib.buddy_check(points,
+   obs,
+   [radius],
+   [num_min],
+   threshold,
+   max_elev_diff,
+   elev_gradient,
+   min_std,
+   num_iterations)
+
 print(flags)
 
 >>> [0 0 1]
