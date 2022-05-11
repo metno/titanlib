@@ -44,12 +44,23 @@ The test reveals that the last observation (-111) is likely faulty:
 
 ```python
 import titanlib
-flags = titanlib.buddy_check(titanlib.Points([60,60.1,60.2],[10,10,10],[0,0,0]),[0, 1, -111], [50000],[2],2,200,0,1,2)
-print(flags)
-```
+lats = [60,60.1,60.2]
+lons = [10,10,10]
+elevs = [0,0,0]
+obs = [0, 1, -111]
+points = titanlib.Points(lats, lons, elevs)
+radius = 50000
+num_min = 2
+threshold = 2
+max_elev_diff = 200
+elev_gradient = 0
+min_std = 1
+num_iterations = 2
 
-```
-[0 0 1]
+flags = titanlib.buddy_check(points, obs, [radius], [num_min],threshold, max_elev_diff, elev_gradient, min_std, num_iterations)
+print(flags)
+
+>>> [0 0 1]
 ```
 
 ## R example
