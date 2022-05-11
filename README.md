@@ -10,7 +10,7 @@ tests on data.
 Titanlib is currently under active development and the current version is a prototype for testing. Feedback
 is welcome, either by using the issue tracker in Github, or by contacting Thomas Nipen (thomasn@met.no).
 
-![Example of titanlib](extras/image.jpg)
+![Example of titanlib](docs/image.jpg)
 
 ## Documentation
 
