@@ -8,7 +8,7 @@ written in C++ and has bindings for python and R. The library consists of a set 
 tests on data.
 
 Titanlib is currently under active development and the current version is a prototype for testing. Feedback
-is welcome, either by using the issue tracker in Github, or by contacting Thomas Nipen (thomasn@met.no).
+is welcome, either by using the issue tracker in Github, by contacting Thomas Nipen (thomasn@met.no), or by joining the slack channel (see below).
 
 ![Example of titanlib](docs/image.jpg)
 
@@ -21,6 +21,11 @@ For more information on how to use Titanlib, check out the wiki at https://githu
 - A wide variety of spatial checks, such as **spatial consistency test**, **buddy check**, **isolation check**.
 - Plausability tests such as **range check** and **climatology check**.
 - Fast C++ implementation for efficient processing of large observation datasets 
+
+## Join the Titanlib community on slack
+
+Titanlib has a slack channel for users to share experiences with Titanlib (https://titanlib.slack.com/). Here you can get help with installation, choosing appropriate settings for QC tests, and more. Contact Louise Oram (louiseo@met.no) if you want to get added.
+
 
 ## Quick-start in python
 
