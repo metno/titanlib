@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Titanlib 0.3.3: /home/thomasn/repos/titanlib/src/sct_resistant.cpp File Reference</title>
+<title>Titanlib 0.3.3: /home/thomasn/repos/titanlib/src/sct_dual.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -75,7 +75,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">sct_resistant.cpp File Reference</div>  </div>
+<div class="title">sct_dual.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;vector&gt;</code><br />
@@ -85,8 +85,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;numeric&gt;</code><br />
 <code>#include &lt;exception&gt;</code><br />
-<code>#include &lt;gsl/gsl_multimin.h&gt;</code><br />
-<code>#include &lt;gsl/gsl_linalg.h&gt;</code><br />
 <code>#include &lt;boost/numeric/ublas/vector.hpp&gt;</code><br />
 <code>#include &lt;boost/numeric/ublas/vector_proxy.hpp&gt;</code><br />
 <code>#include &lt;boost/numeric/ublas/triangular.hpp&gt;</code><br />
@@ -96,18 +94,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a50ca64c209d93bd72800ba445cd20cc1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sct__resistant_8cpp.html#a50ca64c209d93bd72800ba445cd20cc1">sct_core</a> (const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;lats, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;lons, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;elevs, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;yo, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;yb, float Dh_min, float Dh_max, int kth_close, float Dz, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, float minp, float maxp, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;mina, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;maxa, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;minv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;maxv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tpos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tneg, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_global_test, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_outer_inner, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_outer_test, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_inner_test, bool debug, bool basic, float na, bool set_flag0, int &amp;thrown_out, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;scores, <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;flags)</td></tr>
-<tr class="separator:a50ca64c209d93bd72800ba445cd20cc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2715f547cfe462805dbe9136ac0d0f70"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sct__dual_8cpp.html#a2715f547cfe462805dbe9136ac0d0f70">sct_dual_core</a> (const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;lats, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;lons, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;elevs, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;w, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;t, float Dh_min, float Dh_max, int kth_close, float Dz, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_global_test, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_outer_inner, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_outer_test, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;indices_inner_test, bool debug, float na, bool set_flag0, int &amp;thrown_out, <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;flags)</td></tr>
+<tr class="separator:a2715f547cfe462805dbe9136ac0d0f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a50ca64c209d93bd72800ba445cd20cc1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50ca64c209d93bd72800ba445cd20cc1">&#9670;&nbsp;</a></span>sct_core()</h2>
+<a id="a2715f547cfe462805dbe9136ac0d0f70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2715f547cfe462805dbe9136ac0d0f70">&#9670;&nbsp;</a></span>sct_dual_core()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool sct_core </td>
+          <td class="memname">bool sct_dual_core </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
           <td class="paramname"><em>lats</em>, </td>
@@ -128,13 +126,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>yo</em>, </td>
+          <td class="paramname"><em>w</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>yb</em>, </td>
+          <td class="paramname"><em>t</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -169,54 +167,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>minp</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>maxp</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>mina</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>maxa</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>minv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>maxv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>tpos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>tneg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
           <td class="paramname"><em>indices_global_test</em>, </td>
         </tr>
@@ -247,12 +197,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>basic</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>na</em>, </td>
         </tr>
@@ -267,12 +211,6 @@ Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">int &amp;&#160;</td>
           <td class="paramname"><em>thrown_out</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
-          <td class="paramname"><em>scores</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

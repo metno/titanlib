@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['meanoutercircle',['MeanOuterCircle',['../namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3ea01c7d2cee20d06a99d97cdaf4594b2c9',1,'titanlib']]],
-  ['medianoutercircle',['MedianOuterCircle',['../namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3ea289e5b938cf75ab88aae9c2b05c0d0b6',1,'titanlib']]]
+  ['leq',['Leq',['../namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53aa5cd7319c65652f2dd7843606404e8a7',1,'titanlib']]],
+  ['lt',['Lt',['../namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53a863fe96460a7d6623f343a6660620c50',1,'titanlib']]]
 ];

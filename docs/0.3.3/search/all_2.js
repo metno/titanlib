@@ -7,6 +7,7 @@ var searchData=
   ['compute_5fquantile',['compute_quantile',['../namespacetitanlib.html#a1dd19a2c2f0b9fac5e4e8ee9c8194ac9',1,'titanlib']]],
   ['compute_5fvertical_5fprofile',['compute_vertical_profile',['../namespacetitanlib.html#a5f2014800e1c178a7c781420ebac8615',1,'titanlib']]],
   ['compute_5fvertical_5fprofile_5ftheil_5fsen',['compute_vertical_profile_Theil_Sen',['../namespacetitanlib.html#a7fc5e590cb9d93afd0bc3fb76591ad28',1,'titanlib']]],
+  ['conditiontype',['ConditionType',['../namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53',1,'titanlib']]],
   ['convert_5fcoordinates',['convert_coordinates',['../classtitanlib_1_1KDTree.html#ae794740edfe2e9b796b0b8b20046bb74',1,'titanlib::KDTree::convert_coordinates(const vec &amp;lats, const vec &amp;lons, vec &amp;x_coords, vec &amp;y_coords, vec &amp;z_coords) const'],['../classtitanlib_1_1KDTree.html#a8f0fab999412eeb582ea17a5d94ddcdd',1,'titanlib::KDTree::convert_coordinates(float lat, float lon, float &amp;x_coord, float &amp;y_coord, float &amp;z_coord) const'],['../namespacetitanlib.html#a8a27f352f9d91121519a3d5447866bfc',1,'titanlib::convert_coordinates(const vec &amp;lats, const vec &amp;lons, vec &amp;x_coords, vec &amp;y_coords, vec &amp;z_coords)'],['../namespacetitanlib.html#a7767762fd6f9b6be9ea81172ec3fffea',1,'titanlib::convert_coordinates(float lat, float lon, float &amp;x_coord, float &amp;y_coord, float &amp;z_coord)']]],
   ['coordinatetype',['CoordinateType',['../namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84deb',1,'titanlib']]]
 ];

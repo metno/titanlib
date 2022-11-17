@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Titanlib 0.3.3.dev6: titanlib Namespace Reference</title>
+<title>Titanlib 0.3.3: titanlib Namespace Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -24,7 +24,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Titanlib 0.3.3.dev6
+   <div id="projectname">Titanlib 0.3.3
    </div>
    <div id="projectbrief">Library for quality control algorithms</div>
   </td>
@@ -99,12 +99,15 @@ Functions</h2></td></tr>
 <tr class="memitem:a7b9e39a73c987da20e7b1e909d8d01fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#a7b9e39a73c987da20e7b1e909d8d01fa">sct</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, int num_min, int num_max, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;pos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;neg, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;prob_gross_error, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;rep, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check=<a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>())</td></tr>
 <tr class="memdesc:a7b9e39a73c987da20e7b1e909d8d01fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spatial Consistency Test.  <a href="#a7b9e39a73c987da20e7b1e909d8d01fa">More...</a><br /></td></tr>
 <tr class="separator:a7b9e39a73c987da20e7b1e909d8d01fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa39f2d46a08601f3da63a0a552c823da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#aa39f2d46a08601f3da63a0a552c823da">sct_resistant</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_values, <a class="el" href="namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3e">BackgroundType</a> background_elab_type, int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_mina, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxa, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_minv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tpos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tneg, bool debug, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;scores)</td></tr>
-<tr class="memdesc:aa39f2d46a08601f3da63a0a552c823da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spatial Consistency Test (SCT) - resistant to outliers.  <a href="#aa39f2d46a08601f3da63a0a552c823da">More...</a><br /></td></tr>
-<tr class="separator:aa39f2d46a08601f3da63a0a552c823da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc4f8315470525d8e8ea01e1d17660a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#afc4f8315470525d8e8ea01e1d17660a2">fgt</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_values, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_uncertainties, <a class="el" href="namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3e">BackgroundType</a> background_elab_type, int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_mina, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxa, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_minv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tpos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tneg, bool debug, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;scores)</td></tr>
-<tr class="memdesc:afc4f8315470525d8e8ea01e1d17660a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">First Guess Test (FGT) - simplified (without OI) SCT.  <a href="#afc4f8315470525d8e8ea01e1d17660a2">More...</a><br /></td></tr>
-<tr class="separator:afc4f8315470525d8e8ea01e1d17660a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39f98d56df83d252bd78fdec5aa44f98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#a39f98d56df83d252bd78fdec5aa44f98">sct_resistant</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_values, <a class="el" href="namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3e">BackgroundType</a> background_elab_type, int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_mina, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxa, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_minv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;eps2, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tpos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tneg, bool debug, bool basic, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;scores)</td></tr>
+<tr class="memdesc:a39f98d56df83d252bd78fdec5aa44f98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spatial Consistency Test (SCT) - resistant to outliers.  <a href="#a39f98d56df83d252bd78fdec5aa44f98">More...</a><br /></td></tr>
+<tr class="separator:a39f98d56df83d252bd78fdec5aa44f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2a8a48e51bf1a13e859cbe1548d5699"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#aa2a8a48e51bf1a13e859cbe1548d5699">sct_dual</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;event_thresholds, <a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53">ConditionType</a> condition, int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, float min_horizontal_scale, float max_horizontal_scale, int kth_closest_obs_horizontal_scale, float vertical_scale, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;test_thresholds, bool debug)</td></tr>
+<tr class="memdesc:aa2a8a48e51bf1a13e859cbe1548d5699"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spatial Consistency Test for dichotomous (yes/no) variables.  <a href="#aa2a8a48e51bf1a13e859cbe1548d5699">More...</a><br /></td></tr>
+<tr class="separator:aa2a8a48e51bf1a13e859cbe1548d5699"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2569b623a50c9e109a0a1194b5da08c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#ac2569b623a50c9e109a0a1194b5da08c">fgt</a> (const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;points, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;obs_to_check, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_values, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;background_uncertainties, <a class="el" href="namespacetitanlib.html#a788518e4a8a0750bf8d200f95e56ef3e">BackgroundType</a> background_elab_type, int num_min_outer, int num_max_outer, float inner_radius, float outer_radius, int num_iterations, int num_min_prof, float min_elev_diff, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_mina, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxa, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_minv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;value_maxv, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tpos, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;tneg, bool debug, bool basic, <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;scores)</td></tr>
+<tr class="memdesc:ac2569b623a50c9e109a0a1194b5da08c"><td class="mdescLeft">&#160;</td><td class="mdescRight">First Guess Test (FGT) - simplified (without OI) SCT.  <a href="#ac2569b623a50c9e109a0a1194b5da08c">More...</a><br /></td></tr>
+<tr class="separator:ac2569b623a50c9e109a0a1194b5da08c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b48f79d1f6fc6218046ccd86a4ade6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#a1b48f79d1f6fc6218046ccd86a4ade6d">range_check</a> (const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;values, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;min, const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;max)</td></tr>
 <tr class="memdesc:a1b48f79d1f6fc6218046ccd86a4ade6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Range check.  <a href="#a1b48f79d1f6fc6218046ccd86a4ade6d">More...</a><br /></td></tr>
 <tr class="separator:a1b48f79d1f6fc6218046ccd86a4ade6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -236,6 +239,16 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:a788518e4a8a0750bf8d200f95e56ef3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebd6f03adc6d86c9923a9f12a119af53"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53">ConditionType</a> { <br />
+&#160;&#160;<a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53a5da7d8211621f50a37a43246b532611b">Eq</a> = 0, 
+<a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53aa87d5b09fcaf3dc7653058f8d82e1a9a">Gt</a> = 1, 
+<a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53ab5580012bbe9abbaa1ab390c903d2a41">Geq</a> = 2, 
+<a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53a863fe96460a7d6623f343a6660620c50">Lt</a> = 3, 
+<br />
+&#160;&#160;<a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53aa5cd7319c65652f2dd7843606404e8a7">Leq</a> = 4
+<br />
+ }</td></tr>
+<tr class="separator:aebd6f03adc6d86c9923a9f12a119af53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6613cf8ad5bddaf812c2dc34ace84deb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84deb">CoordinateType</a> { <a class="el" href="namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84deba2a17e0daf3a3a1134b74b56c1bf4b4f9">Geodetic</a> = 0, 
 <a class="el" href="namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84debaef58ad5d85e7dd81035f65e7d1192645">Cartesian</a> = 1
  }<tr class="memdesc:a6613cf8ad5bddaf812c2dc34ace84deb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Types of coordinates for position of points.  <a href="namespacetitanlib.html#a6613cf8ad5bddaf812c2dc34ace84deb">More...</a><br /></td></tr>
@@ -333,6 +346,27 @@ Classes</h2></td></tr>
 <tr><td class="fieldname"><a id="a788518e4a8a0750bf8d200f95e56ef3ea01c7d2cee20d06a99d97cdaf4594b2c9"></a>MeanOuterCircle&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a788518e4a8a0750bf8d200f95e56ef3ea289e5b938cf75ab88aae9c2b05c0d0b6"></a>MedianOuterCircle&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a788518e4a8a0750bf8d200f95e56ef3eabfd1ae5b6e457323020755113fff0ae2"></a>External&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="aebd6f03adc6d86c9923a9f12a119af53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebd6f03adc6d86c9923a9f12a119af53">&#9670;&nbsp;</a></span>ConditionType</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53">titanlib::ConditionType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aebd6f03adc6d86c9923a9f12a119af53a5da7d8211621f50a37a43246b532611b"></a>Eq&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aebd6f03adc6d86c9923a9f12a119af53aa87d5b09fcaf3dc7653058f8d82e1a9a"></a>Gt&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aebd6f03adc6d86c9923a9f12a119af53ab5580012bbe9abbaa1ab390c903d2a41"></a>Geq&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aebd6f03adc6d86c9923a9f12a119af53a863fe96460a7d6623f343a6660620c50"></a>Lt&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aebd6f03adc6d86c9923a9f12a119af53aa5cd7319c65652f2dd7843606404e8a7"></a>Leq&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -1054,8 +1088,8 @@ Classes</h2></td></tr>
 
 </div>
 </div>
-<a id="afc4f8315470525d8e8ea01e1d17660a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc4f8315470525d8e8ea01e1d17660a2">&#9670;&nbsp;</a></span>fgt()</h2>
+<a id="ac2569b623a50c9e109a0a1194b5da08c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2569b623a50c9e109a0a1194b5da08c">&#9670;&nbsp;</a></span>fgt()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1183,6 +1217,12 @@ Classes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>basic</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
           <td class="paramname"><em>scores</em>&#160;</td>
         </tr>
@@ -1217,6 +1257,7 @@ Classes</h2></td></tr>
     <tr><td class="paramname">tpos</td><td>FGT-score threshold. Positive deviation allowed </td></tr>
     <tr><td class="paramname">tneg</td><td>FGT-score threshold. Negative deviation allowed </td></tr>
     <tr><td class="paramname">debug</td><td>Verbose output </td></tr>
+    <tr><td class="paramname">basic</td><td>Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced </td></tr>
     <tr><td class="paramname">scores</td><td>FGT-score. The higher the score, the more likely is the presence of a gross measurement error </td></tr>
   </table>
   </dd>
@@ -1820,8 +1861,144 @@ Classes</h2></td></tr>
 
 </div>
 </div>
-<a id="aa39f2d46a08601f3da63a0a552c823da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa39f2d46a08601f3da63a0a552c823da">&#9670;&nbsp;</a></span>sct_resistant()</h2>
+<a id="aa2a8a48e51bf1a13e859cbe1548d5699"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2a8a48e51bf1a13e859cbe1548d5699">&#9670;&nbsp;</a></span>sct_dual()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> titanlib::sct_dual </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classtitanlib_1_1Points.html">Points</a> &amp;&#160;</td>
+          <td class="paramname"><em>points</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
+          <td class="paramname"><em>values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#a428d952a408269e602d2dc5e7ad19dcf">ivec</a> &amp;&#160;</td>
+          <td class="paramname"><em>obs_to_check</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
+          <td class="paramname"><em>event_thresholds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetitanlib.html#aebd6f03adc6d86c9923a9f12a119af53">ConditionType</a>&#160;</td>
+          <td class="paramname"><em>condition</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num_min_outer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num_max_outer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>inner_radius</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>outer_radius</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num_iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>min_horizontal_scale</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>max_horizontal_scale</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>kth_closest_obs_horizontal_scale</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>vertical_scale</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
+          <td class="paramname"><em>test_thresholds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>debug</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Spatial Consistency Test for dichotomous (yes/no) variables. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">points</td><td>Input points </td></tr>
+    <tr><td class="paramname">values</td><td>observed values to check (and/or to use) </td></tr>
+    <tr><td class="paramname">obs_to_check</td><td>Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation </td></tr>
+    <tr><td class="paramname">event_thresholds</td><td>event thresholds (not used if background_elab_type!=external) </td></tr>
+    <tr><td class="paramname">condition</td><td>one of: Eq, Gt, Geq, Lt, Leq </td></tr>
+    <tr><td class="paramname">num_min_outer</td><td>Minimum number of observations inside the outer circle to compute SCT </td></tr>
+    <tr><td class="paramname">num_max_outer</td><td>Maximum number of observations inside the outer circle used </td></tr>
+    <tr><td class="paramname">inner_radius</td><td>Radius for flagging [m] </td></tr>
+    <tr><td class="paramname">outer_radius</td><td>Radius for computing OI and background [m] </td></tr>
+    <tr><td class="paramname">num_iterations</td><td>Number of SCT iterations </td></tr>
+    <tr><td class="paramname">min_horizontal_scale</td><td>Minimum horizontal decorrelation length [m] </td></tr>
+    <tr><td class="paramname">max_horizontal_scale</td><td>Maximum horizontal decorrelation length [m] </td></tr>
+    <tr><td class="paramname">kth_closest_obs_horizontal_scale</td><td>Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length </td></tr>
+    <tr><td class="paramname">vertical_scale</td><td>Vertical decorrelation length [m] </td></tr>
+    <tr><td class="paramname">test_thresholds</td><td>observation-dependent trhesholds used in the SCT dual tests. The threshold is for the relative information content and it should tipically be a number between 0-1 </td></tr>
+    <tr><td class="paramname">debug</td><td>Verbose output </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>flags </dd></dl>
+
+</div>
+</div>
+<a id="a39f98d56df83d252bd78fdec5aa44f98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39f98d56df83d252bd78fdec5aa44f98">&#9670;&nbsp;</a></span>sct_resistant()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1973,6 +2150,12 @@ Classes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>basic</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="namespacetitanlib.html#ab1d96970b93ee8963ed25af86f8f352a">vec</a> &amp;&#160;</td>
           <td class="paramname"><em>scores</em>&#160;</td>
         </tr>
@@ -2011,6 +2194,7 @@ Classes</h2></td></tr>
     <tr><td class="paramname">tpos</td><td>SCT-score threshold. Positive deviation allowed </td></tr>
     <tr><td class="paramname">tneg</td><td>SCT-score threshold. Negative deviation allowed </td></tr>
     <tr><td class="paramname">debug</td><td>Verbose output </td></tr>
+    <tr><td class="paramname">basic</td><td>Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced </td></tr>
     <tr><td class="paramname">scores</td><td>SCT-score. The higher the score, the more likely is the presence of a gross measurement error </td></tr>
   </table>
   </dd>
@@ -2381,7 +2565,7 @@ template&lt;class T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 4 2022 10:39:08 for Titanlib 0.3.3.dev6 by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Nov 17 2022 22:33:42 for Titanlib 0.3.3 by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
