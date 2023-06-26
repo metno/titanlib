@@ -52,7 +52,7 @@ jobs:
           # CIBW_BUILD: cp310-macosx_x86_64
           # PyPy compilation on MACOS doesn't work, possibly since there is no available numpy release for this
           # Armadillo isn't available for i687 on Centos 7, making compilation more complicated
-          CIBW_SKIP: pp*-macosx* *i686*
+          CIBW_SKIP: pp*-macosx* *i686* *musllinux*
           CIBW_BEFORE_ALL_LINUX: |
               yum install -y lapack-devel gsl-devel armadillo-devel
               curl -L -O https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz
@@ -80,7 +80,6 @@ jobs:
         with:
           name: wheels
           path: ./wheelhouse/*.whl
-          skip_existing: true
 
 
   pypi-publish:
@@ -100,3 +99,4 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
           url: https://pypi.org/p/titanlib
+          skip_existing: true
