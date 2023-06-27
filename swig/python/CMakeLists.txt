@@ -71,6 +71,7 @@ if(APPLE)
        )
 endif()
 
+
 # Files to install with Python
 set(PYTHON_INSTALL_FILES
         ${CMAKE_CURRENT_BINARY_DIR}/titanlib.py
