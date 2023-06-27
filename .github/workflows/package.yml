@@ -1,10 +1,10 @@
 name: Packaging
 
-on: [push]
-# on:
-#   push:
-#     tags:
-#       - '*'
+# on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   setup:
