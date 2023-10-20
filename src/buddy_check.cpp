@@ -57,6 +57,10 @@ ivec titanlib::buddy_check(const Points& points,
 
     // resize the flags and set them to 0
     ivec flags(s, 0);
+    if(s==0) {
+        // if no data return empty array
+        return flags;
+    }
     for(int i = 0; i < num_min.size(); i++) {
         if(!titanlib::is_valid(values[i]))
             flags[i] = 1;
