@@ -70,6 +70,30 @@ class DatasetTest(unittest.TestCase):
                 max_elev_diff, elev_gradient, min_std, num_iterations)
         np.testing.assert_array_equal(dataset.flags, [0]*8 + [1]*2)
 
+    def test_isolation_check(self):
+        lats = [60, 60, 60, 60]
+        lons = [10, 10.1, 10.2, 12]
+        elevs = [0]*4
+        points = titanlib.Points(lats, lons, elevs)
+        values = [0, 0.1, 1, 2]
+
+        num_min = [1, 1, 1, 1]
+        radii = [100000] * 4
+
+        # Last value should be flagged
+        dataset = titanlib.Dataset(points, values)
+        # Preflag one of the observations
+        dataset.external_check([0, 1, 0, 0])
+        dataset.isolation_check(num_min, radii)
+        np.testing.assert_array_equal(dataset.flags, [0, 1, 0, 1])
+
+        # Check that using a single value for radii also works
+        radii = [100000]
+        dataset = titanlib.Dataset(points, values)
+        dataset.external_check([0, 1, 0, 0])
+        dataset.isolation_check(num_min, radii)
+        np.testing.assert_array_equal(dataset.flags, [0, 1, 0, 1])
+
     def test_get_values(self):
         N = 10
         lats = [60]*N
