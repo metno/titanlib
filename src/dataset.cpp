@@ -51,6 +51,28 @@ void titanlib::Dataset::sct(int num_min, int num_max, float inner_radius, float 
     merge(new_flags, indices);
 }
 
+void titanlib::Dataset::sct_dual(const vec& event_thresholds, 
+                                ConditionType condition, 
+                                int num_min, int num_max,
+                                float inner_radius, float outer_radius,
+                                int num_iterations,
+                                float min_horizontal_scale, float max_horizontal_scale,
+                                int kth_closest_obs_horizontal_scale,
+                                float vertical_scale,
+                                const vec& test_thresholds,
+                                bool debug,
+                                const ivec& obs_to_check,
+                                const ivec& indices){
+    // Only keep flags that are not flagged
+    ivec new_flags = titanlib::sct_dual(get_unflagged_points(), get_unflagged(values), get_unflagged(obs_to_check),
+                                        event_thresholds, condition,
+                                        num_min, num_max, inner_radius, outer_radius, num_iterations, 
+                                        min_horizontal_scale, max_horizontal_scale,
+                                        kth_closest_obs_horizontal_scale, vertical_scale,
+                                        test_thresholds, debug);
+    merge(new_flags, indices);
+}
+
 void titanlib::Dataset::buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations, const ivec& obs_to_check, const ivec& indices) {
     ivec new_flags = titanlib::buddy_check(get_unflagged_points(), get_unflagged(values), get_unflagged(radius), get_unflagged(num_min), threshold, max_elev_diff, elev_gradient, min_std, num_iterations, get_unflagged(obs_to_check));
     merge(new_flags, indices);
