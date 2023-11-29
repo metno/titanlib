@@ -56,6 +56,12 @@
 %apply int& OUTPUT { int& X2_out };
 %apply int& OUTPUT { int& Y2_out };
 
+// This turns on automatic description of function arguments in the python package. The
+// problem is that it doesn't fetch any of the comments in the header file describing each
+// parameter, so only the type is shown.
+// A different approach is to use -doxygen with swig
+%feature("autodoc", "2");
+
 %{
 #include "titanlib.h"
 %}
