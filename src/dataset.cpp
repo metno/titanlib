@@ -65,11 +65,11 @@ void titanlib::Dataset::sct_dual(const vec& event_thresholds,
                                 const ivec& indices){
     // Only keep flags that are not flagged
     ivec new_flags = titanlib::sct_dual(get_unflagged_points(), get_unflagged(values), get_unflagged(obs_to_check),
-                                        event_thresholds, condition,
+                                        get_unflagged(event_thresholds), condition,
                                         num_min, num_max, inner_radius, outer_radius, num_iterations, 
                                         min_horizontal_scale, max_horizontal_scale,
                                         kth_closest_obs_horizontal_scale, vertical_scale,
-                                        test_thresholds, debug);
+                                        get_unflagged(test_thresholds), debug);
     merge(new_flags, indices);
 }
 
