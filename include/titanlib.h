@@ -12,7 +12,7 @@
     #include <omp.h>
 #endif
 
-#define TITANLIB_VERSION "0.3.4"
+#define TITANLIB_VERSION "0.3.4.dev2"
 #define __version__ TITANLIB_VERSION
 
 namespace titanlib {
