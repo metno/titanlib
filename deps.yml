@@ -1,0 +1,12 @@
+name: condatitanlib
+channels:
+- conda-forge
+dependencies:
+- boost
+- gsl
+- swig
+- cmake
+- libblas
+- doxygen
+- numpy
+- python=3.10.4
