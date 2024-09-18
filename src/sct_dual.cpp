@@ -125,6 +125,8 @@ ivec titanlib::sct_dual( const Points& points,
 
     // initializations
     float na = -999.; // code for "Not Available". Any type of missing data
+    int flag_not_tested_inner;
+    int flag_not_tested_outer;
     ivec flags( p, na);
     ivec obs_test( p, 1);
     vec w( p, 0);
@@ -133,6 +135,17 @@ ivec titanlib::sct_dual( const Points& points,
     vec t( p, na);
 
     bool set_all_good = false;
+    bool accept_not_tested = true;
+    if(accept_not_tested){
+        std::cout << "Set flags for values that could not be tested as good " << p << std::endl;
+        flag_not_tested_inner = 0;
+        flag_not_tested_outer = 0;
+    }
+    else{
+        std::cout << "Set flags for values that could not be tested due to lack of points in the inner/outer radius to 11/12." << p << std::endl;
+        flag_not_tested_inner = 11;
+        flag_not_tested_outer = 12;
+    }
     
     if (obs_to_check.size() == p) {
         for(int g=0; g<p; g++) 
@@ -169,7 +182,7 @@ ivec titanlib::sct_dual( const Points& points,
       }
     }
 
-    if(debug) std::cout << "=============================================== " << p << std::endl;
+    if(debug) std::cout << "==================DEBUG MODE ============================= " << std::endl;
     if(debug) std::cout << "Number of observations to test is " << p << std::endl;
 
     // KDtree has to do with fast computation of distances
@@ -249,13 +262,15 @@ ivec titanlib::sct_dual( const Points& points,
             // -~- Check if there are enough observations in the outer/inner circles
 
             if(p_outer < num_min_outer) {
-                flags[curr] = 12;
-                if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
+                flags[curr] = flag_not_tested_outer;
+                if(debug) {
+                    std::cout << "@@isolated (outer) " << curr << std::endl;
+                }
                 continue; 
             }
 
 //            if( p_inner < 2) {
-//                flags[curr] = 11;
+//                flags[curr] = flag_not_tested_inner;
 //                if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
 //                continue;
 //            } 
@@ -421,13 +436,15 @@ ivec titanlib::sct_dual( const Points& points,
         // -~- Check if there are enough observations in the outer/inner circles
 
         if(p_outer < num_min_outer) {
-            flags[curr] = 12;
-            if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
+            flags[curr] = flag_not_tested_outer;
+            if(debug){
+                std::cout << "@@isolated (outer) " << curr << std::endl;
+            }
             continue; 
         }
 
 //        if( p_inner < 2) {
-//            flags[curr] = 11;
+//            flags[curr] = flag_not_tested_inner;
 //            if(debug) std::cout << "@@isolated (inner) " << curr << std::endl;
 //            continue;
 //        }
@@ -535,8 +552,10 @@ ivec titanlib::sct_dual( const Points& points,
         // -~- Decide if there are enough observations in the outer/inner circles
 
         if(p_outer < num_min_outer) {
-            flags[curr] = 12;
-            if(debug) std::cout << "@@isolated (outer) " << curr << std::endl;
+            flags[curr] = flag_not_tested_outer;
+            if(debug){
+                std::cout << "@@isolated (outer) " << curr << std::endl;
+            }
             continue; 
         }
 
@@ -640,9 +659,9 @@ ivec titanlib::sct_dual( const Points& points,
                 count_good++;
             } else if ( flags[curr] == na) {
                 count_missing++;
-            } else if( flags[curr] == 11) {
+            } else if( accept_not_tested && (flags[curr] == flag_not_tested_inner)) {
                 count_iso_inner++;
-            } else if( flags[curr] == 12) {
+            } else if( accept_not_tested && (flags[curr] == flag_not_tested_outer))  {
                 count_iso_outer++;
             } else if( flags[curr] == 100) {
                 count_fail_matinv++;
@@ -650,7 +669,10 @@ ivec titanlib::sct_dual( const Points& points,
                 count_impossible++;
             }
         }
-        std::cout << std::setprecision(3) << "summary - # TOT good bad missing isolated(inner) isolated(outer): " << p << " " << count_good << " " << count_bad << " " << count_missing << " " << count_iso_inner << " " << count_iso_outer << std::endl; 
+        if(accept_not_tested)
+            std::cout << std::setprecision(3) << "summary - # TOT good bad missing: " << p << " " << count_good << " " << count_bad << " " << count_missing << std::endl; 
+        else
+            std::cout << std::setprecision(3) << "summary - # TOT good bad missing isolated(inner) isolated(outer): " << p << " " << count_good << " " << count_bad << " " << count_missing << " " << count_iso_inner << " " << count_iso_outer << std::endl;
         if(count_fail_matinv > 0) 
             std::cout << std::setprecision(3) << "!!!! failure in matrix inversion: " << count_fail_matinv << std::endl; 
         if(count_impossible > 0) 
