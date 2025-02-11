@@ -101,6 +101,42 @@ namespace titanlib {
             vec& rep,
             const ivec& obs_to_check=ivec());
 
+    /** ****************************************
+     * @name Spatial checks
+     * Checks that consider the spatial properties of observations and first guesses
+     * *****************************************/ /**@{*/
+    /** Spatial Consistency Test
+     *  @param inner_radius Radius for flagging [m]
+     *  @param outer_radius Radius for computing OI and background [m]
+     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
+     *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     *  @param vertical_scale Vertical decorrelation length [m]
+     *  @param pos Positive deviation allowed
+     *  @param neg Negative deviation allowed
+     *  @param eps2
+     *  @param prob_gross_error Probability of gross error for each observation
+     *  @param rep Coefficient of representativity
+     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
+     *  @return flags
+     */
+    ivec sct_with_fg(const Points& points,
+            const vec& values,
+            const vec& background_values,
+            int num_min,
+            int num_max,
+            float inner_radius,
+            float outer_radius,
+            int num_iterations,
+            float min_horizontal_scale,
+            float vertical_scale,
+            const vec& pos,
+            const vec& neg,
+            const vec& eps2,
+            const vec& min_obs_var,
+            vec& prob_gross_error,
+            vec& rep,
+            const ivec& obs_to_check=ivec());
+
     /** Spatial Consistency Test (SCT) - resistant to outliers
      *  @param points Input points
      *  @param values observed values to check (and/or to use)
