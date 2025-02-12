@@ -114,7 +114,7 @@ namespace titanlib {
      *  @param pos Positive deviation allowed
      *  @param neg Negative deviation allowed
      *  @param eps2
-     *  @param prob_gross_error Probability of gross error for each observation
+     *  @param gross_error_score Score of gross error for each observation
      *  @param rep Coefficient of representativity
      *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
      *  @return flags
@@ -133,7 +133,7 @@ namespace titanlib {
             const vec& neg,
             const vec& eps2,
             const vec& min_obs_var,
-            vec& prob_gross_error,
+            vec& gross_error_score,
             vec& rep,
             const ivec& obs_to_check=ivec());
 

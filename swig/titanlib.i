@@ -41,6 +41,7 @@
 %include "vector.i"
 %apply std::vector<int>& OUTPUT { std::vector<int>& flags };
 %apply std::vector<float>& OUTPUT { std::vector<float>& prob_gross_error };
+%apply std::vector<float>& OUTPUT { std::vector<float>& gross_error_score };
 %apply std::vector<float>& OUTPUT { std::vector<float>& rep };
 %apply std::vector<int>& OUTPUT { std::vector<int>& boxids };
 %apply std::vector<float>& OUTPUT { std::vector<float>& x_coords };
