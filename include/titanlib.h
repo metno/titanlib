@@ -100,28 +100,37 @@ namespace titanlib {
             vec& prob_gross_error,
             vec& rep,
             const ivec& obs_to_check=ivec());
-
     /** ****************************************
-     * @name Spatial checks
-     * Checks that consider the spatial properties of observations and first guesses
+     * @name Spatial Checks
+     * Validates observations based on spatial properties and first-guess values.
      * *****************************************/ /**@{*/
-    /** Spatial Consistency Test
-     *  @param inner_radius Radius for flagging [m]
-     *  @param outer_radius Radius for computing OI and background [m]
-     *  @param min_elev_diff Minimum elevation difference to compute vertical profile [m]
-     *  @param min_horizontal_scale Minimum horizontal decorrelation length [m]
-     *  @param vertical_scale Vertical decorrelation length [m]
-     *  @param pos Positive deviation allowed
-     *  @param neg Negative deviation allowed
-     *  @param eps2
-     *  @param gross_error_score Score of gross error for each observation
-     *  @param rep Coefficient of representativity
-     *  @param obs_to_check Observations that will be checked (since can pass in observations that will not be checked). 1=check the corresponding observation
-     *  @return flags
+    /** Spatial Consistency Test with First Guess
+     * @param points            Longitude, latitude, and elevation of observation locations
+     * @param values            Observed values
+     * @param background_values First-guess values at observation locations
+     * @param values_min        Minimum acceptable observed value (set equal to values_max to ignore)
+     * @param values_max        Maximum acceptable observed value (set equal to values_min to ignore)
+     * @param num_min           Minimum required observations within the outer radius (must be > 1)
+     * @param num_max           Maximum observations used for the test (must be > num_min)
+     * @param inner_radius      Radius for flagging [m]
+     * @param outer_radius      Radius for computing OI [m]
+     * @param num_iterations    Maximum iterations (stops if no new flags are set)
+     * @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     * @param vertical_scale    Vertical decorrelation length [m]
+     * @param pos               Allowed positive deviation
+     * @param neg               Allowed negative deviation
+     * @param eps2              Observation-to-background error variance ratio (e.g., 0.5 means observations are trusted twice as much as the background)
+     * @param min_obs_var       Minimum observation error variance (reflects estimated representativeness error or expected observation uncertainty at min_horizontal_scale)
+     * @param gross_error_score Gross error score per observation (higher values indicate a greater likelihood of measurement or large representativeness error)
+     * @param obs_to_check      Observations to be checked (1 = check, 0 = ignore)
+     * @return Flags indicating suspect observations
      */
+
     ivec sct_with_fg(const Points& points,
             const vec& values,
             const vec& background_values,
+            float values_min,
+            float values_max,
             int num_min,
             int num_max,
             float inner_radius,
@@ -134,7 +143,6 @@ namespace titanlib {
             const vec& eps2,
             const vec& min_obs_var,
             vec& gross_error_score,
-            vec& rep,
             const ivec& obs_to_check=ivec());
 
     /** Spatial Consistency Test (SCT) - resistant to outliers
