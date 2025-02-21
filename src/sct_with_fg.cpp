@@ -429,7 +429,7 @@ ivec titanlib::sct_with_fg(const Points& points,
 //                }
 //            }
 
-        } // End STRAY DATA REDEMPTION LOOPDETECTION LOOP
+        } // End STRAY DATA REDEMPTION LOOP
 
         //---------------------------------------------------------------------
         // FLAG ASSIGNMENT STEP
