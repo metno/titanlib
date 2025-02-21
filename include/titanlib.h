@@ -142,7 +142,7 @@ namespace titanlib {
             const vec& neg,
             const vec& eps2,
             const vec& min_obs_var,
-            vec& gross_error_score,
+            vec& sct_score,
             const ivec& obs_to_check=ivec());
 
     /** Spatial Consistency Test (SCT) - resistant to outliers
