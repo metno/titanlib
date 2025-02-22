@@ -116,12 +116,15 @@ namespace titanlib {
      * @param outer_radius      Radius for computing OI [m]
      * @param num_iterations    Maximum iterations (stops if no new flags are set)
      * @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     * @param max_horizontal_scale Maximum horizontal decorrelation length [m]
      * @param vertical_scale    Vertical decorrelation length [m]
      * @param pos               Allowed positive deviation
      * @param neg               Allowed negative deviation
      * @param eps2              Observation-to-background error variance ratio (e.g., 0.5 means observations are trusted twice as much as the background)
      * @param min_obs_var       Minimum observation error variance (reflects estimated representativeness error or expected observation uncertainty at min_horizontal_scale)
-     * @param gross_error_score Gross error score per observation (higher values indicate a greater likelihood of measurement or large representativeness error)
+     * @param sct_score SCT (Gross error) score per observation (higher values indicate a greater likelihood of measurement or large representativeness error)
+     * @param diagnostics Should we write the diagnostics on a file?
+     * @param filename_diagnostics Diagnostics filename
      * @param obs_to_check      Observations to be checked (1 = check, 0 = ignore)
      * @return Flags indicating suspect observations
      */
@@ -137,11 +140,14 @@ namespace titanlib {
             float outer_radius,
             int num_iterations,
             float min_horizontal_scale,
+            float max_horizontal_scale,
             float vertical_scale,
             const vec& pos,
             const vec& neg,
             const vec& eps2,
             const vec& min_obs_var,
+            bool diagnostics,
+            const std::string& filename_diagnostics,
             vec& sct_score,
             const ivec& obs_to_check=ivec());
 
