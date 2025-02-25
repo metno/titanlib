@@ -38,8 +38,8 @@ if sys.platform != "darwin":
 module = Extension('_titanlib',
         sources=glob.glob('src/*.cpp') + glob.glob('src/*.c') + ['titanlibPYTHON_wrap.cxx'],
         libraries=["gsl", "gslcblas"],
-        extra_compile_args="-O3 -fPIC -std=c++14".split() + args,
-        extra_link_args="-O3 -fPIC -std=c++14".split() + args,
+        extra_compile_args="-O3 -fPIC".split() + args,
+        extra_link_args="-O3 -fPIC".split() + args,
         library_dirs=["/usr/lib64", "/usr/local/lib", "/usr/local/opt/armadillo/lib"],
         include_dirs=['./include', np.get_include(), '/usr/local/opt/armadillo/include',  "/usr/include", "/usr/local/include"]
 )

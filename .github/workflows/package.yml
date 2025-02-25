@@ -33,8 +33,8 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-20.04, windows-2019, macos-11]
-        os: [macos-14]
-        # os: [ubuntu-20.04]
+        os: [ubuntu-20.04]
+        # os: [macos-14]
 
     steps:
       - uses: actions/checkout@v3
@@ -58,7 +58,8 @@ jobs:
           # Armadillo isn't available for i687 on Centos 7, making compilation more complicated
           # # Musllinux doesn't use yum as its package manager
           # CIBW_SKIP: pp*-macosx* *i686* *musllinux* *p36* *p37* *p38* pp*
-          CIBW_BUILD: cp310-macosx_arm64
+          # CIBW_BUILD: cp310-macosx_arm64
+          CIBW_BUILD: cp310-manylinux_x86_64
           CIBW_BEFORE_ALL_LINUX: |
               yum install -y lapack-devel gsl-devel armadillo-devel
               curl -L -O https://archives.boost.io/release/1.72.0/source/boost_1_72_0.tar.gz
@@ -79,6 +80,7 @@ jobs:
               # ln -s /usr/local/bin/g++-13 /usr/local/bin/g++
           # CIBW_ENVIRONMENT_MACOS: CC='/usr/local/bin/gcc' LDSHARED='/usr/local/bin/gcc' CXX='/usr/local/bin/g++'
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=14.0 LDFLAGS='-L/opt/homebrew/lib' CPPFLAGS='-I/opt/homebrew/include -std=c++14 -Wno-c++11-narrowing'
+          CIBW_ENVIRONMENT_LINUX: CPPFLAGS='-std=c++11'
           CIBW_BEFORE_ALL_WINDOWS: choco install -y lapack-devel
           CIBW_TEST_COMMAND: >
               python {project}/tests/check_installation.py
