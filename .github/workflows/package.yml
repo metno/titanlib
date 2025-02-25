@@ -59,7 +59,7 @@ jobs:
           CIBW_SKIP: pp*-macosx* *i686* *musllinux* *p36* *p37* *p38* pp*
           CIBW_BEFORE_ALL_LINUX: |
               yum install -y lapack-devel gsl-devel armadillo-devel
-              curl -L -O https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz
+              curl -L -O https://archives.boost.io/release/1.72.0/source/boost_1_72_0.tar.gz
               tar -xf boost_1_72_0.tar.gz
               cd boost_1_72_0
               cp -r boost /usr/include
@@ -67,7 +67,7 @@ jobs:
               # Other than the latest version, Brew only has boost 1.76. Therefore we must install boost from source
               # brew reinstall gcc lapack gsl armadillo
               brew reinstall lapack gsl armadillo
-              curl -L -O https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz
+              curl -L -O https://archives.boost.io/release/1.72.0/source/boost_1_72_0.tar.gz
               tar -xf boost_1_72_0.tar.gz
               cd boost_1_72_0
               cp -r boost /usr/local/include
