@@ -23,9 +23,10 @@
 using namespace titanlib;
 
 // helpers
-void sct_with_fg_remove_flagged(ivec& indices, vec& distances, const ivec& flags1, const ivec& flags2, const int& index_to_keep, const int& nmax);
+void sct_with_fg_remove_flagged(ivec& indices, vec& distances, const ivec& flags1, const ivec& flags2, const int& index_to_keep, const int& nmax, const int& f1, const int& f2);
 void sct_with_fg_oi(vec& ares, vec& cvres, vec& innov, float& Dh_mean, const vec& lons, const vec& lats, const vec& elevs, const vec& values, const vec& backg, const vec& eps2, const float& Dz, const float& Dh_min, const float& Dh_max, const float& vmin, const float& vmax);
-float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& vmin);
+void sct_with_fg_oi_multi(vec& ares, vec& cvres, vec& innov, float& Dh_mean, const vec& lons, const vec& lats, const vec& elevs, const vec& values, const vec& backg, const vec& eps2, const float& Dz, const float& Dh_min, const float& Dh_max, const float& vmin, const float& vmax, const int& n_multi);
+float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& vmin, const float& q);
 float sct_with_fg_sig2_estimate_alt(const vec& values, const float& vmin);
 
 // start SCT with first guess //
@@ -63,10 +64,11 @@ ivec titanlib::sct_with_fg(const Points& points,
         if (!outfile) { // Check if the file opened successfully
             std::cerr << "Error opening file!" << std::endl;
         }
-        outfile << "it;loop;curr;i;index;lon;lat;z;yo;yb;ya;yav;dh;sig2;flags_d;score_d;flags_c;score_c;saved_c;flags_r;score_r;saved_r;flags;sct_score;" << std::endl;
+        outfile << "it;loop;curr;i;index;lon;lat;z;yo;yb;ya;yav;dh;sig2;tc;flags_d;score_d;flags_c;score_c;saved_c;flags_r;score_r;saved_r;flags;sct_score;" << std::endl;
     }
 
-    float alpha = 0.05; // Significance level (5%) used in the Cluster Preservation Loop
+//    float alpha = 0.05; // Significance level (5%) used in the Cluster Preservation Loop
+    float alpha = 0.01; // Significance level (5%) used in the Cluster Preservation Loop
 
     const vec& lats = points.get_lats();
     const vec& lons = points.get_lons();
@@ -144,7 +146,7 @@ ivec titanlib::sct_with_fg(const Points& points,
     //---------------------------------------------------------------------
     // SCT ITERATION
     for(int iteration = 0; iteration < num_iterations; iteration++) {
-        float s_time0 = titanlib::clock();
+        double s_time0 = titanlib::clock();
 
         int thrown_out = 0; // reset this number each loop (this is for breaking if we don't throw anything new out)
         int saved = 0; // reset this number each loop (this is for knowing how many observations have been given a 2nd chance)
@@ -185,7 +187,7 @@ ivec titanlib::sct_with_fg(const Points& points,
             // get all neighbours that are close enough
             vec distances;
             ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
-            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags, curr, num_max);
+            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags, curr, num_max, 0, 0);
             int s_box = neighbour_indices.size();
             
             // break out if observation isolated (note that we don't flag it)
@@ -207,10 +209,10 @@ ivec titanlib::sct_with_fg(const Points& points,
             vec cvres(s_box,0);
             vec innov(s_box,0);
             float Dh_mean = 0.;
-            sct_with_fg_oi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, values_box, backg_box, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, values_min, values_max);
+            sct_with_fg_oi_multi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, values_box, backg_box, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, values_min, values_max, 1);
             count_oi_d++;
             // estimate observation error variance
-            float sig2o = sct_with_fg_sig2_estimate(ares, innov, min_obs_var[curr]); 
+            float sig2o = sct_with_fg_sig2_estimate(ares, innov, min_obs_var[curr], 0.5); 
 
             // save variables for diagnostics
             dh_d[curr] = Dh_mean;
@@ -228,10 +230,12 @@ ivec titanlib::sct_with_fg(const Points& points,
                 }
                 float dist = distances[i];
                 if(dist <= inner_radius) {
-                    float score = cvres[i] * ares[i] / sig2o;
+                    float sig2o_i = std::max( sig2o, min_obs_var[index]);
+                    float score = cvres[i] * ares[i] / sig2o_i;
                     assert(titanlib::is_valid(score));
                     // condition to identify a candidate for flagging
                     if((cvres[i] < 0 && score > pos[index]) || (cvres[i] >= 0 && score > neg[index])) {
+                        sig2_d[index] = sig2o_i;
                         flags_d[index] = 1;
                     }
                     // in case of multiple checking of the same observation, then keep the highest score
@@ -253,6 +257,7 @@ ivec titanlib::sct_with_fg(const Points& points,
                     outfile << std::fixed << std::setprecision(2) << ares[i] + values_box[i] << ";" << cvres[i] + values_box[i] << ";";
                     outfile << std::fixed << std::setprecision(0) << dh_d[curr] << ";";
                     outfile << std::fixed << std::setprecision(3) << sig2_d[curr] << ";";
+                    outfile << std::fixed << std::setprecision(0) << "-999;";
                     outfile << std::fixed << std::setprecision(0) << flags_d[index] << ";";
                     outfile << std::fixed << std::setprecision(3) << score_d[index] << ";";
                     outfile << std::fixed << std::setprecision(0) << "-999;-999;-999;-999;-999;-999;-999;-999;" << std::endl; 
@@ -274,9 +279,13 @@ ivec titanlib::sct_with_fg(const Points& points,
             // get all neighbours that are close enough (exact same neighbours as in the detection loop)
             vec distances;
             ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
-            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags, curr, num_max);
+            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags, curr, num_max, 0, 0);
             int s_box = neighbour_indices.size();
-            // no need to check for isolation, since we have checked it in the detection loop
+            // break out if observation isolated (note that we flag it)
+//            if(s_box < num_min) {
+//                flags_c[curr] = 1;
+//                continue; 
+//            }
 
             // identify the index of curr observation in the box 
             int curr_in_box = 0;
@@ -292,43 +301,30 @@ ivec titanlib::sct_with_fg(const Points& points,
             vec lons_box = titanlib::subset(lons, neighbour_indices);
             vec elevs_box = titanlib::subset(elevs, neighbour_indices);
             vec lats_box = titanlib::subset(lats, neighbour_indices);
-            vec scores_box = titanlib::subset(score_d, neighbour_indices);
-            vec eps2_box = titanlib::subset(eps2, neighbour_indices);
-            // just used for diagnostics (next 2 lines)
             vec values_box = titanlib::subset(values, neighbour_indices);
             vec backg_box = titanlib::subset(background_values, neighbour_indices);
-            // the thing to flag is at "curr", ano not included in the box
+            vec eps2_box = titanlib::subset(eps2, neighbour_indices);
             
             // perform statistical interpolation within the box
             vec ares(s_box,0);
             vec cvres(s_box,0);
             vec innov(s_box,0);
-            vec zeros(s_box,0);
             float Dh_mean = 0.;
-            sct_with_fg_oi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, scores_box, zeros, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, 0, 0);
+            sct_with_fg_oi_multi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, values_box, backg_box, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, values_min, values_max, 4);
             count_oi_c++;
             // estimate variance in the scores within the box
-            float sig2 = sct_with_fg_sig2_estimate_alt(scores_box, 0.1);
+            float sig2o = sig2_d[curr]; 
 
             // save variables for diagnostics
             dh_c[curr] = Dh_mean;
-            sig2_c[curr] = sig2;
+            sig2_c[curr] = sig2o;
 
-            // remember that "num_min must be > 1" and s_box is greather or equal to num_min
-            float df = s_box-1;
-            // Create a Student's t-distribution
-            boost::math::students_t tdistro(df);
-            // Compute critical t-value for two-tailed test (alpha/2 for both tails)
-            float t_critical = boost::math::quantile(boost::math::complement(tdistro, alpha / 2));
-            //
-            float score = cvres[curr_in_box] * ares[curr_in_box] / sig2;
+            // re-check
+            float score = cvres[curr_in_box] * ares[curr_in_box] / sig2o;
             assert(titanlib::is_valid(score));
             score_c[curr] = score;
-            // Null hypothesis: SCT score is not significantly different from its expected value
-            // Reject the null hypothesis
-            if(std::fabs(score) > t_critical) {
+            if((cvres[curr_in_box] < 0 && score > pos[curr]) || (cvres[curr_in_box] >= 0 && score > neg[curr])) {
                 flags_c[curr] = 1;
-            // Accept the null hypothesis
             } else {
                 saved_c[curr] = 1;
             }
@@ -341,10 +337,11 @@ ivec titanlib::sct_with_fg(const Points& points,
                     outfile << iteration << ";2;" << curr << ";" << i << ";" << index << ";";
                     outfile << std::fixed << std::setprecision(5) << lons_box[i] << ";" << lats_box[i] << ";";
                     outfile << std::fixed << std::setprecision(0) << elevs_box[i] << ";";
-                    outfile << std::fixed << std::setprecision(2) << scores_box[i] << ";" << 0 << ";";
-                    outfile << std::fixed << std::setprecision(2) << ares[i] + scores_box[i] << ";" << cvres[i] + scores_box[i] << ";";
+                    outfile << std::fixed << std::setprecision(2) << values_box[i] << ";" << backg_box[i] << ";";
+                    outfile << std::fixed << std::setprecision(2) << ares[i] + values_box[i] << ";" << cvres[i] + values_box[i] << ";";
                     outfile << std::fixed << std::setprecision(0) << dh_c[curr] << ";";
                     outfile << std::fixed << std::setprecision(3) << sig2_c[curr] << ";";
+                    outfile << std::fixed << std::setprecision(3) << "-999;"; 
                     outfile << std::fixed << std::setprecision(0) << flags_d[index] << ";";
                     outfile << std::fixed << std::setprecision(3) << score_d[index] << ";";
                     outfile << std::fixed << std::setprecision(0) << flags_c[index] << ";";
@@ -368,7 +365,7 @@ ivec titanlib::sct_with_fg(const Points& points,
             // get all neighbours that are close enough (consider only non-flagged neighbours)
             vec distances;
             ivec neighbour_indices = tree.get_neighbours_with_distance(lats[curr], lons[curr], outer_radius, distances, true);
-            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags_c, curr, num_max);
+            sct_with_fg_remove_flagged(neighbour_indices, distances, flags, flags_c, curr, num_max, 0, 0);
             int s_box = neighbour_indices.size();
 
             // break out if observation isolated
@@ -402,10 +399,10 @@ ivec titanlib::sct_with_fg(const Points& points,
             vec cvres(s_box,0);
             vec innov(s_box,0);
             float Dh_mean = 0.;
-            sct_with_fg_oi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, values_box, backg_box, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, values_min, values_max);
+            sct_with_fg_oi_multi(ares, cvres, innov, Dh_mean, lons_box, lats_box, elevs_box, values_box, backg_box, eps2_box, vertical_scale, min_horizontal_scale, max_horizontal_scale, values_min, values_max, 1);
             count_oi_r++;
             // estimate observation error variance
-            float sig2o = sct_with_fg_sig2_estimate(ares, innov, min_obs_var[curr]); 
+            float sig2o = sct_with_fg_sig2_estimate(ares, innov, min_obs_var[curr], 0.5); 
 
             // save variables for diagnostics
             dh_r[curr] = Dh_mean;
@@ -432,6 +429,7 @@ ivec titanlib::sct_with_fg(const Points& points,
                     outfile << std::fixed << std::setprecision(2) << ares[i] + values_box[i] << ";" << cvres[i] + values_box[i] << ";";
                     outfile << std::fixed << std::setprecision(0) << dh_r[curr] << ";";
                     outfile << std::fixed << std::setprecision(3) << sig2_r[curr] << ";";
+                    outfile << std::fixed << std::setprecision(0) << "-999;";
                     outfile << std::fixed << std::setprecision(0) << flags_d[index] << ";";
                     outfile << std::fixed << std::setprecision(3) << score_d[index] << ";";
                     outfile << std::fixed << std::setprecision(0) << flags_c[index] << ";";
@@ -489,6 +487,11 @@ ivec titanlib::sct_with_fg(const Points& points,
                     tot_saved_c++;
                 if(saved_r[curr]==1)
                     tot_saved_r++;
+            }
+        } // End FLAG ASSIGNMENT STEP
+
+        if(diagnostics) {
+            for(int curr=0; curr < s; curr++) {
                 // "it;loop;curr;i;index;lon;lat;z;yo;yb;ya;yav;dh;sig2;flags_d;score_d;flags_c;score_c;saved_c;flags_r;score_r;saved_r;flags;sct_score;"
                 outfile << iteration << ";4;" << curr << ";" << 0 << ";" << curr << ";";
                 outfile << std::fixed << std::setprecision(5) << lons[curr] << ";" << lats[curr] << ";";
@@ -497,6 +500,7 @@ ivec titanlib::sct_with_fg(const Points& points,
                 outfile << std::fixed << std::setprecision(2) << "-999;-999;";
                 outfile << std::fixed << std::setprecision(0) << "-999;";
                 outfile << std::fixed << std::setprecision(3) << "-999;";
+                outfile << std::fixed << std::setprecision(0) << "-999;";
                 outfile << std::fixed << std::setprecision(0) << flags_d[curr] << ";";
                 outfile << std::fixed << std::setprecision(3) << score_d[curr] << ";";
                 outfile << std::fixed << std::setprecision(0) << flags_c[curr] << ";";
@@ -508,9 +512,6 @@ ivec titanlib::sct_with_fg(const Points& points,
                 outfile << std::fixed << std::setprecision(0) << flags[curr] << ";";
                 outfile << std::fixed << std::setprecision(3) << sct_score[curr] << ";" << std::endl; 
             }
-        } // End FLAG ASSIGNMENT STEP
-
-        if(diagnostics) {
             std::cout << "==========================================" << std::endl;
             std::cout << "-- Detection Loop -- " << std::endl;
             std::cout << "# obs " << s << " Checked " << tot_checked_d << " Flagged " << tot_flagged_d << " Number of OI loop " << count_oi_d << std::endl;
@@ -519,9 +520,9 @@ ivec titanlib::sct_with_fg(const Points& points,
             std::cout << "-- Stray Data Redemption Loop -- " << std::endl;
             std::cout << "# checked " << tot_flagged_c << " Flagged " << tot_flagged_r << " Saved " << tot_saved_r << " Number of OI loop " << count_oi_r << std::endl;
             std::cout << "-- Summary -- " << std::endl;
-            std::cout << "Removing " << thrown_out << " (Total removed " << tot_thrown_out << ")" << std::endl;
-            float e_time0 = titanlib::clock();
-            std::cout << "Time " << e_time0 - s_time0 << std::endl;
+            std::cout << "Removing " << thrown_out << " (Total removed " << tot_thrown_out << " , " << std::setprecision(0) << 100*tot_thrown_out/s << "%)" << std::endl;
+            double e_time0 = titanlib::clock();
+            std::cout << "Time " << std::setprecision(0) << e_time0 - s_time0 << std::endl;
         }
 
         //---------------------------------------------------------------------
@@ -543,7 +544,7 @@ ivec titanlib::sct_with_fg(const Points& points,
 //----------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 
-void sct_with_fg_remove_flagged(ivec& indices, vec& distances, const ivec& flags1, const ivec& flags2, const int& index_to_keep, const int& nmax) {
+void sct_with_fg_remove_flagged(ivec& indices, vec& distances, const ivec& flags1, const ivec& flags2, const int& index_to_keep, const int& nmax, const int& f1, const int& f2) {
 
     ivec indices_new;
     vec distances_new;
@@ -552,7 +553,7 @@ void sct_with_fg_remove_flagged(ivec& indices, vec& distances, const ivec& flags
     distances_new.reserve(indices.size());
 
     for(int i=0; i<indices.size(); i++) {
-        if((flags1[indices[i]] == 0 && flags2[indices[i]] == 0) || indices[i] == index_to_keep) {
+        if((flags1[indices[i]] == f1 && flags2[indices[i]] == f2) || indices[i] == index_to_keep) {
             indices_new.push_back(indices[i]);
             distances_new.push_back(distances[i]);
         }
@@ -599,74 +600,165 @@ void sct_with_fg_oi(vec& ares, vec& cvres, vec& innov, float& Dh_mean, const vec
                     Dh_vector[j - 1] = disth(i, j);
                 else if(i > j)
                     Dh_vector[j] = disth(i, j);
-                }
-            }
-            Dh(i) = titanlib::compute_quantile(0.10, Dh_vector);
-        }
-
-        Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
-        if(Dh_mean < Dh_min) 
-            Dh_mean = Dh_min;
-        else if(Dh_mean < Dh_max)
-            Dh_mean = Dh_max;
-
-        boost::numeric::ublas::matrix<float> S(s_dim,s_dim);
-        boost::numeric::ublas::matrix<float> Sinv(s_dim,s_dim);
-        for(int i=0; i < s_dim; i++) {
-            for(int j=0; j < s_dim; j++) {
-                double corr_value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
-                if(i==j) { // weight the diagonal?? (0.5 default)
-                    corr_value = corr_value + eps2[i];
-                }
-                S(i,j) = corr_value;
             }
         }
+        Dh(i) = titanlib::compute_quantile(0.10, Dh_vector);
+    }
 
-        boost::numeric::ublas::vector<float> d(s_dim);
-        for(int i=0; i < s_dim; i++) {
-            d(i) = values[i] - backg[i]; // innovation: difference between actual value and background
-            innov[i] = values[i] - backg[i];
+    Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
+    if(Dh_mean < Dh_min) 
+        Dh_mean = Dh_min;
+    else if(Dh_mean > Dh_max)
+        Dh_mean = Dh_max;
+
+    boost::numeric::ublas::matrix<float> S(s_dim,s_dim);
+    boost::numeric::ublas::matrix<float> Sinv(s_dim,s_dim);
+    for(int i=0; i < s_dim; i++) {
+        for(int j=0; j < s_dim; j++) {
+            double corr_value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
+            if(i==j) { // weight the diagonal?? (0.5 default)
+                corr_value = corr_value + eps2[i];
+            }
+            S(i,j) = corr_value;
         }
+    }
 
-        //   Beginning of real SCT
-        bool b = titanlib::invert_matrix(S, Sinv);
-//        if(b != true) {
-//            // TODO: flag differently or give an error???
-//            continue;
-//        }
+    boost::numeric::ublas::vector<float> d(s_dim);
+    for(int i=0; i < s_dim; i++) {
+        d(i) = values[i] - backg[i]; // innovation: difference between actual value and background
+        innov[i] = values[i] - backg[i];
+    }
 
-        // Unweight the diagonal
-        for(int i=0; i < s_dim; i++) {
-            S(i,i) -= eps2[i];
+    //   Beginning of real SCT
+    bool b = titanlib::invert_matrix(S, Sinv);
+//    if(b != true) {
+//        // TODO: flag differently or give an error???
+//        continue;
+//    }
+
+    // Unweight the diagonal
+    for(int i=0; i < s_dim; i++) {
+        S(i,i) -= eps2[i];
+    }
+
+    boost::numeric::ublas::vector<float> Zinv(s_dim), Sinv_d(s_dim), ainc(s_dim);
+
+    Sinv_d = boost::numeric::ublas::prod(Sinv, d);
+
+    ainc = boost::numeric::ublas::prod(S, Sinv_d); // analysis increment, ainc = ya - yb
+
+    for(int i=0; i<s_dim; i++) {
+        Zinv(i) = (1/Sinv(i,i)); 
+        ares[i] = ainc(i)-d(i); // analysis residual, ares=ya-yb-(yo-yb) = ya - yo
+        if((vmin!=vmax) && (ares[i] < (vmin-values[i])))
+            ares[i] = vmin-values[i];
+        if((vmin!=vmax) && (ares[i] > (vmax-values[i])))
+            ares[i] = vmax-values[i];
+    }
+
+    for(int i=0; i<s_dim; i++) {
+        cvres[i] = -1*Zinv(i) * Sinv_d(i);  // CVAres = yav - yo
+        if((vmin!=vmax) && (cvres[i] < (vmin-values[i])))
+            cvres[i] = vmin-values[i];
+        if((vmin!=vmax) && (cvres[i] > (vmax-values[i])))
+            cvres[i] = vmax-values[i];
+    }
+
+} // END sct_with_fg_oi
+
+//
+void sct_with_fg_oi_multi(vec& ares, vec& cvres, vec& innov, float& Dh_mean, const vec& lons, const vec& lats, const vec& elevs, const vec& values, const vec& backg, const vec& eps2, const float& Dz, const float& Dh_min, const float& Dh_max, const float& vmin, const float& vmax, const int& n_multi) {
+
+    int s_dim = values.size();
+
+    boost::numeric::ublas::matrix<float> disth(s_dim, s_dim);
+    boost::numeric::ublas::matrix<float> distz(s_dim, s_dim);
+    boost::numeric::ublas::vector<float> Dh(s_dim);
+
+    for(int i=0; i < s_dim; i++) {
+        vec Dh_vector(s_dim);
+        for(int j=0; j < s_dim; j++) {
+            disth(i, j) = titanlib::calc_distance(lats[i], lons[i], lats[j], lons[j]);
+            distz(i, j) = fabs(elevs[i] - elevs[j]);
+            if(i != j) {
+                if(i < j)
+                    Dh_vector[j - 1] = disth(i, j);
+                else if(i > j)
+                    Dh_vector[j] = disth(i, j);
+            }
         }
+        Dh(i) = titanlib::compute_quantile(0.10, Dh_vector);
+    }
 
-        boost::numeric::ublas::vector<float> Zinv(s_dim), Sinv_d(s_dim), ainc(s_dim);
+    Dh_mean = std::accumulate(std::begin(Dh), std::end(Dh), 0.0) / Dh.size();
+    if(Dh_mean < Dh_min) 
+        Dh_mean = Dh_min;
+    else if(Dh_mean > Dh_max)
+        Dh_mean = Dh_max;
+
+    boost::numeric::ublas::matrix<float> S(s_dim,s_dim);
+    boost::numeric::ublas::matrix<float> Sinv(s_dim,s_dim);
+    for(int i=0; i < s_dim; i++) {
+        for(int j=0; j < s_dim; j++) {
+            double corr_value = std::exp(-.5 * std::pow((disth(i, j) / Dh_mean), 2) - .5 * std::pow((distz(i, j) / Dz), 2));
+            if(i==j) { // weight the diagonal?? (0.5 default)
+                corr_value = corr_value + eps2[i];
+            }
+            S(i,j) = corr_value;
+        }
+    }
+
+    boost::numeric::ublas::vector<float> d(s_dim);
+    for(int i=0; i < s_dim; i++) {
+        d(i) = values[i] - backg[i]; // innovation: difference between actual value and background
+        innov[i] = values[i] - backg[i];
+    }
+
+    //   Beginning of real SCT
+    bool b = titanlib::invert_matrix(S, Sinv);
+//    if(b != true) {
+//        // TODO: flag differently or give an error???
+//        continue;
+//    }
+
+    // Unweight the diagonal
+    boost::numeric::ublas::vector<float> Zinv(s_dim);
+    for(int i=0; i < s_dim; i++) {
+        S(i,i) -= eps2[i];
+        Zinv(i) = (1/Sinv(i,i)); 
+    }
+
+    // Multi loop
+    for(int k=0; k < n_multi; k++) {
+
+        boost::numeric::ublas::vector<float> Sinv_d(s_dim), ainc(s_dim);
 
         Sinv_d = boost::numeric::ublas::prod(Sinv, d);
 
         ainc = boost::numeric::ublas::prod(S, Sinv_d); // analysis increment, ainc = ya - yb
 
-        for(int i=0; i<s_dim; i++) {
-            Zinv(i) = (1/Sinv(i,i)); 
-            ares[i] = ainc(i)-d(i); // analysis residual, ares=ya-yb-(yo-yb) = ya - yo
+        for(int i=0; i < s_dim; i++) {
+            // analysis residual, ares = ya-yb-(yo-yb) = ya - yo
+            ares[i] = ainc(i)-d(i); 
             if((vmin!=vmax) && (ares[i] < (vmin-values[i])))
                 ares[i] = vmin-values[i];
             if((vmin!=vmax) && (ares[i] > (vmax-values[i])))
                 ares[i] = vmax-values[i];
-        }
-
-        for(int i=0; i<s_dim; i++) {
-            cvres[i] = -1*Zinv(i) * Sinv_d(i);  // CVAres = yav - yo
+            // cv-analysis residual, cvres = yav - yo
+            cvres[i] = -1*Zinv(i) * Sinv_d(i);
             if((vmin!=vmax) && (cvres[i] < (vmin-values[i])))
                 cvres[i] = vmin-values[i];
             if((vmin!=vmax) && (cvres[i] > (vmax-values[i])))
                 cvres[i] = vmax-values[i];
+            // update innovation: difference between actual value and cv-value
+            d(i) = -1 * cvres[i]; 
         }
+    }  // End multi loop
 
 } // END sct_with_fg_oi
 
 //
-float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& vmin) {
+float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& vmin, const float& q) {
 
     int s_dim = ares.size();
 
@@ -674,7 +766,7 @@ float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& 
     for(int i=0; i<s_dim; i++) 
         sig2_temp[i] = -1*ares[i]*innov[i];
  
-    float sig2 = titanlib::compute_quantile( 0.5, sig2_temp);
+    float sig2 = titanlib::compute_quantile( q, sig2_temp);
     if(sig2 < vmin) 
         sig2 = vmin;
     return sig2;
@@ -684,7 +776,8 @@ float sct_with_fg_sig2_estimate(const vec& ares, const vec& innov, const float& 
 float sct_with_fg_sig2_estimate_alt(const vec& values, const float& vmin) {
 
     // pseudo-variance
-    float sig2 = std::pow( ((titanlib::compute_quantile( 0.75, values) - titanlib::compute_quantile( 0.25, values)) / 1.349), 2);
+//    float sig2 = std::pow( ((titanlib::compute_quantile( 0.75, values) - titanlib::compute_quantile( 0.25, values)) / 1.349), 2);
+    float sig2 = std::pow( titanlib::compute_quantile( 0.9, values), 2);
 
     if(sig2 <vmin) 
         sig2 = vmin;
