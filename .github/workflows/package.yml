@@ -78,7 +78,7 @@ jobs:
               # ln -s /usr/local/bin/gcc-13 /usr/local/bin/gcc
               # ln -s /usr/local/bin/g++-13 /usr/local/bin/g++
           # CIBW_ENVIRONMENT_MACOS: CC='/usr/local/bin/gcc' LDSHARED='/usr/local/bin/gcc' CXX='/usr/local/bin/g++'
-          CIBW_ENVIRONMENT_MACOS: CFLAGS='-Wno-c++11-narrowing' LDFLAGS='-L/opt/homebrew/lib' CPPFLAGS='-I/opt/homebrew/include -std=c++14'
+          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=14.0 LDFLAGS='-L/opt/homebrew/lib' CPPFLAGS='-I/opt/homebrew/include -std=c++14 -Wno-c++11-narrowing'
           CIBW_BEFORE_ALL_WINDOWS: choco install -y lapack-devel
           CIBW_TEST_COMMAND: >
               python {project}/tests/check_installation.py
