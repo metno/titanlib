@@ -100,6 +100,7 @@ namespace titanlib {
             vec& prob_gross_error,
             vec& rep,
             const ivec& obs_to_check=ivec());
+
     /** ****************************************
      * @name Spatial Checks
      * Validates observations based on spatial properties and first-guess values.
@@ -122,11 +123,11 @@ namespace titanlib {
      * @param neg               Allowed negative deviation
      * @param eps2              Observation-to-background error variance ratio (e.g., 0.5 means observations are trusted twice as much as the background)
      * @param min_obs_var       Minimum observation error variance (reflects estimated representativeness error or expected observation uncertainty at min_horizontal_scale)
-     * @param sct_score SCT (Gross error) score per observation (higher values indicate a greater likelihood of measurement or large representativeness error)
-     * @param diagnostics Should we write the diagnostics on a file?
+     * @param diagnostics Should we write the diagnostics on a file? True or False
      * @param filename_diagnostics Diagnostics filename
+     * @param sct_scores SCT (Gross error) score per observation (higher values indicate a greater likelihood of measurement or large representativeness error)
      * @param obs_to_check      Observations to be checked (1 = check, 0 = ignore)
-     * @return Flags indicating suspect observations
+     * @return Flags indicating suspect observations (1 = suspect, 0 = good)
      */
 
     ivec sct_with_fg(const Points& points,
@@ -148,7 +149,54 @@ namespace titanlib {
             const vec& min_obs_var,
             bool diagnostics,
             const std::string& filename_diagnostics,
-            vec& sct_score,
+            vec& sct_scores,
+            const ivec& obs_to_check=ivec());
+
+    /** ****************************************
+     * @name Spatial Checks
+     * Validates binary (yes/no) observations based on spatial properties and first-guess values.
+     * *****************************************/ /**@{*/
+    /** Spatial Consistency Test with First Guess
+     * @param points            Longitude, latitude, and elevation of observation locations
+     * @param values            Observed values
+     * @param background_values First-guess values at observation locations
+     * @param event_thresholds event thresholds (not used if background_elab_type!=external)
+     * @param condition one of: Eq, Gt, Geq, Lt, Leq
+     * @param num_min           Minimum required observations within the outer radius (must be > 1)
+     * @param num_max           Maximum observations used for the test (must be > num_min)
+     * @param inner_radius      Radius for flagging [m]
+     * @param outer_radius      Radius for computing OI [m]
+     * @param num_iterations    Maximum iterations (stops if no new flags are set)
+     * @param min_horizontal_scale Minimum horizontal decorrelation length [m]
+     * @param max_horizontal_scale Maximum horizontal decorrelation length [m]
+     * @param vertical_scale    Vertical decorrelation length [m]
+     * @param eps2              Observation-to-background error variance ratio (e.g., 0.5 means observations are trusted twice as much as the background)
+     * @param diagnostics Should we write the diagnostics on a file? True or False
+     * @param filename_diagnostics Diagnostics filename
+     * @param sct_cvidis_yes Score (0-1) representing the expected likelihood of a "yes" observation based on neighbor values
+     * @param sct_cvidis_no Score (0-1) representing the expected likelihood of a "no" observation based on neighbor values
+     * @param obs_to_check      Observations to be checked (1 = check, 0 = ignore)
+     * @return Flags indicating suspect observations (1 = suspect, 0 = good)
+     */
+
+    ivec sct_dual_with_fg(const Points& points,
+            const vec& values,
+            const vec& background_values,
+            const vec& event_thresholds,
+            ConditionType condition,
+            int num_min,
+            int num_max,
+            float inner_radius,
+            float outer_radius,
+            int num_iterations,
+            float min_horizontal_scale,
+            float max_horizontal_scale,
+            float vertical_scale,
+            const vec& eps2,
+            bool diagnostics,
+            const std::string& filename_diagnostics,
+            vec& sct_cvidis_yes,
+            vec& sct_cvidis_no,
             const ivec& obs_to_check=ivec());
 
     /** Spatial Consistency Test (SCT) - resistant to outliers
