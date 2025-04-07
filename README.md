@@ -8,7 +8,7 @@ written in C++ and has bindings for python and R. The library consists of a set 
 tests on data.
 
 Titanlib is currently under active development and the current version is a prototype for testing. Feedback
-is welcome, either by using the [issue tracker in Github](https://github.com/metno/titanlib/issues), by contacting Thomas Nipen (thomasn@met.no), or by participating to the [discussion](https://github.com/metno/titanlib/discussions).
+is welcome, either by using the [issue tracker in Github](https://github.com/metno/titanlib/issues), by contacting us on titanlib@met.no, or by participating to the [discussion](https://github.com/metno/titanlib/discussions).
 
 ![Example of titanlib](docs/image.jpg)
 
