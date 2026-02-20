@@ -70,6 +70,67 @@ class DatasetTest(unittest.TestCase):
                 max_elev_diff, elev_gradient, min_std, num_iterations)
         np.testing.assert_array_equal(dataset.flags, [0]*8 + [1]*2)
 
+    def test_sct_resistant(self):
+        N = 10
+        lats = [60] * N
+        lons = np.linspace(60, 60.01, N)
+        elevs = np.linspace(0, 90, N)
+        points = titanlib.Points(lats, lons, elevs)
+        values = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0.1, 1000], dtype=float)
+
+        obs_to_check = [1] * N
+        background_values = [0.0] * N
+        background_elab_type = titanlib.VerticalProfile
+        num_min_outer = 3
+        num_max_outer = 10
+        inner_radius = 50000
+        outer_radius = 50000
+        num_iterations = 2
+        num_min_prof = 0
+        min_elev_diff = 100
+        min_horizontal_scale = 10000
+        max_horizontal_scale = 100000
+        kth_closest_obs_horizontal_scale = 2
+        vertical_scale = 200
+        eps2 = np.ones(N) * 0.5
+        tpos = np.ones(N) * 16
+        tneg = np.ones(N) * 16
+        value_mina = values - 20
+        value_maxa = values + 20
+        value_minv = values - 1
+        value_maxv = values + 1
+        debug = False
+        basic = False
+
+        expected_flags = np.array([12, 12,  0,  0,  0,  0,  0,  0,  0,  1])
+        dataset = titanlib.Dataset(points, values)
+        dataset.sct_resistant(
+                obs_to_check,
+                background_values,
+                background_elab_type,
+                num_min_outer,
+                num_max_outer,
+                inner_radius,
+                outer_radius,
+                num_iterations,
+                num_min_prof,
+                min_elev_diff,
+                min_horizontal_scale,
+                max_horizontal_scale,
+                kth_closest_obs_horizontal_scale,
+                vertical_scale,
+                value_mina,
+                value_maxa,
+                value_minv,
+                value_maxv,
+                eps2,
+                tpos,
+                tneg,
+                debug,
+                basic,
+            )
+        np.testing.assert_array_equal(dataset.get_flags(), expected_flags)
+
     def test_isolation_check(self):
         lats = [60, 60, 60, 60]
         lons = [10, 10.1, 10.2, 12]
