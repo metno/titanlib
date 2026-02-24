@@ -123,5 +123,68 @@ class SctResistantTest(unittest.TestCase):
  
         print("===============================================================")
 
+    def test_accept_isolated_false(self):
+        """Test that isolated observations get flag 12 when accept_isolated=False"""
+        # Create a small cluster of observations plus one isolated observation far away
+        N_cluster = 10
+        lats_cluster = 60 + np.linspace(0, 0.09, N_cluster)
+        lons_cluster = 10 + np.linspace(0, 0.09, N_cluster)
+        elevs_cluster = np.zeros(N_cluster)
+        values_cluster = np.ones(N_cluster) * 20
+
+        # Add one isolated observation very far from the cluster
+        lats = np.append(lats_cluster, [70.0])
+        lons = np.append(lons_cluster, [30.0])
+        elevs = np.append(elevs_cluster, [0.0])
+        values = np.append(values_cluster, [20.0])
+
+        N = len(lats)
+        obs_to_check = [1] * N
+        background_values = np.zeros(N)
+        background_elab_type = titanlib.VerticalProfileTheilSen
+        num_min_outer = 3
+        num_max_outer = 50
+        inner_radius = 30000
+        outer_radius = 50000
+        num_iterations = 10
+        num_min_prof = 10
+        min_elev_diff = 500
+        min_horizontal_scale = 500
+        max_horizontal_scale = 10000
+        kth_closest_obs_horizontal_scale = 3
+        vertical_scale = 600
+        tpos = np.ones(N) * 3
+        tneg = np.ones(N) * 3
+        eps2 = np.ones(N) * 0.5
+        values_mina = values - 20 * np.ones(N)
+        values_maxa = values + 20 * np.ones(N)
+        values_minv = values - 1 * np.ones(N)
+        values_maxv = values + 1 * np.ones(N)
+        debug = False
+        basic = False
+
+        points = titanlib.Points(lats, lons, elevs)
+
+        # With accept_isolated=True (default), isolated obs should be flagged 0 (good)
+        flags_default, score_default = titanlib.sct_resistant(points, values, obs_to_check,
+                background_values, background_elab_type, num_min_outer, num_max_outer,
+                inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
+                min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale,
+                vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2,
+                tpos, tneg, debug, basic)
+        # The isolated observation (last one) should be flagged as 0 (good) by default
+        self.assertEqual(flags_default[-1], 0)
+
+        # With accept_isolated=False, isolated obs should be flagged 12
+        flags_strict, score_strict = titanlib.sct_resistant(points, values, obs_to_check,
+                background_values, background_elab_type, num_min_outer, num_max_outer,
+                inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff,
+                min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale,
+                vertical_scale, values_mina, values_maxa, values_minv, values_maxv, eps2,
+                tpos, tneg, debug, basic, False)
+        # The isolated observation (last one) should be flagged as 12
+        self.assertEqual(flags_strict[-1], 12)
+        print("test_accept_isolated_false passed")
+
 if __name__ == '__main__':
     unittest.main()

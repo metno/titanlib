@@ -37,7 +37,8 @@ ivec titanlib::sct_dual( const Points& points,
                          int kth_closest_obs_horizontal_scale,
                          float vertical_scale,
                          const vec& test_thresholds,
-                         bool debug) {
+                         bool debug,
+                         bool accept_isolated) {
 /*
 
  -+-+ Spatial Consistency Test for dichotomous (yes/no) variables +-+-
@@ -95,8 +96,11 @@ ivec titanlib::sct_dual( const Points& points,
  + Returned values:
 
   flags. -999 = not checked; 0 = passed (good); 1 = failed (bad)
-         When accept_not_tested is true (default): isolated observations are flagged as 0 (good)
-         When accept_not_tested is false: 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
+         When accept_isolated is true (default): isolated observations that cannot be
+           tested due to insufficient neighbours are flagged as 0 (good)
+         When accept_isolated is false: 11 = isolated (<2 inside inner);
+           12 = isolated (<num_min_outer inside outer).
+           The accept_isolated parameter is exposed as an optional argument (default: true)
 
 */
 
@@ -137,14 +141,13 @@ ivec titanlib::sct_dual( const Points& points,
     vec t( p, na);
 
     bool set_all_good = false;
-    bool accept_not_tested = true;
-    if(accept_not_tested){
-        std::cout << "Set flags for values that could not be tested as good " << p << std::endl;
+    if(accept_isolated){
+        std::cout << "Set flags for values that could not be tested as good " << std::endl;
         flag_not_tested_inner = 0;
         flag_not_tested_outer = 0;
     }
     else{
-        std::cout << "Set flags for values that could not be tested due to lack of points in the inner/outer radius to 11/12." << p << std::endl;
+        std::cout << "Set flags for values that could not be tested due to lack of points in the inner/outer radius to 11/12." << std::endl;
         flag_not_tested_inner = 11;
         flag_not_tested_outer = 12;
     }
@@ -661,9 +664,9 @@ ivec titanlib::sct_dual( const Points& points,
                 count_good++;
             } else if ( flags[curr] == na) {
                 count_missing++;
-            } else if( accept_not_tested && (flags[curr] == flag_not_tested_inner)) {
+            } else if( !accept_isolated && (flags[curr] == flag_not_tested_inner)) {
                 count_iso_inner++;
-            } else if( accept_not_tested && (flags[curr] == flag_not_tested_outer))  {
+            } else if( !accept_isolated && (flags[curr] == flag_not_tested_outer))  {
                 count_iso_outer++;
             } else if( flags[curr] == 100) {
                 count_fail_matinv++;
@@ -671,7 +674,7 @@ ivec titanlib::sct_dual( const Points& points,
                 count_impossible++;
             }
         }
-        if(accept_not_tested)
+        if(accept_isolated)
             std::cout << std::setprecision(3) << "summary - # TOT good bad missing: " << p << " " << count_good << " " << count_bad << " " << count_missing << std::endl; 
         else
             std::cout << std::setprecision(3) << "summary - # TOT good bad missing isolated(inner) isolated(outer): " << p << " " << count_good << " " << count_bad << " " << count_missing << " " << count_iso_inner << " " << count_iso_outer << std::endl;

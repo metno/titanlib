@@ -128,7 +128,8 @@ namespace titanlib {
      *  @param debug Verbose output
      *  @param basic Which SCT-score should be used? Basic or more advanced, which takes into account the local variability. Boolean: true=basic; false=advanced
      *  @param scores SCT-score. The higher the score, the more likely is the presence of a gross measurement error
-     *  @return flags
+     *  @param accept_isolated When true (default), isolated observations that cannot be tested due to insufficient neighbours are flagged as 0 (good). When false, they are flagged as 11 (too few in inner circle) or 12 (too few in outer circle).
+     *  @return flags: -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated inner (only when accept_isolated=false); 12 = isolated outer (only when accept_isolated=false)
      */
     ivec sct_resistant( const Points& points,
                         const vec& values,
@@ -155,7 +156,8 @@ namespace titanlib {
                         const vec& tneg,
                         bool debug,
                         bool basic,
-                        vec& scores);
+                        vec& scores,
+                        bool accept_isolated=true);
 
     /**  Spatial Consistency Test for dichotomous (yes/no) variables
      *  @param points Input points
@@ -174,7 +176,8 @@ namespace titanlib {
      *  @param vertical_scale Vertical decorrelation length [m]
      *  @param test_thresholds observation-dependent trhesholds used in the SCT dual tests. The threshold is for the relative information content and it should tipically be a number between 0-1
      *  @param debug Verbose output
-     *  @return flags
+     *  @param accept_isolated When true (default), isolated observations that cannot be tested due to insufficient neighbours are flagged as 0 (good). When false, they are flagged as 11 (too few in inner circle) or 12 (too few in outer circle).
+     *  @return flags: -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated inner (only when accept_isolated=false); 12 = isolated outer (only when accept_isolated=false)
      */
     ivec sct_dual( const Points& points,
                    const vec& values,
@@ -191,7 +194,8 @@ namespace titanlib {
                    int kth_closest_obs_horizontal_scale,
                    float vertical_scale,
                    const vec& test_thresholds,
-                   bool debug);
+                   bool debug,
+                   bool accept_isolated=true);
 
      /** First Guess Test (FGT) - simplified (without OI) SCT
      *  @param points Input points
@@ -642,7 +646,8 @@ namespace titanlib {
                     bool debug,
                     bool basic,
                     vec& scores,
-                    const ivec& indices=ivec(1, -1));
+                    const ivec& indices=ivec(1, -1),
+                    bool accept_isolated=true);
             void sct_dual(const vec& event_thresholds, 
                                 ConditionType condition, 
                                 int num_min, int num_max,
@@ -653,7 +658,8 @@ namespace titanlib {
                                 float vertical_scale,
                                 const vec& test_thresholds,
                                 bool debug,
-                                const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
+                                const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1),
+                                bool accept_isolated=true);
             void buddy_check(const vec& radius, const ivec& num_min, float threshold, float max_elev_diff, float elev_gradient, float min_std, int num_iterations,
                              const ivec& obs_to_check=ivec(), const ivec& indices=ivec(1, -1));
             void buddy_event_check(const vec& radius, const ivec& num_min, float event_threshold, float threshold, float max_elev_diff, float elev_gradient, int num_iterations,

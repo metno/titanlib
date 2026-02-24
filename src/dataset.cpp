@@ -75,7 +75,8 @@ void titanlib::Dataset::sct_resistant(const ivec& obs_to_check,
             bool debug,
             bool basic,
             vec& scores,
-            const ivec& indices) {
+            const ivec& indices,
+            bool accept_isolated) {
     ivec new_flags = titanlib::sct_resistant(get_unflagged_points(),
             get_unflagged(values),
             get_unflagged(obs_to_check),
@@ -101,7 +102,8 @@ void titanlib::Dataset::sct_resistant(const ivec& obs_to_check,
             get_unflagged(tneg),
             debug,
             basic,
-            scores);
+            scores,
+            accept_isolated);
     merge(new_flags, indices);
 }
 
@@ -116,14 +118,15 @@ void titanlib::Dataset::sct_dual(const vec& event_thresholds,
                                 const vec& test_thresholds,
                                 bool debug,
                                 const ivec& obs_to_check,
-                                const ivec& indices){
+                                const ivec& indices,
+                                bool accept_isolated){
     // Only keep flags that are not flagged
     ivec new_flags = titanlib::sct_dual(get_unflagged_points(), get_unflagged(values), get_unflagged(obs_to_check),
                                         get_unflagged(event_thresholds), condition,
                                         num_min, num_max, inner_radius, outer_radius, num_iterations, 
                                         min_horizontal_scale, max_horizontal_scale,
                                         kth_closest_obs_horizontal_scale, vertical_scale,
-                                        get_unflagged(test_thresholds), debug);
+                                        get_unflagged(test_thresholds), debug, accept_isolated);
     merge(new_flags, indices);
 }
 
