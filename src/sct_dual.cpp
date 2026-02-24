@@ -94,7 +94,9 @@ ivec titanlib::sct_dual( const Points& points,
   
  + Returned values:
 
-  flags. -999 = not checked; 0 = passed (good); 1 = failed (bad); 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
+  flags. -999 = not checked; 0 = passed (good); 1 = failed (bad)
+         When accept_not_tested is true (default): isolated observations are flagged as 0 (good)
+         When accept_not_tested is false: 11 = isolated (<2 inside inner); 12 = isolated (<num_min_outer inside outer)
 
 */
 
@@ -1005,6 +1007,6 @@ bool sct_dual_core( const vec& lats,
     }
     
     // normal exit
-    return true;       
+    return true;
 
 }

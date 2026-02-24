@@ -102,7 +102,8 @@ class DatasetTest(unittest.TestCase):
         debug = False
         basic = False
 
-        expected_flags = np.array([12, 12,  0,  0,  0,  0,  0,  0,  0,  1])
+        # expected_flags = np.array([12, 12,  0,  0,  0,  0,  0,  0,  0,  1])
+        expected_flags = np.array([0, 0,  0,  0,  0,  0,  0,  0,  0,  1])
         dataset = titanlib.Dataset(points, values)
         dataset.sct_resistant(
                 obs_to_check,
