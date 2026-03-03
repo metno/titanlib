@@ -83,14 +83,11 @@ setup (
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
     ],
 
     # What does your project relate to?
@@ -104,7 +101,11 @@ setup (
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy<2'],
+    # TODO: Could introduce python version-specific numpy versions
+    # However, since the earliest precompiled numpy versions have been used when compiling gridpp,
+    # it is unlikely the user will have an older version of numpy
+    # install_requires=['numpy<=1.12.1; python_version < "3"'],
+    install_requires=['numpy'],
 
     test_suite="titanlib.tests",
     ext_modules = [module],

@@ -26,6 +26,6 @@ add_custom_target(package-python
 
     COMMAND ${SWIG_EXECUTABLE} -python -outdir ${CMAKE_CURRENT_BINARY_DIR} -c++ -I./include -o ${CMAKE_CURRENT_BINARY_DIR}/titanlibPYTHON_wrap.cxx ${SWIG_INTERFACE}
     # COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT} sdist --dist-dir ${CMAKE_BINARY_DIR}
-    COMMAND python ${SETUP_PY_OUT} sdist --dist-dir ${CMAKE_BINARY_DIR}
+    COMMAND python3 ${SETUP_PY_OUT} sdist --dist-dir ${CMAKE_BINARY_DIR}
     )
 # add_dependencies(package-python _titanlib2)
