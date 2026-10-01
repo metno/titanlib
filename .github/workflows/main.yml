@@ -4,17 +4,17 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-            python-version: '3.7'
+            python-version: '3.10'
       - name: dependencies
         run: |
             sudo apt update -qq
-            sudo apt install swig doxygen r-base-core libboost-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
+            sudo apt install -y swig doxygen r-base-core libboost-dev cmake libgsl-dev python3-setuptools python3-nose python3-numpy python3-scipy
       - name: configure
         run: mkdir build && cd build && cmake ..
       - name: build
