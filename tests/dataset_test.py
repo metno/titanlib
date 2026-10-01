@@ -190,6 +190,7 @@ class DatasetTest(unittest.TestCase):
                 tneg,
                 debug,
                 basic,
+                [-1],
                 accept_isolated
             )
         np.testing.assert_array_equal(dataset.get_flags(), expected_flags)
